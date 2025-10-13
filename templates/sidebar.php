@@ -53,6 +53,7 @@ function create_nav_item($link, $icon, $text, $current_page) {
             <?php create_nav_item('teacher_dashboard.php', 'fa-tachometer-alt', 'Dashboard', $current_page); ?>
             <?php create_nav_item('monitor_journals.php', 'fa-book-reader', 'Monitoring Jurnal', $current_page); ?>
             <?php create_nav_item('report_consultation.php', 'fa-file-alt', 'Konsultasi Laporan', $current_page); ?>
+            <?php create_nav_item('student_problems.php', 'fa-exclamation-triangle', 'Catatan Masalah Siswa', $current_page); ?>
         <?php endif; ?>
 
         <?php if ($user_role == 'instructor'): ?>
@@ -60,6 +61,7 @@ function create_nav_item($link, $icon, $text, $current_page) {
             <?php create_nav_item('verify_journals.php', 'fa-tasks', 'Verifikasi Jurnal', $current_page); ?>
             <?php create_nav_item('manage_leave_requests.php', 'fa-calendar-check', 'Persetujuan Izin/Cuti', $current_page); ?>
             <?php create_nav_item('input_assessment.php', 'fa-edit', 'Input Penilaian', $current_page); ?>
+            <?php create_nav_item('student_problems.php', 'fa-exclamation-triangle', 'Catatan Masalah Siswa', $current_page); ?>
         <?php endif; ?>
 
         <?php if ($user_role == 'student'): ?>

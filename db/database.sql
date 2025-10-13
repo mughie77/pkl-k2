@@ -249,6 +249,24 @@ INSERT INTO `school_settings` (`setting_key`, `setting_value`) VALUES
 ('school_address', 'Jl. Teknologi No. 404, Jakarta'),
 ('school_logo', NULL);
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `student_notes`
+--
+
+CREATE TABLE `student_notes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) NOT NULL,
+  `creator_id` int(11) NOT NULL,
+  `creator_role` enum('teacher','instructor') NOT NULL,
+  `note` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `student_id` (`student_id`),
+  CONSTRAINT `fk_note_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 COMMIT;
 
