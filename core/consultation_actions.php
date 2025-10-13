@@ -62,20 +62,25 @@ if ($user_role === 'student') {
 
                     if ($mapping) {
                         $teacher_id = $mapping['teacher_id'];
-                        $upload_dir = 'uploads/reports/';
-                        if (!is_dir($upload_dir)) {
-                            mkdir($upload_dir, 0777, true);
+
+                        // Define paths relative to the project root
+                        $upload_dir_relative = 'uploads/reports/';
+                        $upload_dir_absolute = dirname(__DIR__) . '/' . $upload_dir_relative;
+
+                        if (!is_dir($upload_dir_absolute)) {
+                            mkdir($upload_dir_absolute, 0777, true);
                         }
 
                         $file_name = time() . '_' . uniqid() . '_' . basename($_FILES['report_file']['name']);
-                        $file_path = $upload_dir . $file_name;
+                        $destination_absolute = $upload_dir_absolute . $file_name;
+                        $destination_relative_for_db = $upload_dir_relative . $file_name;
 
-                        if (move_uploaded_file($_FILES['report_file']['tmp_name'], '../' . $file_path)) {
+                        if (move_uploaded_file($_FILES['report_file']['tmp_name'], $destination_absolute)) {
                             $insert_stmt = $pdo->prepare("INSERT INTO report_consultations (student_id, teacher_id, file_path) VALUES (:student_id, :teacher_id, :file_path)");
                             $insert_stmt->execute([
                                 ':student_id' => $user_id,
                                 ':teacher_id' => $teacher_id,
-                                ':file_path' => $file_path
+                                ':file_path' => $destination_relative_for_db
                             ]);
                             set_flash_message('success', 'File laporan berhasil diunggah.');
                         } else {
