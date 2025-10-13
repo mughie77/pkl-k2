@@ -55,7 +55,12 @@ $is_dashboard_page = isset($_SESSION['user_id']);
         <?php endif; ?>
 
         <a class="navbar-brand fw-bold ms-2" href="<?php echo $is_dashboard_page ? '#' : 'login.php'; ?>">
-            <i class="fas fa-digital-tachograph"></i> PKL Digital
+            <?php if (!empty($app_settings['school_logo']) && file_exists($app_settings['school_logo'])): ?>
+                <img src="<?php echo BASE_URL . '/' . htmlspecialchars($app_settings['school_logo']); ?>" alt="Logo" style="height: 24px; margin-right: 5px;">
+            <?php else: ?>
+                <i class="fas fa-digital-tachograph"></i>
+            <?php endif; ?>
+            <?php echo htmlspecialchars($app_settings['school_name'] ?? 'PKL Digital'); ?>
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">

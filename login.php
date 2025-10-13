@@ -95,8 +95,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="login-container">
     <div class="card login-card shadow-lg">
         <div class="login-header">
-            <i class="fas fa-digital-tachograph"></i>
-            <h4 class="mb-0">Aplikasi PKL Digital</h4>
+            <?php if (!empty($app_settings['school_logo']) && file_exists($app_settings['school_logo'])): ?>
+                <img src="<?php echo BASE_URL . '/' . htmlspecialchars($app_settings['school_logo']); ?>" alt="Logo Sekolah" class="mb-3" style="max-height: 70px;">
+            <?php else: ?>
+                <i class="fas fa-digital-tachograph"></i>
+            <?php endif; ?>
+            <h4 class="mb-0"><?php echo htmlspecialchars($app_settings['school_name'] ?? 'Aplikasi PKL Digital'); ?></h4>
             <p class="mb-0 small">Silakan login untuk melanjutkan</p>
         </div>
         <div class="card-body p-4 p-md-5">

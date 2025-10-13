@@ -29,4 +29,21 @@ try {
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+
+// Load School Settings
+try {
+    $stmt = $pdo->query("SELECT setting_key, setting_value FROM school_settings");
+    $settings_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $app_settings = [];
+    foreach ($settings_raw as $setting) {
+        $app_settings[$setting['setting_key']] = $setting['setting_value'];
+    }
+} catch (PDOException $e) {
+    // Jika tabel belum ada (misalnya saat instalasi awal), set default kosong
+    $app_settings = [
+        'school_name' => 'PKL Digital',
+        'school_address' => 'Alamat Sekolah Belum Diatur',
+        'school_logo' => ''
+    ];
+}
 ?>
