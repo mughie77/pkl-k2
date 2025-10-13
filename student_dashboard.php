@@ -52,7 +52,7 @@ try {
 }
 ?>
 
-<div class="container-fluid student-dashboard">
+<div class="container-fluid student-dashboard content-wrapper student-view">
     <!-- Header Dashboard -->
     <div class="dashboard-header card p-3 mb-4 shadow-sm">
         <div class="d-flex justify-content-between align-items-center">

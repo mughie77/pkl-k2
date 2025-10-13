@@ -72,5 +72,4 @@ function create_nav_item($link, $icon, $text, $current_page) {
     </ul>
 </div>
 
-<!-- Content Wrapper -->
-<div class="content-wrapper p-4">
+<!-- Content Wrapper (moved to individual pages) -->

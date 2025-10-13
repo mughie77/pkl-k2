@@ -45,6 +45,7 @@ $is_dashboard_page = isset($_SESSION['user_id']);
 </head>
 <body class="<?php echo $is_dashboard_page ? 'dashboard-body' : ''; ?>">
 
+<?php if ($page_title !== "Siswa Dashboard"): // Sembunyikan navbar untuk siswa ?>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
     <div class="container-fluid">
         <?php if ($is_dashboard_page): ?>
@@ -85,5 +86,6 @@ $is_dashboard_page = isset($_SESSION['user_id']);
         </div>
     </div>
 </nav>
+<?php endif; ?>
 
-<div id="wrapper" class="d-flex">
+<div id="wrapper" class="<?php echo ($_SESSION['user_role'] ?? '') === 'student' ? '' : 'd-flex'; ?>">

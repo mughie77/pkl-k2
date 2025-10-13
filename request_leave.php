@@ -31,7 +31,7 @@ function get_status_badge($status) {
 }
 ?>
 
-<div class="container-fluid">
+<div class="container-fluid content-wrapper student-view">
     <h1 class="h3 mb-4 text-gray-800">Pengajuan Izin / Cuti</h1>
 
     <?php if (isset($_SESSION['flash_message'])): ?>
