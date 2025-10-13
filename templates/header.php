@@ -13,8 +13,13 @@ if (isset($_SESSION['user_role'])) {
     $role = ucwords(str_replace('_', ' ', $_SESSION['user_role']));
     $page_title = "$role Dashboard";
 } else {
-    $page_title = "Login - PKL Digital";
+    // Jika di halaman login, set judul spesifik
+    if ($current_page == 'login.php' || $current_page == 'hash_test.php') {
+        $page_title = "Tools - PKL Digital";
+    }
 }
+
+$is_dashboard_page = isset($_SESSION['user_id']);
 
 ?>
 <!DOCTYPE html>
@@ -34,27 +39,36 @@ if (isset($_SESSION['user_role'])) {
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/style.css">
 
 </head>
-<body class="bg-light">
+<body class="<?php echo $is_dashboard_page ? 'dashboard-body' : ''; ?>">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
     <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="#">
+        <?php if ($is_dashboard_page): ?>
+            <!-- Tombol Toggle Sidebar -->
+            <button class="btn btn-dark" id="sidebarToggle" type="button">
+                <i class="fas fa-bars"></i>
+            </button>
+        <?php endif; ?>
+
+        <a class="navbar-brand fw-bold ms-2" href="<?php echo $is_dashboard_page ? '#' : 'login.php'; ?>">
             <i class="fas fa-digital-tachograph"></i> PKL Digital
         </a>
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($_SESSION['user_name']); ?>
+                            <i class="fas fa-user-circle me-1"></i> <?php echo htmlspecialchars($_SESSION['user_name']); ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="#">Profil</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user-cog me-2"></i>Profil</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                            <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                         </ul>
                     </li>
                 <?php endif; ?>
@@ -63,4 +77,4 @@ if (isset($_SESSION['user_role'])) {
     </div>
 </nav>
 
-<div class="main-container d-flex">
+<div id="wrapper" class="d-flex">

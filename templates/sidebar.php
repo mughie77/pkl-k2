@@ -26,6 +26,7 @@ function create_nav_item($link, $icon, $text, $current_page) {
 
 ?>
 
+<!-- Sidebar -->
 <div class="sidebar bg-white p-3 shadow-sm">
     <h5 class="sidebar-heading text-center mb-4">Menu <?php echo ucwords(str_replace('_', ' ', $user_role)); ?></h5>
     <ul class="nav flex-column">
@@ -43,7 +44,6 @@ function create_nav_item($link, $icon, $text, $current_page) {
         <?php if ($user_role == 'teacher'): ?>
             <?php create_nav_item('teacher_dashboard.php', 'fa-tachometer-alt', 'Dashboard', $current_page); ?>
             <?php create_nav_item('monitor_journals.php', 'fa-book-reader', 'Monitoring Jurnal', $current_page); ?>
-            <?php create_nav_item('monitor_attendance.php', 'fa-calendar-check', 'Monitoring Absensi', $current_page); ?>
             <?php create_nav_item('report_consultation.php', 'fa-file-alt', 'Konsultasi Laporan', $current_page); ?>
         <?php endif; ?>
 
@@ -62,4 +62,6 @@ function create_nav_item($link, $icon, $text, $current_page) {
 
     </ul>
 </div>
+
+<!-- Content Wrapper -->
 <div class="content-wrapper p-4">
