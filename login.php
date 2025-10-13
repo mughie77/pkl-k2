@@ -13,31 +13,32 @@ $error_message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    $role = $_POST['role'] ?? '';
 
-    if (empty($username) || empty($password) || empty($role)) {
-        $error_message = 'Username, password, dan peran wajib diisi.';
+    if (empty($username) || empty($password)) {
+        $error_message = 'Username dan password wajib diisi.';
     } else {
-        // Tentukan tabel dan kolom username berdasarkan peran
-        $auth_config = [
+        // Daftar peran dan konfigurasi tabelnya
+        $roles_config = [
             'admin' => ['table' => 'admins', 'user_col' => 'username'],
             'teacher' => ['table' => 'teachers', 'user_col' => 'nip'],
             'instructor' => ['table' => 'instructors', 'user_col' => 'serial_number'],
             'student' => ['table' => 'students', 'user_col' => 'nisn']
         ];
 
-        if (!array_key_exists($role, $auth_config)) {
-            $error_message = 'Peran tidak valid.';
-        } else {
-            $table_name = $auth_config[$role]['table'];
-            $user_col = $auth_config[$role]['user_col'];
+        $user_found = false;
 
-            try {
+        try {
+            // Iterasi melalui setiap peran untuk mencari username
+            foreach ($roles_config as $role => $config) {
+                $table_name = $config['table'];
+                $user_col = $config['user_col'];
+
                 $stmt = $pdo->prepare("SELECT * FROM {$table_name} WHERE {$user_col} = :username");
                 $stmt->execute([':username' => $username]);
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
                 if ($user && password_verify($password, $user['password'])) {
+                    // Jika pengguna ditemukan dan password cocok
                     session_regenerate_id(true);
 
                     $_SESSION['user_id'] = $user['id'];
@@ -49,14 +50,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['user_email'] = $user['email'];
                     }
 
+                    $user_found = true;
                     header("Location: {$role}_dashboard.php");
                     exit;
-                } else {
-                    $error_message = 'Username atau password salah.';
                 }
-            } catch (PDOException $e) {
-                $error_message = 'Terjadi kesalahan pada server. Silakan coba lagi nanti.';
             }
+
+            // Jika setelah iterasi pengguna tidak ditemukan
+            if (!$user_found) {
+                $error_message = 'Username atau password salah.';
+            }
+
+        } catch (PDOException $e) {
+            $error_message = 'Terjadi kesalahan pada server. Silakan coba lagi nanti.';
         }
     }
 }
@@ -101,22 +107,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
             <form action="login.php" method="POST" novalidate>
                 <div class="mb-3">
-                    <label for="role" class="form-label">Login Sebagai:</label>
-                    <select class="form-select" id="role" name="role" required>
-                        <option value="" disabled selected>-- Pilih Peran --</option>
-                        <option value="student">Siswa</option>
-                        <option value="instructor">Instruktur DUDIKA</option>
-                        <option value="teacher">Guru Pembimbing</option>
-                        <option value="admin">Admin Sekolah</option>
-                    </select>
-                </div>
-                <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-user"></i></span>
                         <input type="text" class="form-control" id="username" name="username" placeholder="Masukkan username Anda" required>
                     </div>
-                    <small class="form-text text-muted">Siswa: NISN, Guru: NIP, Instruktur: No. Seri</small>
+                    <small class="form-text text-muted">Contoh: admin, NISN, NIP, atau No. Seri</small>
                 </div>
                 <div class="mb-4">
                     <label for="password" class="form-label">Password</label>
