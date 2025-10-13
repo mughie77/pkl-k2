@@ -1,0 +1,104 @@
+<?php
+require_once __DIR__ . '/../config/config.php';
+
+// Keamanan: Pastikan hanya admin yang bisa mengakses
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+    $_SESSION['flash_message'] = ['type' => 'danger', 'message' => 'Akses ditolak.'];
+    header("Location: ../login.php");
+    exit;
+}
+
+function set_flash_message($type, $message) {
+    $_SESSION['flash_message'] = ['type' => $type, 'message' => $message];
+}
+
+function redirect_to_manage_companies() {
+    header("Location: ../manage_companies.php");
+    exit;
+}
+
+// Logika utama
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    // Aksi: Tambah DUDIKA (Create)
+    if ($action === 'create') {
+        $name = trim($_POST['name']);
+        $address = trim($_POST['address']);
+        $contact_person = trim($_POST['contact_person']);
+        $contact_email = filter_input(INPUT_POST, 'contact_email', FILTER_VALIDATE_EMAIL);
+
+        if (empty($name)) {
+            set_flash_message('danger', 'Nama DUDIKA wajib diisi.');
+            redirect_to_manage_companies();
+        }
+
+        try {
+            $stmt = $pdo->prepare("INSERT INTO companies (name, address, contact_person, contact_email) VALUES (:name, :address, :contact_person, :contact_email)");
+            $stmt->execute([
+                ':name' => $name,
+                ':address' => $address,
+                ':contact_person' => $contact_person,
+                ':contact_email' => $contact_email
+            ]);
+            set_flash_message('success', 'Data DUDIKA berhasil ditambahkan.');
+        } catch (PDOException $e) {
+            set_flash_message('danger', 'Terjadi kesalahan saat menambahkan data: ' . $e->getMessage());
+        }
+        redirect_to_manage_companies();
+    }
+
+    // Aksi: Perbarui DUDIKA (Update)
+    if ($action === 'update') {
+        $company_id = $_POST['company_id'];
+        $name = trim($_POST['name']);
+        $address = trim($_POST['address']);
+        $contact_person = trim($_POST['contact_person']);
+        $contact_email = filter_input(INPUT_POST, 'contact_email', FILTER_VALIDATE_EMAIL);
+
+        if (empty($company_id) || empty($name)) {
+            set_flash_message('danger', 'Nama DUDIKA wajib diisi.');
+            redirect_to_manage_companies();
+        }
+
+        try {
+            $stmt = $pdo->prepare("UPDATE companies SET name = :name, address = :address, contact_person = :contact_person, contact_email = :contact_email WHERE id = :id");
+            $stmt->execute([
+                ':name' => $name,
+                ':address' => $address,
+                ':contact_person' => $contact_person,
+                ':contact_email' => $contact_email,
+                ':id' => $company_id
+            ]);
+            set_flash_message('success', 'Data DUDIKA berhasil diperbarui.');
+        } catch (PDOException $e) {
+            set_flash_message('danger', 'Terjadi kesalahan saat memperbarui data: ' . $e->getMessage());
+        }
+        redirect_to_manage_companies();
+    }
+}
+
+// Aksi: Hapus DUDIKA (Delete)
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete') {
+    $company_id = $_GET['id'] ?? null;
+
+    if (empty($company_id)) {
+        set_flash_message('danger', 'ID DUDIKA tidak valid.');
+        redirect_to_manage_companies();
+    }
+
+    try {
+        // Menggunakan ON DELETE CASCADE di database, jadi instruktur terkait akan terhapus otomatis.
+        $stmt = $pdo->prepare("DELETE FROM companies WHERE id = :id");
+        $stmt->execute([':id' => $company_id]);
+        set_flash_message('success', 'Data DUDIKA dan semua instruktur terkait berhasil dihapus.');
+    } catch (PDOException $e) {
+        set_flash_message('danger', 'Gagal menghapus data DUDIKA. Mungkin data ini terkait dengan data lain yang tidak bisa dihapus secara otomatis.');
+    }
+    redirect_to_manage_companies();
+}
+
+// Fallback
+set_flash_message('warning', 'Aksi tidak diketahui.');
+redirect_to_manage_companies();
+?>
