@@ -46,7 +46,6 @@ try {
                             <th>Nama DUDIKA</th>
                             <th>Alamat</th>
                             <th>Narahubung</th>
-                            <th>Email Kontak</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -58,14 +57,12 @@ try {
                                     <td><?php echo htmlspecialchars($company['name']); ?></td>
                                     <td><?php echo htmlspecialchars($company['address']); ?></td>
                                     <td><?php echo htmlspecialchars($company['contact_person']); ?></td>
-                                    <td><?php echo htmlspecialchars($company['contact_email']); ?></td>
                                     <td>
                                         <button class="btn btn-warning btn-sm edit-btn"
                                                 data-id="<?php echo $company['id']; ?>"
                                                 data-name="<?php echo htmlspecialchars($company['name']); ?>"
                                                 data-address="<?php echo htmlspecialchars($company['address']); ?>"
                                                 data-contact_person="<?php echo htmlspecialchars($company['contact_person']); ?>"
-                                                data-contact_email="<?php echo htmlspecialchars($company['contact_email']); ?>"
                                                 data-bs-toggle="modal" data-bs-target="#companyModal">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -79,7 +76,7 @@ try {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6" class="text-center">Belum ada data DUDIKA.</td>
+                                <td colspan="5" class="text-center">Belum ada data DUDIKA.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -114,9 +111,6 @@ try {
                         <label for="contact_person" class="form-label">Narahubung (Contact Person)</label>
                         <input type="text" class="form-control" id="contact_person" name="contact_person">
                     </div>
-                    <div class="mb-3">
-                        <label for="contact_email" class="form-label">Email Kontak</label>
-                        <input type="email" class="form-control" id="contact_email" name="contact_email">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -146,7 +140,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('name').value = button.dataset.name;
             document.getElementById('address').value = button.dataset.address;
             document.getElementById('contact_person').value = button.dataset.contact_person;
-            document.getElementById('contact_email').value = button.dataset.contact_email;
         } else {
             modalTitle.textContent = 'Tambah DUDIKA Baru';
             actionInput.value = 'create';

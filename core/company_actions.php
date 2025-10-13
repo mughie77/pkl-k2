@@ -26,7 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name']);
         $address = trim($_POST['address']);
         $contact_person = trim($_POST['contact_person']);
-        $contact_email = filter_input(INPUT_POST, 'contact_email', FILTER_VALIDATE_EMAIL);
 
         if (empty($name)) {
             set_flash_message('danger', 'Nama DUDIKA wajib diisi.');
@@ -34,12 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         try {
-            $stmt = $pdo->prepare("INSERT INTO companies (name, address, contact_person, contact_email) VALUES (:name, :address, :contact_person, :contact_email)");
+            $stmt = $pdo->prepare("INSERT INTO companies (name, address, contact_person) VALUES (:name, :address, :contact_person)");
             $stmt->execute([
                 ':name' => $name,
                 ':address' => $address,
-                ':contact_person' => $contact_person,
-                ':contact_email' => $contact_email
+                ':contact_person' => $contact_person
             ]);
             set_flash_message('success', 'Data DUDIKA berhasil ditambahkan.');
         } catch (PDOException $e) {
@@ -54,7 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name']);
         $address = trim($_POST['address']);
         $contact_person = trim($_POST['contact_person']);
-        $contact_email = filter_input(INPUT_POST, 'contact_email', FILTER_VALIDATE_EMAIL);
 
         if (empty($company_id) || empty($name)) {
             set_flash_message('danger', 'Nama DUDIKA wajib diisi.');
@@ -62,12 +59,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         try {
-            $stmt = $pdo->prepare("UPDATE companies SET name = :name, address = :address, contact_person = :contact_person, contact_email = :contact_email WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE companies SET name = :name, address = :address, contact_person = :contact_person WHERE id = :id");
             $stmt->execute([
                 ':name' => $name,
                 ':address' => $address,
                 ':contact_person' => $contact_person,
-                ':contact_email' => $contact_email,
                 ':id' => $company_id
             ]);
             set_flash_message('success', 'Data DUDIKA berhasil diperbarui.');
