@@ -201,6 +201,30 @@ CREATE TABLE `report_consultations` (
   CONSTRAINT `fk_consultation_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `school_settings`
+--
+
+CREATE TABLE `school_settings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `setting_key` varchar(100) NOT NULL,
+  `setting_value` text DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `setting_key` (`setting_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `school_settings`
+--
+
+INSERT INTO `school_settings` (`setting_key`, `setting_value`) VALUES
+('school_name', 'SMK Coding Hebat'),
+('school_address', 'Jl. Teknologi No. 404, Jakarta'),
+('school_logo', NULL);
+
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

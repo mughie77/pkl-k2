@@ -39,6 +39,7 @@ function create_nav_item($link, $icon, $text, $current_page) {
             <?php create_nav_item('manage_instructors.php', 'fa-user-tie', 'Manajemen Instruktur', $current_page); ?>
             <?php create_nav_item('internship_mapping.php', 'fa-project-diagram', 'Mapping PKL', $current_page); ?>
             <?php create_nav_item('global_recap.php', 'fa-file-invoice', 'Rekapitulasi Global', $current_page); ?>
+            <?php create_nav_item('school_settings.php', 'fa-cogs', 'Pengaturan Sekolah', $current_page); ?>
         <?php endif; ?>
 
         <?php if ($user_role == 'teacher'): ?>
