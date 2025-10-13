@@ -58,6 +58,21 @@ try {
                     <?php if ($user_role === 'student'): ?>
                         <p><strong>Jurusan:</strong> <?php echo htmlspecialchars($user_info['department']); ?></p>
                         <p><strong>Email:</strong> <?php echo htmlspecialchars($user_info['email'] ?? '-'); ?></p>
+                        <hr>
+                        <form action="core/profile_actions.php" method="POST">
+                            <input type="hidden" name="action" value="update_work_hours">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="work_start_time" class="form-label">Jam Mulai Kerja</label>
+                                    <input type="time" class="form-control" name="work_start_time" id="work_start_time" value="<?php echo htmlspecialchars($user_info['work_start_time']); ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="work_end_time" class="form-label">Jam Selesai Kerja</label>
+                                    <input type="time" class="form-control" name="work_end_time" id="work_end_time" value="<?php echo htmlspecialchars($user_info['work_end_time']); ?>">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-info btn-sm"><i class="fas fa-save me-2"></i>Simpan Jam Kerja</button>
+                        </form>
                     <?php elseif ($user_role === 'teacher'): ?>
                         <p><strong>Bidang:</strong> <?php echo htmlspecialchars($user_info['department']); ?></p>
                     <?php elseif ($user_role === 'instructor'): ?>
@@ -97,5 +112,9 @@ try {
 </div>
 
 <?php
+// Karena siswa tidak punya sidebar, div penutupnya harus ada di sini
+if ($_SESSION['user_role'] === 'student') {
+    echo '</div>';
+}
 require_once __DIR__ . '/templates/footer.php';
 ?>

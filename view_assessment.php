@@ -151,5 +151,9 @@ document.addEventListener('DOMContentLoaded', function() {
 <?php endif; ?>
 
 <?php
+// Karena siswa tidak punya sidebar, div penutupnya harus ada di sini
+if ($_SESSION['user_role'] === 'student') {
+    echo '</div>';
+}
 require_once __DIR__ . '/templates/footer.php';
 ?>

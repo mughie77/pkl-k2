@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/templates/header.php';
-require_once __DIR__ . '/templates/sidebar.php'; // Sidebar tetap ada untuk navigasi di desktop
+require_once __DIR__ . '/templates/sidebar.php'; // Sidebar akan otomatis di-handle
 
 // Proteksi halaman
 if ($_SESSION['user_role'] !== 'student') {
@@ -26,6 +26,11 @@ if ($hour >= 18) {
 }
 
 try {
+    // Ambil data siswa termasuk jam kerja
+    $stmt_student = $pdo->prepare("SELECT work_start_time, work_end_time FROM students WHERE id = :id");
+    $stmt_student->execute([':id' => $student_id]);
+    $student_data = $stmt_student->fetch(PDO::FETCH_ASSOC);
+
     // Ambil data absensi hari ini
     $stmt_today = $pdo->prepare("SELECT check_in_time, check_out_time FROM internship_journals WHERE student_id = :student_id AND journal_date = :today");
     $stmt_today->execute([':student_id' => $student_id, ':today' => $today]);
@@ -58,7 +63,10 @@ try {
             </div>
             <div class="text-end">
                 <p class="text-muted mb-0">Jam Kerja</p>
-                <h5 class="fw-bold mb-0">08:00 - 16:00</h5>
+                <h5 class="fw-bold mb-0">
+                    <?php echo date('H:i', strtotime($student_data['work_start_time'])); ?> -
+                    <?php echo date('H:i', strtotime($student_data['work_end_time'])); ?>
+                </h5>
             </div>
         </div>
     </div>
@@ -72,21 +80,21 @@ try {
             </a>
         </div>
         <div class="col">
-            <a href="#" class="icon-menu-item disabled">
+            <a href="request_leave.php" class="icon-menu-item">
                 <div class="icon-circle bg-warning text-white"><i class="fas fa-file-alt"></i></div>
                 <span class="icon-label">Izin</span>
             </a>
         </div>
         <div class="col">
-            <a href="#" class="icon-menu-item disabled">
+            <a href="request_leave.php?type=Cuti" class="icon-menu-item">
                 <div class="icon-circle bg-primary text-white"><i class="fas fa-calendar-times"></i></div>
                 <span class="icon-label">Cuti</span>
             </a>
         </div>
         <div class="col">
-            <a href="daily_journal.php" class="icon-menu-item">
-                <div class="icon-circle bg-info text-white"><i class="fas fa-history"></i></div>
-                <span class="icon-label">History</span>
+            <a href="upload_report.php" class="icon-menu-item">
+                <div class="icon-circle bg-info text-white"><i class="fas fa-file-upload"></i></div>
+                <span class="icon-label">Unggah Laporan</span>
             </a>
         </div>
         <div class="col">
@@ -154,5 +162,9 @@ try {
 </div>
 
 <?php
+// Karena siswa tidak punya sidebar, div penutupnya harus ada di sini
+if ($_SESSION['user_role'] === 'student') {
+    echo '</div>';
+}
 require_once __DIR__ . '/templates/footer.php';
 ?>

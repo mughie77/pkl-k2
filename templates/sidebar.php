@@ -12,6 +12,13 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
 }
 
 $user_role = $_SESSION['user_role'];
+
+// Jangan tampilkan sidebar untuk siswa
+if ($user_role === 'student') {
+    // Siswa tidak menggunakan sidebar, hanya konten utama
+    echo '<div class="content-wrapper p-3 p-md-4" style="width: 100%;">'; // Wrapper konten full-width
+    return;
+}
 $current_page = basename($_SERVER['PHP_SELF']);
 
 // Fungsi untuk membuat item menu
@@ -51,6 +58,7 @@ function create_nav_item($link, $icon, $text, $current_page) {
         <?php if ($user_role == 'instructor'): ?>
             <?php create_nav_item('instructor_dashboard.php', 'fa-tachometer-alt', 'Dashboard', $current_page); ?>
             <?php create_nav_item('verify_journals.php', 'fa-tasks', 'Verifikasi Jurnal', $current_page); ?>
+            <?php create_nav_item('manage_leave_requests.php', 'fa-calendar-check', 'Persetujuan Izin/Cuti', $current_page); ?>
             <?php create_nav_item('input_assessment.php', 'fa-edit', 'Input Penilaian', $current_page); ?>
         <?php endif; ?>
 

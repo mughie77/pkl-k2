@@ -29,7 +29,7 @@ try {
     $query = "
         SELECT
             j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
-            s.name as student_name
+            s.name as student_name, s.work_start_time, s.work_end_time
         FROM internship_journals j
         JOIN students s ON j.student_id = s.id
         JOIN internship_mappings m ON j.student_id = m.student_id
@@ -119,6 +119,7 @@ function get_status_badge($status) {
                         <tr>
                             <th>Tanggal</th>
                             <th>Nama Siswa</th>
+                            <th>Jam Kerja</th>
                             <th>Absensi (Check-in)</th>
                             <th>Status Jurnal</th>
                             <th>Aksi</th>
@@ -130,6 +131,7 @@ function get_status_badge($status) {
                                 <tr>
                                     <td><?php echo date('d M Y', strtotime($journal['journal_date'])); ?></td>
                                     <td><?php echo htmlspecialchars($journal['student_name']); ?></td>
+                                    <td><?php echo date('H:i', strtotime($journal['work_start_time'])) . ' - ' . date('H:i', strtotime($journal['work_end_time'])); ?></td>
                                     <td><?php echo $journal['check_in_time'] ? date('H:i', strtotime($journal['check_in_time'])) : '<span class="badge bg-secondary">N/A</span>'; ?></td>
                                     <td>
                                         <span class="badge <?php echo get_status_badge($journal['status']); ?>">
@@ -149,7 +151,7 @@ function get_status_badge($status) {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="text-center">Tidak ada data yang cocok dengan filter yang diterapkan.</td>
+                                <td colspan="6" class="text-center">Tidak ada data yang cocok dengan filter yang diterapkan.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
