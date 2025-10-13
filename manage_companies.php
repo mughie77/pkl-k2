@@ -111,7 +111,6 @@ try {
                         <label for="contact_person" class="form-label">Narahubung (Contact Person)</label>
                         <input type="text" class="form-control" id="contact_person" name="contact_person">
                     </div>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
