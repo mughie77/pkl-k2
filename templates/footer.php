@@ -18,6 +18,10 @@ if ($user_role === 'student') :
             <i class="fas fa-calendar-alt"></i>
             <span>Izin</span>
         </a>
+        <a href="view_assessment.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'view_assessment.php' ? 'active' : ''; ?>">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Nilai</span>
+        </a>
         <a href="upload_report.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'upload_report.php' ? 'active' : ''; ?>">
             <i class="fas fa-file-upload"></i>
             <span>Laporan</span>

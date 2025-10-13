@@ -72,7 +72,7 @@ try {
     </div>
 
     <!-- Menu Ikon -->
-    <div class="row text-center g-3 mb-4">
+    <div class="row row-cols-3 row-cols-md-6 text-center g-3 mb-4">
         <div class="col">
             <a href="daily_journal.php" class="icon-menu-item">
                 <div class="icon-circle bg-danger text-white"><i class="fas fa-qrcode"></i></div>
@@ -92,9 +92,15 @@ try {
             </a>
         </div>
         <div class="col">
+            <a href="view_assessment.php" class="icon-menu-item">
+                <div class="icon-circle bg-purple text-white"><i class="fas fa-graduation-cap"></i></div>
+                <span class="icon-label">Nilai</span>
+            </a>
+        </div>
+        <div class="col">
             <a href="upload_report.php" class="icon-menu-item">
                 <div class="icon-circle bg-info text-white"><i class="fas fa-file-upload"></i></div>
-                <span class="icon-label">Unggah Laporan</span>
+                <span class="icon-label">Laporan</span>
             </a>
         </div>
         <div class="col">
