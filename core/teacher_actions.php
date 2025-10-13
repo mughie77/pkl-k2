@@ -24,29 +24,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Aksi: Tambah Guru (Create)
     if ($action === 'create') {
         $name = trim($_POST['name']);
-        $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+        $nip = trim($_POST['nip']);
         $department = trim($_POST['department']);
-        $password = $_POST['password'];
 
-        if (empty($name) || empty($email) || empty($department) || empty($password)) {
+        if (empty($name) || empty($nip) || empty($department)) {
             set_flash_message('danger', 'Semua kolom wajib diisi.');
             redirect_to_manage_teachers();
         }
 
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        // Password di-hash dari NIP
+        $hashed_password = password_hash($nip, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $pdo->prepare("INSERT INTO teachers (name, email, department, password) VALUES (:name, :email, :department, :password)");
+            $stmt = $pdo->prepare("INSERT INTO teachers (name, nip, department, password) VALUES (:name, :nip, :department, :password)");
             $stmt->execute([
                 ':name' => $name,
-                ':email' => $email,
+                ':nip' => $nip,
                 ':department' => $department,
                 ':password' => $hashed_password
             ]);
-            set_flash_message('success', 'Data guru berhasil ditambahkan.');
+            set_flash_message('success', 'Data guru berhasil ditambahkan. Username & Password default adalah NIP.');
         } catch (PDOException $e) {
             if ($e->getCode() == 23000) {
-                set_flash_message('danger', 'Gagal menambahkan data. Email sudah terdaftar.');
+                set_flash_message('danger', 'Gagal menambahkan data. NIP sudah terdaftar.');
             } else {
                 set_flash_message('danger', 'Terjadi kesalahan: ' . $e->getMessage());
             }
@@ -58,39 +58,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'update') {
         $teacher_id = $_POST['teacher_id'];
         $name = trim($_POST['name']);
-        $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+        $nip = trim($_POST['nip']);
         $department = trim($_POST['department']);
-        $password = $_POST['password'];
 
-        if (empty($teacher_id) || empty($name) || empty($email) || empty($department)) {
-            set_flash_message('danger', 'Semua kolom (kecuali password) wajib diisi.');
+        if (empty($teacher_id) || empty($name) || empty($nip) || empty($department)) {
+            set_flash_message('danger', 'Semua kolom wajib diisi.');
             redirect_to_manage_teachers();
         }
 
+        // Password di-hash ulang dari NIP yang baru
+        $hashed_password = password_hash($nip, PASSWORD_DEFAULT);
+
         try {
-            if (!empty($password)) {
-                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("UPDATE teachers SET name = :name, email = :email, department = :department, password = :password WHERE id = :id");
-                $stmt->execute([
-                    ':name' => $name,
-                    ':email' => $email,
-                    ':department' => $department,
-                    ':password' => $hashed_password,
-                    ':id' => $teacher_id
-                ]);
-            } else {
-                $stmt = $pdo->prepare("UPDATE teachers SET name = :name, email = :email, department = :department WHERE id = :id");
-                $stmt->execute([
-                    ':name' => $name,
-                    ':email' => $email,
-                    ':department' => $department,
-                    ':id' => $teacher_id
-                ]);
-            }
-            set_flash_message('success', 'Data guru berhasil diperbarui.');
+            $stmt = $pdo->prepare("UPDATE teachers SET name = :name, nip = :nip, department = :department, password = :password WHERE id = :id");
+            $stmt->execute([
+                ':name' => $name,
+                ':nip' => $nip,
+                ':department' => $department,
+                ':password' => $hashed_password,
+                ':id' => $teacher_id
+            ]);
+            set_flash_message('success', 'Data guru berhasil diperbarui. Username & Password direset sesuai NIP.');
         } catch (PDOException $e) {
             if ($e->getCode() == 23000) {
-                set_flash_message('danger', 'Gagal memperbarui data. Email sudah digunakan oleh guru lain.');
+                set_flash_message('danger', 'Gagal memperbarui data. NIP sudah digunakan oleh guru lain.');
             } else {
                 set_flash_message('danger', 'Terjadi kesalahan: ' . $e->getMessage());
             }

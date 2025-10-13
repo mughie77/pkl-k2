@@ -44,7 +44,7 @@ try {
                         <tr>
                             <th>#</th>
                             <th>Nama Lengkap</th>
-                            <th>Email</th>
+                            <th>NIP (Username)</th>
                             <th>Jurusan/Bidang</th>
                             <th>Aksi</th>
                         </tr>
@@ -55,13 +55,13 @@ try {
                                 <tr>
                                     <td><?php echo $index + 1; ?></td>
                                     <td><?php echo htmlspecialchars($teacher['name']); ?></td>
-                                    <td><?php echo htmlspecialchars($teacher['email']); ?></td>
+                                    <td><?php echo htmlspecialchars($teacher['nip']); ?></td>
                                     <td><?php echo htmlspecialchars($teacher['department']); ?></td>
                                     <td>
                                         <button class="btn btn-warning btn-sm edit-btn"
                                                 data-id="<?php echo $teacher['id']; ?>"
                                                 data-name="<?php echo htmlspecialchars($teacher['name']); ?>"
-                                                data-email="<?php echo htmlspecialchars($teacher['email']); ?>"
+                                                data-nip="<?php echo htmlspecialchars($teacher['nip']); ?>"
                                                 data-department="<?php echo htmlspecialchars($teacher['department']); ?>"
                                                 data-bs-toggle="modal" data-bs-target="#teacherModal">
                                             <i class="fas fa-edit"></i>
@@ -104,17 +104,13 @@ try {
                         <input type="text" class="form-control" id="name" name="name" required>
                     </div>
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+                        <label for="nip" class="form-label">NIP (Nomor Induk Pegawai)</label>
+                        <input type="text" class="form-control" id="nip" name="nip" required>
+                        <small class="form-text text-muted">NIP akan digunakan sebagai username dan password default.</small>
                     </div>
                     <div class="mb-3">
                         <label for="department" class="form-label">Jurusan/Bidang Keahlian</label>
                         <input type="text" class="form-control" id="department" name="department" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password">
-                        <small class="form-text text-muted">Kosongkan jika tidak ingin mengubah password.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -135,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('teacherForm');
         const actionInput = document.getElementById('form_action');
         const teacherIdInput = document.getElementById('teacher_id');
-        const passwordInput = document.getElementById('password');
 
         if (button.classList.contains('edit-btn')) {
             modalTitle.textContent = 'Edit Data Guru';
@@ -143,18 +138,13 @@ document.addEventListener('DOMContentLoaded', function() {
             teacherIdInput.value = button.dataset.id;
 
             document.getElementById('name').value = button.dataset.name;
-            document.getElementById('email').value = button.dataset.email;
+            document.getElementById('nip').value = button.dataset.nip;
             document.getElementById('department').value = button.dataset.department;
-            passwordInput.placeholder = "Kosongkan jika tidak ingin mengubah";
-            passwordInput.required = false;
-
         } else {
             modalTitle.textContent = 'Tambah Guru Baru';
             actionInput.value = 'create';
             form.reset();
             teacherIdInput.value = '';
-            passwordInput.placeholder = "";
-            passwordInput.required = true;
         }
     });
 });

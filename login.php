@@ -11,57 +11,55 @@ if (isset($_SESSION['user_id'])) {
 $error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+    $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     $role = $_POST['role'] ?? '';
 
-    if (!$email || !$password || !$role) {
-        $error_message = 'Email, password, dan peran wajib diisi.';
+    if (empty($username) || empty($password) || empty($role)) {
+        $error_message = 'Username, password, dan peran wajib diisi.';
     } else {
-        // Tentukan tabel berdasarkan peran
-        $table_map = [
-            'admin' => 'admins',
-            'teacher' => 'teachers',
-            'instructor' => 'instructors',
-            'student' => 'students'
+        // Tentukan tabel dan kolom username berdasarkan peran
+        $auth_config = [
+            'admin' => ['table' => 'admins', 'user_col' => 'username'],
+            'teacher' => ['table' => 'teachers', 'user_col' => 'nip'],
+            'instructor' => ['table' => 'instructors', 'user_col' => 'serial_number'],
+            'student' => ['table' => 'students', 'user_col' => 'nisn']
         ];
 
-        if (!array_key_exists($role, $table_map)) {
+        if (!array_key_exists($role, $auth_config)) {
             $error_message = 'Peran tidak valid.';
         } else {
-            $table_name = $table_map[$role];
+            $table_name = $auth_config[$role]['table'];
+            $user_col = $auth_config[$role]['user_col'];
 
             try {
-                $stmt = $pdo->prepare("SELECT * FROM {$table_name} WHERE email = :email");
-                $stmt->execute(['email' => $email]);
+                $stmt = $pdo->prepare("SELECT * FROM {$table_name} WHERE {$user_col} = :username");
+                $stmt->execute([':username' => $username]);
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
                 if ($user && password_verify($password, $user['password'])) {
-                    // Regenerasi session ID untuk keamanan
                     session_regenerate_id(true);
 
-                    // Simpan data pengguna ke sesi
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['user_name'] = $user['name'];
-                    $_SESSION['user_email'] = $user['email'];
                     $_SESSION['user_role'] = $role;
 
-                    // Arahkan ke dashboard yang sesuai
+                    // Simpan email jika ada (untuk siswa)
+                    if ($role === 'student' && isset($user['email'])) {
+                        $_SESSION['user_email'] = $user['email'];
+                    }
+
                     header("Location: {$role}_dashboard.php");
                     exit;
                 } else {
-                    $error_message = 'Email atau password salah.';
+                    $error_message = 'Username atau password salah.';
                 }
             } catch (PDOException $e) {
                 $error_message = 'Terjadi kesalahan pada server. Silakan coba lagi nanti.';
-                // Log the error: error_log($e->getMessage());
             }
         }
     }
 }
-
-// Halaman login tidak menggunakan sidebar, jadi kita panggil header dan footer secara manual
-// tanpa memasukkan bagian utama yang membutuhkan sidebar.
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -73,13 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        /* Override untuk halaman login agar tidak ada gradasi */
-        .login-container {
-            background: var(--light-color);
-        }
-        .login-card {
-            border: 1px solid #dee2e6;
-        }
+        .login-container { background: var(--light-color); }
+        .login-card { border: 1px solid #dee2e6; }
         .login-header {
             background-color: var(--dark-color);
             color: var(--white-color);
@@ -88,10 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 1.5rem;
             text-align: center;
         }
-        .login-header .fas {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
+        .login-header .fas { font-size: 2rem; margin-bottom: 0.5rem; }
     </style>
 </head>
 <body>
@@ -121,11 +111,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label for="email" class="form-label">Email</label>
+                    <label for="username" class="form-label">Username</label>
                     <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                        <input type="email" class="form-control" id="email" name="email" placeholder="contoh@email.com" required>
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Masukkan username Anda" required>
                     </div>
+                    <small class="form-text text-muted">Siswa: NISN, Guru: NIP, Instruktur: No. Seri</small>
                 </div>
                 <div class="mb-4">
                     <label for="password" class="form-label">Password</label>

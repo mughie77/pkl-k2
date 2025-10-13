@@ -8,14 +8,29 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     exit;
 }
 
-function set_flash_message($type, $message) {
+function set_flash_message($type, $message, $serial_number = null) {
     $_SESSION['flash_message'] = ['type' => $type, 'message' => $message];
+    if ($serial_number) {
+        $_SESSION['flash_message']['serial_number'] = $serial_number;
+    }
 }
 
 function redirect_to_manage_instructors() {
     header("Location: ../manage_instructors.php");
     exit;
 }
+
+// Fungsi untuk generate nomor seri unik
+function generate_serial_number($pdo) {
+    do {
+        // Format: DDK- seguito da 8 caratteri alfanumerici casuali
+        $serial = 'DDK-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM instructors WHERE serial_number = :serial");
+        $stmt->execute([':serial' => $serial]);
+    } while ($stmt->fetchColumn() > 0);
+    return $serial;
+}
+
 
 // Logika utama
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -24,81 +39,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Aksi: Tambah Instruktur (Create)
     if ($action === 'create') {
         $name = trim($_POST['name']);
-        $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
         $company_id = $_POST['company_id'];
         $position = trim($_POST['position']);
-        $password = $_POST['password'];
 
-        if (empty($name) || empty($email) || empty($company_id) || empty($password)) {
-            set_flash_message('danger', 'Nama, email, DUDIKA, dan password wajib diisi.');
+        if (empty($name) || empty($company_id)) {
+            set_flash_message('danger', 'Nama dan DUDIKA wajib diisi.');
             redirect_to_manage_instructors();
         }
 
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        $serial_number = generate_serial_number($pdo);
+        $hashed_password = password_hash($serial_number, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $pdo->prepare("INSERT INTO instructors (name, email, company_id, position, password) VALUES (:name, :email, :company_id, :position, :password)");
+            $stmt = $pdo->prepare("INSERT INTO instructors (name, company_id, position, serial_number, password) VALUES (:name, :company_id, :position, :serial_number, :password)");
             $stmt->execute([
                 ':name' => $name,
-                ':email' => $email,
                 ':company_id' => $company_id,
                 ':position' => $position,
+                ':serial_number' => $serial_number,
                 ':password' => $hashed_password
             ]);
-            set_flash_message('success', 'Data instruktur berhasil ditambahkan.');
+            set_flash_message('success', 'Data instruktur berhasil ditambahkan.', $serial_number);
         } catch (PDOException $e) {
-            if ($e->getCode() == 23000) {
-                set_flash_message('danger', 'Gagal menambahkan data. Email sudah terdaftar.');
-            } else {
-                set_flash_message('danger', 'Terjadi kesalahan: ' . $e->getMessage());
-            }
+            set_flash_message('danger', 'Terjadi kesalahan: ' . $e->getMessage());
         }
         redirect_to_manage_instructors();
     }
 
     // Aksi: Perbarui Instruktur (Update)
+    // Tidak mengubah nomor seri atau password, hanya data lainnya.
     if ($action === 'update') {
         $instructor_id = $_POST['instructor_id'];
         $name = trim($_POST['name']);
-        $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
         $company_id = $_POST['company_id'];
         $position = trim($_POST['position']);
-        $password = $_POST['password'];
 
-        if (empty($instructor_id) || empty($name) || empty($email) || empty($company_id)) {
-            set_flash_message('danger', 'Nama, email, dan DUDIKA wajib diisi.');
+        if (empty($instructor_id) || empty($name) || empty($company_id)) {
+            set_flash_message('danger', 'Nama dan DUDIKA wajib diisi.');
             redirect_to_manage_instructors();
         }
 
         try {
-            if (!empty($password)) {
-                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("UPDATE instructors SET name = :name, email = :email, company_id = :company_id, position = :position, password = :password WHERE id = :id");
-                $stmt->execute([
-                    ':name' => $name,
-                    ':email' => $email,
-                    ':company_id' => $company_id,
-                    ':position' => $position,
-                    ':password' => $hashed_password,
-                    ':id' => $instructor_id
-                ]);
-            } else {
-                $stmt = $pdo->prepare("UPDATE instructors SET name = :name, email = :email, company_id = :company_id, position = :position WHERE id = :id");
-                $stmt->execute([
-                    ':name' => $name,
-                    ':email' => $email,
-                    ':company_id' => $company_id,
-                    ':position' => $position,
-                    ':id' => $instructor_id
-                ]);
-            }
+            $stmt = $pdo->prepare("UPDATE instructors SET name = :name, company_id = :company_id, position = :position WHERE id = :id");
+            $stmt->execute([
+                ':name' => $name,
+                ':company_id' => $company_id,
+                ':position' => $position,
+                ':id' => $instructor_id
+            ]);
             set_flash_message('success', 'Data instruktur berhasil diperbarui.');
         } catch (PDOException $e) {
-            if ($e->getCode() == 23000) {
-                set_flash_message('danger', 'Gagal memperbarui data. Email sudah digunakan oleh instruktur lain.');
-            } else {
-                set_flash_message('danger', 'Terjadi kesalahan: ' . $e->getMessage());
-            }
+            set_flash_message('danger', 'Terjadi kesalahan saat memperbarui data: ' . $e->getMessage());
         }
         redirect_to_manage_instructors();
     }

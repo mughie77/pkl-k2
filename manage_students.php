@@ -13,7 +13,6 @@ try {
     $stmt = $pdo->query("SELECT * FROM students ORDER BY name ASC");
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    // Tampilkan pesan error jika query gagal
     die("Error: Could not fetch students data. " . $e->getMessage());
 }
 
@@ -22,12 +21,10 @@ try {
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800">Manajemen Data Siswa</h1>
 
-    <!-- Tombol untuk memicu modal tambah data -->
     <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#studentModal">
         <i class="fas fa-plus-circle me-2"></i> Tambah Siswa Baru
     </button>
 
-    <!-- Pesan Sukses/Error (akan diisi via JS atau redirect dengan session flash) -->
     <?php if (isset($_SESSION['flash_message'])): ?>
         <div class="alert alert-<?php echo $_SESSION['flash_message']['type']; ?> alert-dismissible fade show" role="alert">
             <?php echo $_SESSION['flash_message']['message']; ?>
@@ -47,8 +44,8 @@ try {
                         <tr>
                             <th>#</th>
                             <th>Nama Lengkap</th>
-                            <th>NISN</th>
-                            <th>Email</th>
+                            <th>NISN (Username)</th>
+                            <th>Email (Opsional)</th>
                             <th>Jurusan</th>
                             <th>Aksi</th>
                         </tr>
@@ -102,7 +99,6 @@ try {
             </div>
             <form id="studentForm" action="core/student_actions.php" method="POST">
                 <div class="modal-body">
-                    <!-- Hidden input untuk ID (untuk edit) dan action -->
                     <input type="hidden" name="student_id" id="student_id">
                     <input type="hidden" name="action" id="form_action" value="create">
 
@@ -111,21 +107,17 @@ try {
                         <input type="text" class="form-control" id="name" name="name" required>
                     </div>
                     <div class="mb-3">
-                        <label for="nisn" class="form-label">NISN</label>
+                        <label for="nisn" class="form-label">NISN (Nomor Induk Siswa Nasional)</label>
                         <input type="text" class="form-control" id="nisn" name="nisn" required>
+                        <small class="form-text text-muted">NISN akan digunakan sebagai username dan password default.</small>
                     </div>
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+                        <label for="email" class="form-label">Email (Opsional)</label>
+                        <input type="email" class="form-control" id="email" name="email">
                     </div>
                     <div class="mb-3">
                         <label for="department" class="form-label">Jurusan</label>
                         <input type="text" class="form-control" id="department" name="department" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password">
-                        <small class="form-text text-muted">Kosongkan jika tidak ingin mengubah password.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -141,35 +133,27 @@ try {
 document.addEventListener('DOMContentLoaded', function() {
     const studentModal = document.getElementById('studentModal');
     studentModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget; // Tombol yang memicu modal
+        const button = event.relatedTarget;
         const modalTitle = studentModal.querySelector('.modal-title');
         const form = document.getElementById('studentForm');
         const actionInput = document.getElementById('form_action');
         const studentIdInput = document.getElementById('student_id');
-        const passwordInput = document.getElementById('password');
 
-        // Cek apakah tombol edit yang ditekan
         if (button.classList.contains('edit-btn')) {
             modalTitle.textContent = 'Edit Data Siswa';
             actionInput.value = 'update';
             studentIdInput.value = button.dataset.id;
 
-            // Isi form dengan data dari atribut data-*
             document.getElementById('name').value = button.dataset.name;
             document.getElementById('nisn').value = button.dataset.nisn;
             document.getElementById('email').value = button.dataset.email;
             document.getElementById('department').value = button.dataset.department;
-            passwordInput.placeholder = "Kosongkan jika tidak ingin mengubah";
-            passwordInput.required = false;
 
         } else {
-            // Jika tombol tambah baru yang ditekan
             modalTitle.textContent = 'Tambah Siswa Baru';
             actionInput.value = 'create';
-            form.reset(); // Bersihkan form
+            form.reset();
             studentIdInput.value = '';
-            passwordInput.placeholder = "";
-            passwordInput.required = true;
         }
     });
 });

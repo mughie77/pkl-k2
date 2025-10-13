@@ -38,6 +38,9 @@ try {
     <?php if (isset($_SESSION['flash_message'])): ?>
         <div class="alert alert-<?php echo $_SESSION['flash_message']['type']; ?> alert-dismissible fade show" role="alert">
             <?php echo $_SESSION['flash_message']['message']; ?>
+            <?php if (isset($_SESSION['flash_message']['serial_number'])): ?>
+                <br><strong>Username & Password: </strong> <code><?php echo $_SESSION['flash_message']['serial_number']; ?></code>
+            <?php endif; ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <?php unset($_SESSION['flash_message']); ?>
@@ -54,7 +57,7 @@ try {
                         <tr>
                             <th>#</th>
                             <th>Nama Lengkap</th>
-                            <th>Email</th>
+                            <th>No. Seri (Username)</th>
                             <th>Jabatan</th>
                             <th>Asal DUDIKA</th>
                             <th>Aksi</th>
@@ -66,14 +69,13 @@ try {
                                 <tr>
                                     <td><?php echo $index + 1; ?></td>
                                     <td><?php echo htmlspecialchars($instructor['name']); ?></td>
-                                    <td><?php echo htmlspecialchars($instructor['email']); ?></td>
+                                    <td><?php echo htmlspecialchars($instructor['serial_number']); ?></td>
                                     <td><?php echo htmlspecialchars($instructor['position']); ?></td>
                                     <td><?php echo htmlspecialchars($instructor['company_name']); ?></td>
                                     <td>
                                         <button class="btn btn-warning btn-sm edit-btn"
                                                 data-id="<?php echo $instructor['id']; ?>"
                                                 data-name="<?php echo htmlspecialchars($instructor['name']); ?>"
-                                                data-email="<?php echo htmlspecialchars($instructor['email']); ?>"
                                                 data-position="<?php echo htmlspecialchars($instructor['position']); ?>"
                                                 data-company_id="<?php echo $instructor['company_id']; ?>"
                                                 data-bs-toggle="modal" data-bs-target="#instructorModal">
@@ -117,10 +119,6 @@ try {
                         <input type="text" class="form-control" id="name" name="name" required>
                     </div>
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="mb-3">
                         <label for="company_id" class="form-label">Asal DUDIKA</label>
                         <select class="form-select" id="company_id" name="company_id" required>
                             <option value="" disabled selected>-- Pilih DUDIKA --</option>
@@ -133,10 +131,8 @@ try {
                         <label for="position" class="form-label">Jabatan</label>
                         <input type="text" class="form-control" id="position" name="position">
                     </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password">
-                        <small class="form-text text-muted">Kosongkan jika tidak ingin mengubah password.</small>
+                    <div class="alert alert-info">
+                        Username (Nomor Seri) dan Password akan dibuat secara otomatis oleh sistem.
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -157,27 +153,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('instructorForm');
         const actionInput = document.getElementById('form_action');
         const instructorIdInput = document.getElementById('instructor_id');
-        const passwordInput = document.getElementById('password');
 
+        // Form untuk edit tidak diimplementasikan di sini karena username/password otomatis
+        // Jika diperlukan, harus ada logika terpisah untuk reset password.
+        // Untuk saat ini, modal hanya untuk 'create'.
         if (button.classList.contains('edit-btn')) {
             modalTitle.textContent = 'Edit Data Instruktur';
-            actionInput.value = 'update';
+            actionInput.value = 'update'; // Aksi update hanya akan mengubah nama, posisi, dan perusahaan
             instructorIdInput.value = button.dataset.id;
 
             document.getElementById('name').value = button.dataset.name;
-            document.getElementById('email').value = button.dataset.email;
             document.getElementById('position').value = button.dataset.position;
             document.getElementById('company_id').value = button.dataset.company_id;
-            passwordInput.placeholder = "Kosongkan jika tidak ingin mengubah";
-            passwordInput.required = false;
-
         } else {
             modalTitle.textContent = 'Tambah Instruktur Baru';
             actionInput.value = 'create';
             form.reset();
             instructorIdInput.value = '';
-            passwordInput.placeholder = "";
-            passwordInput.required = true;
         }
     });
 });

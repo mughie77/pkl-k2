@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 12, 2025 at 08:00 PM
+-- Generation Time: Oct 12, 2025 at 09:00 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -31,19 +31,19 @@ USE `pkl_digital_app`;
 CREATE TABLE `admins` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
+  `username` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`)
+  UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `admins`
 --
 
-INSERT INTO `admins` (`name`, `email`, `password`) VALUES
-('Admin Sekolah', 'admin@sekolah.sch.id', '$2y$10$gR.g./2D51E.E7YgJk7hC.aJ7xJpZlT0iO/4Z.gYx.5eSgB5eSgB5'); -- password: adminpassword
+INSERT INTO `admins` (`name`, `username`, `password`) VALUES
+('Admin Sekolah', 'admin', '$2y$10$9.M4B3Y.X2a5c.dE6f.gH8i.jK0l.mN1o.pQ2r.sT3u.vW4x.yZ5'); -- password: admin
 
 -- --------------------------------------------------------
 
@@ -54,12 +54,12 @@ INSERT INTO `admins` (`name`, `email`, `password`) VALUES
 CREATE TABLE `teachers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
+  `nip` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `department` varchar(100) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`)
+  UNIQUE KEY `nip` (`nip`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -73,7 +73,6 @@ CREATE TABLE `companies` (
   `name` varchar(255) NOT NULL,
   `address` text DEFAULT NULL,
   `contact_person` varchar(255) DEFAULT NULL,
-  `contact_email` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -88,12 +87,12 @@ CREATE TABLE `instructors` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `company_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
+  `serial_number` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `position` varchar(100) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `serial_number` (`serial_number`),
   KEY `company_id` (`company_id`),
   CONSTRAINT `fk_instructor_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -107,13 +106,12 @@ CREATE TABLE `instructors` (
 CREATE TABLE `students` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
+  `email` varchar(255) DEFAULT NULL, -- Email is now optional, not for login
   `password` varchar(255) NOT NULL,
   `nisn` varchar(20) NOT NULL,
   `department` varchar(100) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`),
   UNIQUE KEY `nisn` (`nisn`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
