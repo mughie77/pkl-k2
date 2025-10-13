@@ -54,6 +54,7 @@ function create_nav_item($link, $icon, $text, $current_page) {
             <?php create_nav_item('monitor_journals.php', 'fa-book-reader', 'Monitoring Jurnal', $current_page); ?>
             <?php create_nav_item('report_consultation.php', 'fa-file-alt', 'Konsultasi Laporan', $current_page); ?>
             <?php create_nav_item('student_problems.php', 'fa-exclamation-triangle', 'Catatan Masalah Siswa', $current_page); ?>
+            <?php create_nav_item('teacher_view_assessments.php', 'fa-graduation-cap', 'Lihat Nilai Siswa', $current_page); ?>
         <?php endif; ?>
 
         <?php if ($user_role == 'instructor'): ?>
