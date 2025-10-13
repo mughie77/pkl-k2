@@ -31,25 +31,24 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // Load School Settings
-// Set default values first
-$app_settings = [
+// Set default values first as a fallback
+$default_settings = [
     'school_name' => 'PKL Digital',
     'school_address' => 'Alamat Sekolah Belum Diatur',
     'school_logo' => ''
 ];
 
+$db_settings = [];
 try {
+    // Fetch settings from DB directly into a key-value pair array
     $stmt = $pdo->query("SELECT setting_key, setting_value FROM school_settings");
-    $settings_from_db = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Override defaults with values from the database
-    foreach ($settings_from_db as $setting) {
-        if (array_key_exists($setting['setting_key'], $app_settings)) {
-            $app_settings[$setting['setting_key']] = $setting['setting_value'];
-        }
-    }
+    $db_settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 } catch (PDOException $e) {
-    // If table doesn't exist or another DB error, the defaults will be used.
+    // If table doesn't exist or another DB error, $db_settings will remain empty.
     // This makes the app resilient during initial setup.
 }
+
+// Merge database settings over default settings.
+// Values from $db_settings will overwrite values from $default_settings.
+$app_settings = array_merge($default_settings, $db_settings);
 ?>
