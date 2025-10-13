@@ -109,6 +109,12 @@ try {
             </div>
         </div>
     </div>
+
+    <?php if ($user_role === 'student'): ?>
+    <div class="mt-4 d-grid">
+        <a href="logout.php" class="btn btn-danger btn-lg"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+    </div>
+    <?php endif; ?>
 </div>
 
 <?php
