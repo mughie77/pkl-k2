@@ -169,8 +169,13 @@ body {
 }
 
 /* Student Dashboard Specific Styles */
+.student-dashboard {
+    background-color: #f8f9fa; /* Light gray background */
+}
+
 .student-dashboard .dashboard-header {
     border-left: 5px solid var(--primary-color);
+    background-color: white;
 }
 
 .student-dashboard .icon-menu-item {
@@ -230,6 +235,10 @@ body {
 
 .student-dashboard .table thead.bg-warning {
     background-color: #ffc107 !important;
+}
+
+.bg-purple {
+    background-color: #6f42c1; /* Bootstrap's purple */
 }
 
 /* Bottom Navigation for Student View */
