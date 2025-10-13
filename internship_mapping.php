@@ -183,51 +183,59 @@ try {
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
+    // Inisialisasi Select2 pada modal
+    const initSelect2 = () => {
+        $('#student_id, #teacher_id, #instructor_id').select2({
+            theme: 'bootstrap-5',
+            dropdownParent: $('#mappingModal')
+        });
+    };
+
     const mappingModal = document.getElementById('mappingModal');
-    const studentSelect = document.getElementById('student_id');
+    const studentSelect = $('#student_id');
 
     mappingModal.addEventListener('show.bs.modal', function(event) {
+        initSelect2(); // Inisialisasi atau re-inisialisasi saat modal muncul
+
         const button = event.relatedTarget;
         const modalTitle = mappingModal.querySelector('.modal-title');
         const form = document.getElementById('mappingForm');
         const actionInput = document.getElementById('form_action');
         const mappingIdInput = document.getElementById('mapping_id');
 
-        // Reset student dropdown
-        studentSelect.disabled = false;
+        studentSelect.prop('disabled', false);
 
         if (button.classList.contains('edit-btn')) {
             modalTitle.textContent = 'Edit Mapping PKL';
             actionInput.value = 'update';
             mappingIdInput.value = button.dataset.id;
 
-            // Set values for the form fields
-            document.getElementById('teacher_id').value = button.dataset.teacher_id;
-            document.getElementById('instructor_id').value = button.dataset.instructor_id;
-            document.getElementById('start_date').value = button.dataset.start_date;
-            document.getElementById('end_date').value = button.dataset.end_date;
+            // Set values and trigger change for Select2
+            $('#teacher_id').val(button.dataset.teacher_id).trigger('change');
+            $('#instructor_id').val(button.dataset.instructor_id).trigger('change');
+            $('#start_date').val(button.dataset.start_date);
+            $('#end_date').val(button.dataset.end_date);
 
-            // Handle the student dropdown for editing
             const studentId = button.dataset.student_id;
             const studentName = button.closest('tr').querySelector('td:first-child').textContent;
 
-            // Check if the student option already exists
-            let studentOption = studentSelect.querySelector('option[value="' + studentId + '"]');
-            if (!studentOption) {
-                // If not, create and append it (for mapped students)
-                studentOption = new Option(studentName, studentId, true, true);
-                studentSelect.appendChild(studentOption);
+            if (studentSelect.find("option[value='" + studentId + "']").length === 0) {
+                const newOption = new Option(studentName, studentId, true, true);
+                studentSelect.append(newOption).trigger('change');
             }
-            studentSelect.value = studentId;
-            studentSelect.disabled = true; // Disable student change on edit
+
+            studentSelect.val(studentId).trigger('change');
+            studentSelect.prop('disabled', true);
 
         } else {
             modalTitle.textContent = 'Buat Mapping PKL Baru';
             actionInput.value = 'create';
             form.reset();
             mappingIdInput.value = '';
-            studentSelect.disabled = false;
+            studentSelect.prop('disabled', false);
+            // Reset Select2
+            $('#student_id, #teacher_id, #instructor_id').val(null).trigger('change');
         }
     });
 });
