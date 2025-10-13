@@ -170,7 +170,7 @@ body {
 
 /* Student Dashboard Specific Styles */
 .student-dashboard {
-    background-color: #f8f9fa; /* Light gray background */
+    background: linear-gradient(to bottom, #e0f2f1, #ffffff); /* Light green to white gradient */
 }
 
 .student-dashboard .dashboard-header {
