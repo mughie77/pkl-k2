@@ -167,3 +167,67 @@ body {
 .footer a:hover {
     color: var(--primary-color) !important;
 }
+
+/* Student Dashboard Specific Styles */
+.student-dashboard .dashboard-header {
+    border-left: 5px solid var(--primary-color);
+}
+
+.student-dashboard .icon-menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #555;
+    transition: transform 0.2s;
+}
+
+.student-dashboard .icon-menu-item:hover {
+    transform: translateY(-5px);
+    color: var(--primary-color);
+}
+
+.student-dashboard .icon-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.student-dashboard .icon-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.student-dashboard .status-card {
+    border-radius: 0.75rem;
+    color: white;
+}
+
+.student-dashboard .status-card .status-title {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.student-dashboard .status-card .status-time {
+    font-size: 1.2rem;
+}
+
+.student-dashboard .bg-light-green {
+    background-color: #28a745; /* Bootstrap success */
+    opacity: 0.7;
+}
+
+.student-dashboard .bg-light-red {
+    background-color: #dc3545; /* Bootstrap danger */
+    opacity: 0.7;
+}
+
+.student-dashboard .table thead.bg-warning {
+    background-color: #ffc107 !important;
+}

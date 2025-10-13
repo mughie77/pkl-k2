@@ -103,6 +103,7 @@ function get_status_badge($status) {
                             <th>Check-in</th>
                             <th>Check-out</th>
                             <th>Status</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -117,11 +118,18 @@ function get_status_badge($status) {
                                             <?php echo htmlspecialchars($journal['status']); ?>
                                         </span>
                                     </td>
+                                    <td>
+                                        <button class="btn btn-info btn-sm view-journal-btn"
+                                                data-activities="<?php echo htmlspecialchars($journal['activities']); ?>"
+                                                data-bs-toggle="modal" data-bs-target="#viewJournalModal">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="4" class="text-center">Belum ada riwayat jurnal.</td>
+                                <td colspan="5" class="text-center">Belum ada riwayat jurnal.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -130,6 +138,36 @@ function get_status_badge($status) {
         </div>
     </div>
 </div>
+
+<!-- Modal untuk Melihat Jurnal -->
+<div class="modal fade" id="viewJournalModal" tabindex="-1" aria-labelledby="viewJournalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewJournalModalLabel">Detail Kegiatan Harian</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="journal_activities_content" style="white-space: pre-wrap;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const viewJournalModal = document.getElementById('viewJournalModal');
+    viewJournalModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const activities = button.dataset.activities;
+        const modalBody = viewJournalModal.querySelector('#journal_activities_content');
+        modalBody.textContent = activities;
+    });
+});
+</script>
 
 <?php
 require_once __DIR__ . '/templates/footer.php';

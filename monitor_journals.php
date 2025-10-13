@@ -28,7 +28,7 @@ try {
     // Bangun query utama
     $query = "
         SELECT
-            j.journal_date, j.check_in_time, j.check_out_time, j.status,
+            j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
             s.name as student_name
         FROM internship_journals j
         JOIN students s ON j.student_id = s.id
@@ -120,8 +120,8 @@ function get_status_badge($status) {
                             <th>Tanggal</th>
                             <th>Nama Siswa</th>
                             <th>Absensi (Check-in)</th>
-                            <th>Absensi (Check-out)</th>
                             <th>Status Jurnal</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -131,11 +131,19 @@ function get_status_badge($status) {
                                     <td><?php echo date('d M Y', strtotime($journal['journal_date'])); ?></td>
                                     <td><?php echo htmlspecialchars($journal['student_name']); ?></td>
                                     <td><?php echo $journal['check_in_time'] ? date('H:i', strtotime($journal['check_in_time'])) : '<span class="badge bg-secondary">N/A</span>'; ?></td>
-                                    <td><?php echo $journal['check_out_time'] ? date('H:i', strtotime($journal['check_out_time'])) : '<span class="badge bg-secondary">N/A</span>'; ?></td>
                                     <td>
                                         <span class="badge <?php echo get_status_badge($journal['status']); ?>">
                                             <?php echo htmlspecialchars($journal['status']); ?>
                                         </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-info btn-sm view-journal-btn"
+                                                data-activities="<?php echo htmlspecialchars($journal['activities']); ?>"
+                                                data-student-name="<?php echo htmlspecialchars($journal['student_name']); ?>"
+                                                data-journal-date="<?php echo date('d M Y', strtotime($journal['journal_date'])); ?>"
+                                                data-bs-toggle="modal" data-bs-target="#viewJournalModal">
+                                            <i class="fas fa-eye"></i> Lihat Jurnal
+                                        </button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -150,6 +158,42 @@ function get_status_badge($status) {
         </div>
     </div>
 </div>
+
+<!-- Modal untuk Melihat Jurnal -->
+<div class="modal fade" id="viewJournalModal" tabindex="-1" aria-labelledby="viewJournalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewJournalModalLabel">Detail Jurnal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 class="mb-3">Jurnal: <span id="modal_student_name" class="fw-normal"></span> - <span id="modal_journal_date" class="fw-normal"></span></h6>
+                <hr>
+                <p id="journal_activities_content" style="white-space: pre-wrap;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const viewJournalModal = document.getElementById('viewJournalModal');
+    viewJournalModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const activities = button.dataset.activities;
+        const studentName = button.dataset.studentName;
+        const journalDate = button.dataset.journalDate;
+
+        viewJournalModal.querySelector('#modal_student_name').textContent = studentName;
+        viewJournalModal.querySelector('#modal_journal_date').textContent = journalDate;
+        viewJournalModal.querySelector('#journal_activities_content').textContent = activities;
+    });
+});
+</script>
 
 <?php
 require_once __DIR__ . '/templates/footer.php';

@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/templates/header.php';
-require_once __DIR__ . '/templates/sidebar.php';
+require_once __DIR__ . '/templates/sidebar.php'; // Sidebar tetap ada untuk navigasi di desktop
 
 // Proteksi halaman
 if ($_SESSION['user_role'] !== 'student') {
@@ -9,132 +9,148 @@ if ($_SESSION['user_role'] !== 'student') {
 }
 
 $student_id = $_SESSION['user_id'];
-$info_loaded = false;
+$student_name = $_SESSION['user_name'];
+$today = date('Y-m-d');
+
+// Logika Sapaan Dinamis
+$hour = date('H');
+$greeting = 'Selamat Pagi';
+if ($hour >= 12) {
+    $greeting = 'Selamat Siang';
+}
+if ($hour >= 15) {
+    $greeting = 'Selamat Sore';
+}
+if ($hour >= 18) {
+    $greeting = 'Selamat Malam';
+}
 
 try {
-    // 1. Ambil informasi mapping (guru, instruktur, tanggal pkl)
-    $stmt_map = $pdo->prepare("
-        SELECT
-            t.name as teacher_name,
-            i.name as instructor_name,
-            c.name as company_name,
-            im.start_date,
-            im.end_date
-        FROM internship_mappings im
-        JOIN teachers t ON im.teacher_id = t.id
-        JOIN instructors i ON im.instructor_id = i.id
-        JOIN companies c ON i.company_id = c.id
-        WHERE im.student_id = :student_id
+    // Ambil data absensi hari ini
+    $stmt_today = $pdo->prepare("SELECT check_in_time, check_out_time FROM internship_journals WHERE student_id = :student_id AND journal_date = :today");
+    $stmt_today->execute([':student_id' => $student_id, ':today' => $today]);
+    $today_attendance = $stmt_today->fetch(PDO::FETCH_ASSOC);
+
+    // Ambil riwayat absensi 7 hari terakhir
+    $one_week_ago = date('Y-m-d', strtotime('-7 days'));
+    $stmt_history = $pdo->prepare("
+        SELECT journal_date, check_in_time, check_out_time
+        FROM internship_journals
+        WHERE student_id = :student_id AND journal_date >= :one_week_ago
+        ORDER BY journal_date DESC
     ");
-    $stmt_map->execute([':student_id' => $student_id]);
-    $mapping_info = $stmt_map->fetch(PDO::FETCH_ASSOC);
-
-    if ($mapping_info) {
-        $info_loaded = true;
-
-        // Hitung total hari kerja (Senin-Jumat) dalam periode PKL
-        $start = new DateTime($mapping_info['start_date']);
-        $end = new DateTime($mapping_info['end_date']);
-        $end->modify('+1 day'); // Include the end date
-        $interval = new DateInterval('P1D');
-        $date_range = new DatePeriod($start, $interval, $end);
-        $total_work_days = 0;
-        foreach ($date_range as $date) {
-            if ($date->format('N') < 6) { // 1 (Mon) to 5 (Fri)
-                $total_work_days++;
-            }
-        }
-
-        // 2. Ambil statistik jurnal
-        $stmt_journals = $pdo->prepare("
-            SELECT
-                COUNT(*) as total_sent,
-                SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) as total_approved,
-                COUNT(DISTINCT journal_date) as attendance_days
-            FROM internship_journals
-            WHERE student_id = :student_id
-        ");
-        $stmt_journals->execute([':student_id' => $student_id]);
-        $journal_stats = $stmt_journals->fetch(PDO::FETCH_ASSOC);
-
-        // 3. Hitung persentase
-        $attendance_percentage = ($total_work_days > 0) ? ($journal_stats['attendance_days'] / $total_work_days) * 100 : 0;
-        $attendance_percentage = min(100, round($attendance_percentage)); // Cap at 100%
-    }
+    $stmt_history->execute([':student_id' => $student_id, ':one_week_ago' => $one_week_ago]);
+    $week_history = $stmt_history->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    die("Error: Could not fetch dashboard data. " . $e->getMessage());
+    die("Error fetching dashboard data: " . $e->getMessage());
 }
 ?>
 
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Dashboard Siswa</h1>
+<div class="container-fluid student-dashboard">
+    <!-- Header Dashboard -->
+    <div class="dashboard-header card p-3 mb-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <p class="text-muted mb-0"><?php echo date('d M Y'); ?></p>
+                <h5 class="mb-1"><?php echo $greeting; ?>!</h5>
+                <h3 class="fw-bold mb-0"><?php echo htmlspecialchars($student_name); ?></h3>
+            </div>
+            <div class="text-end">
+                <p class="text-muted mb-0">Jam Kerja</p>
+                <h5 class="fw-bold mb-0">08:00 - 16:00</h5>
+            </div>
+        </div>
+    </div>
 
-    <?php if ($info_loaded): ?>
-    <!-- Info Cards -->
-    <div class="row">
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header bg-primary text-white">
-                    <h6 class="m-0 font-weight-bold"><i class="fas fa-info-circle me-2"></i>Informasi Pembimbing</h6>
-                </div>
+    <!-- Menu Ikon -->
+    <div class="row text-center g-3 mb-4">
+        <div class="col">
+            <a href="daily_journal.php" class="icon-menu-item">
+                <div class="icon-circle bg-danger text-white"><i class="fas fa-qrcode"></i></div>
+                <span class="icon-label">Absen</span>
+            </a>
+        </div>
+        <div class="col">
+            <a href="#" class="icon-menu-item disabled">
+                <div class="icon-circle bg-warning text-white"><i class="fas fa-file-alt"></i></div>
+                <span class="icon-label">Izin</span>
+            </a>
+        </div>
+        <div class="col">
+            <a href="#" class="icon-menu-item disabled">
+                <div class="icon-circle bg-primary text-white"><i class="fas fa-calendar-times"></i></div>
+                <span class="icon-label">Cuti</span>
+            </a>
+        </div>
+        <div class="col">
+            <a href="daily_journal.php" class="icon-menu-item">
+                <div class="icon-circle bg-info text-white"><i class="fas fa-history"></i></div>
+                <span class="icon-label">History</span>
+            </a>
+        </div>
+        <div class="col">
+            <a href="profile.php" class="icon-menu-item">
+                <div class="icon-circle bg-success text-white"><i class="fas fa-user"></i></div>
+                <span class="icon-label">Profil</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Status Absensi Hari Ini -->
+    <div class="row g-3 mb-4">
+        <div class="col-6">
+            <div class="card status-card <?php echo $today_attendance && $today_attendance['check_in_time'] ? 'bg-success' : 'bg-light-green'; ?> text-white">
                 <div class="card-body">
-                    <p><strong>Guru Pembimbing:</strong> <?php echo htmlspecialchars($mapping_info['teacher_name']); ?></p>
-                    <p class="mb-0"><strong>Instruktur DUDIKA:</strong> <?php echo htmlspecialchars($mapping_info['instructor_name'] . ' (' . $mapping_info['company_name'] . ')'); ?></p>
+                    <h6 class="status-title">Absen Masuk</h6>
+                    <p class="status-time fw-bold"><?php echo $today_attendance && $today_attendance['check_in_time'] ? date('H:i', strtotime($today_attendance['check_in_time'])) : 'Belum Absen'; ?></p>
                 </div>
             </div>
         </div>
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header bg-success text-white">
-                    <h6 class="m-0 font-weight-bold"><i class="fas fa-calendar-alt me-2"></i>Periode PKL</h6>
-                </div>
+        <div class="col-6">
+            <div class="card status-card <?php echo $today_attendance && $today_attendance['check_out_time'] ? 'bg-danger' : 'bg-light-red'; ?> text-white">
                 <div class="card-body">
-                     <p><strong>Tanggal Mulai:</strong> <?php echo date('d M Y', strtotime($mapping_info['start_date'])); ?></p>
-                     <p class="mb-0"><strong>Tanggal Selesai:</strong> <?php echo date('d M Y', strtotime($mapping_info['end_date'])); ?></p>
+                    <h6 class="status-title">Absen Pulang</h6>
+                    <p class="status-time fw-bold"><?php echo $today_attendance && $today_attendance['check_out_time'] ? date('H:i', strtotime($today_attendance['check_out_time'])) : 'Belum Absen'; ?></p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Progress Cards -->
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h6 class="card-title text-primary">Kehadiran</h6>
-                    <div class="progress mb-2">
-                        <div class="progress-bar bg-info" role="progressbar" style="width: <?php echo $attendance_percentage; ?>%" aria-valuenow="<?php echo $attendance_percentage; ?>" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    <p class="card-text text-center fw-bold fs-5"><?php echo $attendance_percentage; ?>% <span class="fs-6 fw-normal">(<?php echo $journal_stats['attendance_days']; ?> dari <?php echo $total_work_days; ?> hari)</span></p>
-                </div>
-            </div>
+    <!-- Riwayat Absensi Mingguan -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h6 class="m-0 font-weight-bold text-primary">Absensi 1 Minggu Terakhir</h6>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h6 class="card-title text-primary">Jurnal Terkirim</h6>
-                    <p class="card-text text-center fw-bold fs-3"><?php echo $journal_stats['total_sent']; ?></p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h6 class="card-title text-primary">Jurnal Terverifikasi</h6>
-                    <p class="card-text text-center fw-bold fs-3 text-success"><?php echo $journal_stats['total_approved']; ?></p>
-                </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="bg-warning text-white">
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Jam Masuk</th>
+                            <th>Jam Pulang</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (count($week_history) > 0): ?>
+                            <?php foreach ($week_history as $history): ?>
+                                <tr>
+                                    <td><?php echo date('d M Y', strtotime($history['journal_date'])); ?></td>
+                                    <td><?php echo $history['check_in_time'] ? date('H:i', strtotime($history['check_in_time'])) : '-'; ?></td>
+                                    <td><?php echo $history['check_out_time'] ? date('H:i', strtotime($history['check_out_time'])) : '-'; ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="3" class="text-center p-4">Belum ada riwayat absensi.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-    <?php else: ?>
-    <div class="alert alert-warning text-center">
-        <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
-        <h4>Data PKL Belum Lengkap</h4>
-        <p>Anda belum di-mapping ke Guru Pembimbing atau Instruktur DUDIKA. Silakan hubungi Admin Sekolah.</p>
-    </div>
-    <?php endif; ?>
-
 </div>
 
 <?php
