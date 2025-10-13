@@ -51,4 +51,18 @@ try {
 // Merge database settings over default settings.
 // Values from $db_settings will overwrite values from $default_settings.
 $app_settings = array_merge($default_settings, $db_settings);
+
+// Load Active Academic Year
+try {
+    $stmt_year = $pdo->prepare("SELECT * FROM academic_years WHERE status = 'active' LIMIT 1");
+    $stmt_year->execute();
+    $active_year = $stmt_year->fetch(PDO::FETCH_ASSOC);
+    if (!$active_year) {
+        // Fallback jika tidak ada yang aktif, ambil yang terakhir dibuat
+        $stmt_last_year = $pdo->query("SELECT * FROM academic_years ORDER BY id DESC LIMIT 1");
+        $active_year = $stmt_last_year->fetch(PDO::FETCH_ASSOC);
+    }
+} catch (PDOException $e) {
+    $active_year = null;
+}
 ?>

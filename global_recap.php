@@ -8,8 +8,7 @@ if ($_SESSION['user_role'] !== 'admin') {
     exit;
 }
 
-// Logika untuk mengambil data rekap akan ditambahkan di sini
-// berdasarkan filter yang dipilih.
+$active_year_id = $active_year['id'] ?? 0;
 
 $selected_month = $_GET['month'] ?? date('Y-m');
 $rekap_type = $_GET['rekap_type'] ?? 'attendance';
@@ -19,28 +18,32 @@ $assessment_data = [];
 
 try {
     if ($rekap_type === 'attendance') {
-        // Ambil rekap absensi
+        // Ambil rekap absensi untuk siswa di tahun ajaran aktif
         $stmt_att = $pdo->prepare("
-            SELECT s.name as student_name, s.department, COUNT(j.id) as total_hadir
+            SELECT s.name as student_name, d.department_name, COUNT(j.id) as total_hadir
             FROM students s
+            JOIN departments d ON s.department_id = d.id
             LEFT JOIN internship_journals j ON s.id = j.student_id AND DATE_FORMAT(j.journal_date, '%Y-%m') = :month
+            WHERE s.academic_year_id = :year_id
             GROUP BY s.id
             ORDER BY s.name ASC
         ");
-        $stmt_att->execute([':month' => $selected_month]);
+        $stmt_att->execute([':month' => $selected_month, ':year_id' => $active_year_id]);
         $attendance_data = $stmt_att->fetchAll(PDO::FETCH_ASSOC);
     } elseif ($rekap_type === 'assessment') {
-        // Ambil rekap nilai
+        // Ambil rekap nilai untuk siswa di tahun ajaran aktif
         $stmt_ass = $pdo->prepare("
             SELECT
-                s.name as student_name, s.department,
+                s.name as student_name, d.department_name,
                 a.discipline_score, a.skill_score, a.teamwork_score, a.diligence_score,
                 (a.discipline_score + a.skill_score + a.teamwork_score + a.diligence_score) / 4 as average_score
             FROM students s
+            JOIN departments d ON s.department_id = d.id
             LEFT JOIN internship_assessments a ON s.id = a.student_id
+            WHERE s.academic_year_id = :year_id
             ORDER BY s.name ASC
         ");
-        $stmt_ass->execute();
+        $stmt_ass->execute([':year_id' => $active_year_id]);
         $assessment_data = $stmt_ass->fetchAll(PDO::FETCH_ASSOC);
     }
 } catch (PDOException $e) {
@@ -50,7 +53,7 @@ try {
 ?>
 
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Rekapitulasi Global dan Laporan</h1>
+    <h1 class="h3 mb-4 text-gray-800">Rekapitulasi Global <span class="badge bg-info"><?php echo htmlspecialchars($active_year['year_name'] ?? 'Tahun Ajaran Belum Dipilih'); ?></span></h1>
 
     <!-- Filter Form -->
     <div class="card shadow mb-4">
@@ -105,7 +108,7 @@ try {
                         <?php foreach ($attendance_data as $data): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($data['student_name']); ?></td>
-                            <td><?php echo htmlspecialchars($data['department']); ?></td>
+                            <td><?php echo htmlspecialchars($data['department_name']); ?></td>
                             <td><?php echo $data['total_hadir']; ?></td>
                         </tr>
                         <?php endforeach; ?>
@@ -131,7 +134,7 @@ try {
                         <?php foreach ($assessment_data as $data): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($data['student_name']); ?></td>
-                            <td><?php echo htmlspecialchars($data['department']); ?></td>
+                            <td><?php echo htmlspecialchars($data['department_name']); ?></td>
                             <td><?php echo $data['discipline_score'] ?? 'N/A'; ?></td>
                             <td><?php echo $data['skill_score'] ?? 'N/A'; ?></td>
                             <td><?php echo $data['teamwork_score'] ?? 'N/A'; ?></td>
@@ -157,9 +160,10 @@ function toggleMonthFilter(rekapType) {
     }
 }
 // Initial call to set visibility
-toggleMonthFilter(document.getElementById('rekap_type').value);
+document.addEventListener('DOMContentLoaded', function() {
+    toggleMonthFilter(document.getElementById('rekap_type').value);
+    $('.form-select').select2({ theme: 'bootstrap-5' });
+});
 </script>
 
-<?php
-require_once __DIR__ . '/templates/footer.php';
-?>
+<?php require_once __DIR__ . '/templates/footer.php'; ?>

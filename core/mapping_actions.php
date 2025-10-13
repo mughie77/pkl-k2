@@ -28,8 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $instructor_id = $_POST['instructor_id'];
         $start_date = $_POST['start_date'];
         $end_date = $_POST['end_date'];
+        $academic_year_id = $_POST['academic_year_id'];
 
-        if (empty($student_id) || empty($teacher_id) || empty($instructor_id) || empty($start_date) || empty($end_date)) {
+        if (empty($student_id) || empty($teacher_id) || empty($instructor_id) || empty($start_date) || empty($end_date) || empty($academic_year_id)) {
             set_flash_message('danger', 'Semua kolom wajib diisi.');
             redirect_to_mapping_page();
         }
@@ -48,13 +49,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect_to_mapping_page();
             }
 
-            $stmt = $pdo->prepare("INSERT INTO internship_mappings (student_id, teacher_id, instructor_id, start_date, end_date) VALUES (:student_id, :teacher_id, :instructor_id, :start_date, :end_date)");
+            $stmt = $pdo->prepare("INSERT INTO internship_mappings (student_id, teacher_id, instructor_id, start_date, end_date, academic_year_id) VALUES (:student_id, :teacher_id, :instructor_id, :start_date, :end_date, :academic_year_id)");
             $stmt->execute([
                 ':student_id' => $student_id,
                 ':teacher_id' => $teacher_id,
                 ':instructor_id' => $instructor_id,
                 ':start_date' => $start_date,
-                ':end_date' => $end_date
+                ':end_date' => $end_date,
+                ':academic_year_id' => $academic_year_id
             ]);
             set_flash_message('success', 'Mapping PKL berhasil dibuat.');
         } catch (PDOException $e) {

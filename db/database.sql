@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 12, 2025 at 09:00 PM
+-- Generation Time: Oct 13, 2025 at 04:45 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -21,6 +21,40 @@ SET time_zone = "+00:00";
 --
 CREATE DATABASE IF NOT EXISTS `pkl_digital_app` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `pkl_digital_app`;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `academic_years`
+--
+
+CREATE TABLE `academic_years` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `year_name` varchar(50) NOT NULL,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'inactive',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `year_name` (`year_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `academic_years`
+--
+
+INSERT INTO `academic_years` (`id`, `year_name`, `status`) VALUES
+(1, '2024/2025', 'active');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `departments`
+--
+
+CREATE TABLE `departments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `department_name` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `department_name` (`department_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -106,15 +140,20 @@ CREATE TABLE `instructors` (
 CREATE TABLE `students` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `email` varchar(255) DEFAULT NULL, -- Email is now optional, not for login
+  `email` varchar(255) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
   `nisn` varchar(20) NOT NULL,
-  `department` varchar(100) NOT NULL,
+  `department_id` int(11) NOT NULL,
+  `academic_year_id` int(11) NOT NULL,
   `work_start_time` time DEFAULT '08:00:00',
   `work_end_time` time DEFAULT '16:00:00',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `nisn` (`nisn`)
+  UNIQUE KEY `nisn` (`nisn`),
+  KEY `department_id` (`department_id`),
+  KEY `academic_year_id` (`academic_year_id`),
+  CONSTRAINT `fk_student_department` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_student_academicyear` FOREIGN KEY (`academic_year_id`) REFERENCES `academic_years` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -128,6 +167,7 @@ CREATE TABLE `internship_mappings` (
   `student_id` int(11) NOT NULL,
   `teacher_id` int(11) NOT NULL,
   `instructor_id` int(11) NOT NULL,
+  `academic_year_id` int(11) NOT NULL,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
   `status` enum('active','completed') NOT NULL DEFAULT 'active',
@@ -135,9 +175,11 @@ CREATE TABLE `internship_mappings` (
   KEY `student_id` (`student_id`),
   KEY `teacher_id` (`teacher_id`),
   KEY `instructor_id` (`instructor_id`),
+  KEY `academic_year_id` (`academic_year_id`),
   CONSTRAINT `fk_map_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_map_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_map_instructor` FOREIGN KEY (`instructor_id`) REFERENCES `instructors` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_map_instructor` FOREIGN KEY (`instructor_id`) REFERENCES `instructors` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_map_academicyear` FOREIGN KEY (`academic_year_id`) REFERENCES `academic_years` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -229,6 +271,24 @@ CREATE TABLE `leave_requests` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `student_notes`
+--
+
+CREATE TABLE `student_notes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) NOT NULL,
+  `creator_id` int(11) NOT NULL,
+  `creator_role` enum('teacher','instructor') NOT NULL,
+  `note` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `student_id` (`student_id`),
+  CONSTRAINT `fk_note_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `school_settings`
 --
 
@@ -248,24 +308,6 @@ INSERT INTO `school_settings` (`setting_key`, `setting_value`) VALUES
 ('school_name', 'SMK Coding Hebat'),
 ('school_address', 'Jl. Teknologi No. 404, Jakarta'),
 ('school_logo', NULL);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `student_notes`
---
-
-CREATE TABLE `student_notes` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `student_id` int(11) NOT NULL,
-  `creator_id` int(11) NOT NULL,
-  `creator_role` enum('teacher','instructor') NOT NULL,
-  `note` text NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `student_id` (`student_id`),
-  CONSTRAINT `fk_note_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
 COMMIT;

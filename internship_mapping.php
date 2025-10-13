@@ -8,9 +8,11 @@ if ($_SESSION['user_role'] !== 'admin') {
     exit;
 }
 
+$active_year_id = $active_year['id'] ?? 0;
+
 try {
-    // 1. Ambil data mapping yang sudah ada
-    $stmt_mappings = $pdo->query("
+    // 1. Ambil data mapping yang sudah ada untuk tahun ajaran aktif
+    $stmt_mappings = $pdo->prepare("
         SELECT
             im.id, im.start_date, im.end_date,
             s.id as student_id, s.name as student_name,
@@ -21,16 +23,20 @@ try {
         JOIN teachers t ON im.teacher_id = t.id
         JOIN instructors i ON im.instructor_id = i.id
         JOIN companies c ON i.company_id = c.id
+        WHERE im.academic_year_id = :year_id
         ORDER BY s.name ASC
     ");
+    $stmt_mappings->execute([':year_id' => $active_year_id]);
     $mappings = $stmt_mappings->fetchAll(PDO::FETCH_ASSOC);
 
-    // 2. Ambil data siswa yang BELUM di-mapping
-    $stmt_unmapped_students = $pdo->query("
+    // 2. Ambil data siswa dari tahun ajaran aktif yang BELUM di-mapping
+    $stmt_unmapped_students = $pdo->prepare("
         SELECT id, name FROM students
-        WHERE id NOT IN (SELECT student_id FROM internship_mappings)
+        WHERE academic_year_id = :year_id
+        AND id NOT IN (SELECT student_id FROM internship_mappings WHERE academic_year_id = :year_id_in)
         ORDER BY name ASC
     ");
+    $stmt_unmapped_students->execute([':year_id' => $active_year_id, ':year_id_in' => $active_year_id]);
     $unmapped_students = $stmt_unmapped_students->fetchAll(PDO::FETCH_ASSOC);
 
     // 3. Ambil semua data guru
@@ -52,7 +58,7 @@ try {
 ?>
 
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Mapping Penempatan PKL</h1>
+    <h1 class="h3 mb-4 text-gray-800">Mapping Penempatan PKL <span class="badge bg-info"><?php echo htmlspecialchars($active_year['year_name'] ?? 'Tahun Ajaran Belum Dipilih'); ?></span></h1>
 
     <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#mappingModal">
         <i class="fas fa-plus-circle me-2"></i> Buat Mapping Baru
@@ -83,37 +89,31 @@ try {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (count($mappings) > 0): ?>
-                            <?php foreach ($mappings as $map): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($map['student_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($map['teacher_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($map['instructor_name'] . ' (' . $map['company_name'] . ')'); ?></td>
-                                    <td><?php echo date('d M Y', strtotime($map['start_date'])) . ' - ' . date('d M Y', strtotime($map['end_date'])); ?></td>
-                                    <td>
-                                        <button class="btn btn-warning btn-sm edit-btn"
-                                                data-id="<?php echo $map['id']; ?>"
-                                                data-student_id="<?php echo $map['student_id']; ?>"
-                                                data-teacher_id="<?php echo $map['teacher_id']; ?>"
-                                                data-instructor_id="<?php echo $map['instructor_id']; ?>"
-                                                data-start_date="<?php echo $map['start_date']; ?>"
-                                                data-end_date="<?php echo $map['end_date']; ?>"
-                                                data-bs-toggle="modal" data-bs-target="#mappingModal">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <a href="core/mapping_actions.php?action=delete&id=<?php echo $map['id']; ?>"
-                                           class="btn btn-danger btn-sm btn-delete"
-                                           onclick="return confirm('Apakah Anda yakin ingin menghapus mapping ini?');">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
+                        <?php foreach ($mappings as $map): ?>
                             <tr>
-                                <td colspan="5" class="text-center">Belum ada data mapping.</td>
+                                <td><?php echo htmlspecialchars($map['student_name']); ?></td>
+                                <td><?php echo htmlspecialchars($map['teacher_name']); ?></td>
+                                <td><?php echo htmlspecialchars($map['instructor_name'] . ' (' . $map['company_name'] . ')'); ?></td>
+                                <td><?php echo date('d M Y', strtotime($map['start_date'])) . ' - ' . date('d M Y', strtotime($map['end_date'])); ?></td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm edit-btn"
+                                            data-id="<?php echo $map['id']; ?>"
+                                            data-student_id="<?php echo $map['student_id']; ?>"
+                                            data-teacher_id="<?php echo $map['teacher_id']; ?>"
+                                            data-instructor_id="<?php echo $map['instructor_id']; ?>"
+                                            data-start_date="<?php echo $map['start_date']; ?>"
+                                            data-end_date="<?php echo $map['end_date']; ?>"
+                                            data-bs-toggle="modal" data-bs-target="#mappingModal">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <a href="core/mapping_actions.php?action=delete&id=<?php echo $map['id']; ?>"
+                                       class="btn btn-danger btn-sm btn-delete"
+                                       onclick="return confirm('Apakah Anda yakin ingin menghapus mapping ini?');">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
                             </tr>
-                        <?php endif; ?>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
@@ -133,12 +133,12 @@ try {
                 <div class="modal-body">
                     <input type="hidden" name="mapping_id" id="mapping_id">
                     <input type="hidden" name="action" id="form_action" value="create">
+                    <input type="hidden" name="academic_year_id" value="<?php echo $active_year_id; ?>">
 
                     <div class="mb-3">
                         <label for="student_id" class="form-label">Siswa</label>
                         <select class="form-select" id="student_id" name="student_id" required>
                             <option value="" disabled selected>-- Pilih Siswa --</option>
-                            <!-- Opsi untuk edit akan ditambahkan via JS -->
                             <?php foreach ($unmapped_students as $student): ?>
                                 <option value="<?php echo $student['id']; ?>"><?php echo htmlspecialchars($student['name']); ?></option>
                             <?php endforeach; ?>
@@ -183,8 +183,8 @@ try {
 </div>
 
 <script>
+// Script Select2 yang sudah ada akan tetap berfungsi
 $(document).ready(function() {
-    // Inisialisasi Select2 pada modal
     const initSelect2 = () => {
         $('#student_id, #teacher_id, #instructor_id').select2({
             theme: 'bootstrap-5',
@@ -196,22 +196,18 @@ $(document).ready(function() {
     const studentSelect = $('#student_id');
 
     mappingModal.addEventListener('show.bs.modal', function(event) {
-        initSelect2(); // Inisialisasi atau re-inisialisasi saat modal muncul
+        initSelect2();
 
         const button = event.relatedTarget;
-        const modalTitle = mappingModal.querySelector('.modal-title');
         const form = document.getElementById('mappingForm');
-        const actionInput = document.getElementById('form_action');
-        const mappingIdInput = document.getElementById('mapping_id');
 
         studentSelect.prop('disabled', false);
 
         if (button.classList.contains('edit-btn')) {
-            modalTitle.textContent = 'Edit Mapping PKL';
-            actionInput.value = 'update';
-            mappingIdInput.value = button.dataset.id;
+            form.querySelector('.modal-title').textContent = 'Edit Mapping PKL';
+            form.querySelector('#form_action').value = 'update';
+            form.querySelector('#mapping_id').value = button.dataset.id;
 
-            // Set values and trigger change for Select2
             $('#teacher_id').val(button.dataset.teacher_id).trigger('change');
             $('#instructor_id').val(button.dataset.instructor_id).trigger('change');
             $('#start_date').val(button.dataset.start_date);
@@ -227,20 +223,14 @@ $(document).ready(function() {
 
             studentSelect.val(studentId).trigger('change');
             studentSelect.prop('disabled', true);
-
         } else {
-            modalTitle.textContent = 'Buat Mapping PKL Baru';
-            actionInput.value = 'create';
+            form.querySelector('.modal-title').textContent = 'Buat Mapping PKL Baru';
+            form.querySelector('#form_action').value = 'create';
             form.reset();
-            mappingIdInput.value = '';
-            studentSelect.prop('disabled', false);
-            // Reset Select2
             $('#student_id, #teacher_id, #instructor_id').val(null).trigger('change');
         }
     });
 });
 </script>
 
-<?php
-require_once __DIR__ . '/templates/footer.php';
-?>
+<?php require_once __DIR__ . '/templates/footer.php'; ?>

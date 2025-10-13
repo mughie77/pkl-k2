@@ -26,26 +26,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name']);
         $nisn = trim($_POST['nisn']);
         $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL) ?: null;
-        $department = trim($_POST['department']);
+        $department_id = $_POST['department_id'];
+        $academic_year_id = $_POST['academic_year_id'];
 
-        if (empty($name) || empty($nisn) || empty($department)) {
-            set_flash_message('danger', 'Nama, NISN, dan Jurusan wajib diisi.');
+        if (empty($name) || empty($nisn) || empty($department_id) || empty($academic_year_id)) {
+            set_flash_message('danger', 'Semua kolom wajib diisi.');
             redirect_to_manage_students();
         }
 
-        // Password di-hash dari NISN
         $hashed_password = password_hash($nisn, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $pdo->prepare("INSERT INTO students (name, nisn, email, department, password) VALUES (:name, :nisn, :email, :department, :password)");
+            $stmt = $pdo->prepare("INSERT INTO students (name, nisn, email, department_id, academic_year_id, password) VALUES (:name, :nisn, :email, :department_id, :academic_year_id, :password)");
             $stmt->execute([
                 ':name' => $name,
                 ':nisn' => $nisn,
                 ':email' => $email,
-                ':department' => $department,
+                ':department_id' => $department_id,
+                ':academic_year_id' => $academic_year_id,
                 ':password' => $hashed_password
             ]);
-            set_flash_message('success', 'Data siswa berhasil ditambahkan. Username & Password default adalah NISN.');
+            set_flash_message('success', 'Data siswa berhasil ditambahkan.');
         } catch (PDOException $e) {
             if ($e->getCode() == 23000) {
                 set_flash_message('danger', 'Gagal menambahkan data. NISN sudah terdaftar.');
@@ -62,27 +63,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name']);
         $nisn = trim($_POST['nisn']);
         $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL) ?: null;
-        $department = trim($_POST['department']);
+        $department_id = $_POST['department_id'];
+        $academic_year_id = $_POST['academic_year_id'];
 
-        if (empty($student_id) || empty($name) || empty($nisn) || empty($department)) {
-            set_flash_message('danger', 'Nama, NISN, dan Jurusan wajib diisi.');
+        if (empty($student_id) || empty($name) || empty($nisn) || empty($department_id) || empty($academic_year_id)) {
+            set_flash_message('danger', 'Semua kolom wajib diisi.');
             redirect_to_manage_students();
         }
 
-        // Password di-hash ulang dari NISN yang baru
         $hashed_password = password_hash($nisn, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $pdo->prepare("UPDATE students SET name = :name, nisn = :nisn, email = :email, department = :department, password = :password WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE students SET name = :name, nisn = :nisn, email = :email, department_id = :department_id, academic_year_id = :academic_year_id, password = :password WHERE id = :id");
             $stmt->execute([
                 ':name' => $name,
                 ':nisn' => $nisn,
                 ':email' => $email,
-                ':department' => $department,
+                ':department_id' => $department_id,
+                ':academic_year_id' => $academic_year_id,
                 ':password' => $hashed_password,
                 ':id' => $student_id
             ]);
-            set_flash_message('success', 'Data siswa berhasil diperbarui. Username & Password direset sesuai NISN.');
+            set_flash_message('success', 'Data siswa berhasil diperbarui.');
         } catch (PDOException $e) {
             if ($e->getCode() == 23000) {
                 set_flash_message('danger', 'Gagal memperbarui data. NISN sudah digunakan oleh siswa lain.');
@@ -113,7 +115,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     redirect_to_manage_students();
 }
 
-// Jika tidak ada aksi yang cocok
-set_flash_message('warning', 'Aksi tidak diketahui.');
 redirect_to_manage_students();
 ?>

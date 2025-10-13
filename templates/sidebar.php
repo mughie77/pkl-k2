@@ -46,7 +46,18 @@ function create_nav_item($link, $icon, $text, $current_page) {
             <?php create_nav_item('manage_instructors.php', 'fa-user-tie', 'Manajemen Instruktur', $current_page); ?>
             <?php create_nav_item('internship_mapping.php', 'fa-project-diagram', 'Mapping PKL', $current_page); ?>
             <?php create_nav_item('global_recap.php', 'fa-file-invoice', 'Rekapitulasi Global', $current_page); ?>
-            <?php create_nav_item('school_settings.php', 'fa-cogs', 'Pengaturan Sekolah', $current_page); ?>
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="false" aria-controls="collapseSettings">
+                    <i class="fas fa-cogs me-2"></i>Pengaturan
+                </a>
+                <div id="collapseSettings" class="collapse" aria-labelledby="headingSettings" data-bs-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item nav-link ms-3" href="school_settings.php">Profil Sekolah</a>
+                        <a class="collapse-item nav-link ms-3" href="manage_departments.php">Manajemen Jurusan</a>
+                        <a class="collapse-item nav-link ms-3" href="manage_academic_years.php">Tahun Pelajaran</a>
+                    </div>
+                </div>
+            </li>
         <?php endif; ?>
 
         <?php if ($user_role == 'teacher'): ?>

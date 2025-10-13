@@ -182,7 +182,12 @@ function get_status_badge($status) {
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
+    // Initialize Select2
+    $('#student_id').select2({
+        theme: 'bootstrap-5'
+    });
+
     const viewJournalModal = document.getElementById('viewJournalModal');
     viewJournalModal.addEventListener('show.bs.modal', function(event) {
         const button = event.relatedTarget;
