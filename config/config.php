@@ -53,16 +53,19 @@ try {
 $app_settings = array_merge($default_settings, $db_settings);
 
 // Load Active Academic Year
+$active_year = null;
 try {
     $stmt_year = $pdo->prepare("SELECT * FROM academic_years WHERE status = 'active' LIMIT 1");
     $stmt_year->execute();
-    $active_year = $stmt_year->fetch(PDO::FETCH_ASSOC);
-    if (!$active_year) {
+    $result = $stmt_year->fetch(PDO::FETCH_ASSOC);
+    if ($result) {
+        $active_year = $result;
+    } else {
         // Fallback jika tidak ada yang aktif, ambil yang terakhir dibuat
         $stmt_last_year = $pdo->query("SELECT * FROM academic_years ORDER BY id DESC LIMIT 1");
-        $active_year = $stmt_last_year->fetch(PDO::FETCH_ASSOC);
+        $active_year = $stmt_last_year->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 } catch (PDOException $e) {
-    $active_year = null;
+    // Biarkan $active_year null jika ada error
 }
 ?>
