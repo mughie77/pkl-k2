@@ -9,115 +9,116 @@ if ($_SESSION['user_role'] !== 'instructor') {
 }
 
 $instructor_id = $_SESSION['user_id'];
+$instructor_name = $_SESSION['user_name'];
+
+// Logika Sapaan Dinamis
+$hour = date('H');
+$greeting = 'Selamat Pagi';
+if ($hour >= 12) $greeting = 'Selamat Siang';
+if ($hour >= 15) $greeting = 'Selamat Sore';
+if ($hour >= 18) $greeting = 'Selamat Malam';
 
 try {
-    // 1. Hitung jurnal yang menunggu verifikasi dari siswa bimbingan
-    $stmt_pending_journals = $pdo->prepare("
-        SELECT COUNT(j.id) as total
-        FROM internship_journals j
-        JOIN internship_mappings m ON j.student_id = m.student_id
-        WHERE m.instructor_id = :instructor_id AND j.status = 'Pending'
-    ");
-    $stmt_pending_journals->execute([':instructor_id' => $instructor_id]);
+    // Ambil notifikasi
+    $stmt_pending_journals = $pdo->prepare("SELECT COUNT(j.id) FROM internship_journals j JOIN internship_mappings m ON j.student_id = m.student_id WHERE m.instructor_id = :id AND j.status = 'Pending'");
+    $stmt_pending_journals->execute([':id' => $instructor_id]);
     $pending_journals_count = $stmt_pending_journals->fetchColumn();
 
-    // 2. Hitung siswa bimbingan yang belum dinilai
-    $stmt_unassessed_students = $pdo->prepare("
-        SELECT COUNT(m.student_id) as total
-        FROM internship_mappings m
-        LEFT JOIN internship_assessments a ON m.student_id = a.student_id AND a.instructor_id = m.instructor_id
-        WHERE m.instructor_id = :instructor_id AND a.id IS NULL
-    ");
-    $stmt_unassessed_students->execute([':instructor_id' => $instructor_id]);
-    $unassessed_students_count = $stmt_unassessed_students->fetchColumn();
+    $stmt_pending_leave = $pdo->prepare("SELECT COUNT(id) FROM leave_requests WHERE instructor_id = :id AND status = 'Pending'");
+    $stmt_pending_leave->execute([':id' => $instructor_id]);
+    $pending_leave_count = $stmt_pending_leave->fetchColumn();
 
-    // 3. Ambil daftar siswa bimbingan
+    // Ambil daftar siswa bimbingan
     $stmt_students = $pdo->prepare("
-        SELECT s.name, s.department, s.email
+        SELECT s.name, d.department_name
         FROM students s
+        JOIN departments d ON s.department_id = d.id
         JOIN internship_mappings m ON s.id = m.student_id
-        WHERE m.instructor_id = :instructor_id
-        ORDER BY s.name ASC
+        WHERE m.instructor_id = :id ORDER BY s.name ASC
     ");
-    $stmt_students->execute([':instructor_id' => $instructor_id]);
+    $stmt_students->execute([':id' => $instructor_id]);
     $assigned_students = $stmt_students->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    die("Error: Could not fetch dashboard data. " . $e->getMessage());
+    die("Error fetching dashboard data: " . $e->getMessage());
 }
 ?>
 
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Dashboard Instruktur</h1>
-
-    <!-- Action Cards -->
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Jurnal Menunggu Verifikasi</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $pending_journals_count; ?> Jurnal</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                    <a href="verify_journals.php" class="stretched-link"></a>
-                </div>
+<div class="container-fluid instructor-dashboard">
+    <!-- Header Dashboard -->
+    <div class="dashboard-header card p-3 mb-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <p class="text-muted mb-0"><?php echo date('d M Y'); ?></p>
+                <h5 class="mb-1"><?php echo $greeting; ?>!</h5>
+                <h3 class="fw-bold mb-0"><?php echo htmlspecialchars($instructor_name); ?></h3>
             </div>
-        </div>
-
-        <div class="col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                Siswa Belum Dinilai</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $unassessed_students_count; ?> Siswa</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-edit fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                     <a href="input_assessment.php" class="stretched-link"></a>
-                </div>
+            <div class="text-end">
+                <p class="text-muted mb-0">Peran</p>
+                <h5 class="fw-bold mb-0">Instruktur DUDIKA</h5>
             </div>
         </div>
     </div>
 
-    <!-- Daftar Siswa Bimbingan -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
+    <!-- Menu Ikon -->
+    <div class="row row-cols-2 row-cols-md-4 text-center g-3 mb-4">
+        <div class="col">
+            <a href="verify_journals.php" class="icon-menu-item position-relative">
+                <div class="icon-circle bg-primary text-white"><i class="fas fa-tasks"></i></div>
+                <span class="icon-label">Verifikasi Jurnal</span>
+                <?php if ($pending_journals_count > 0): ?>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"><?php echo $pending_journals_count; ?></span>
+                <?php endif; ?>
+            </a>
+        </div>
+        <div class="col">
+            <a href="input_assessment.php" class="icon-menu-item">
+                <div class="icon-circle bg-success text-white"><i class="fas fa-edit"></i></div>
+                <span class="icon-label">Input Penilaian</span>
+            </a>
+        </div>
+        <div class="col">
+            <a href="manage_leave_requests.php" class="icon-menu-item position-relative">
+                <div class="icon-circle bg-warning text-dark"><i class="fas fa-calendar-check"></i></div>
+                <span class="icon-label">Persetujuan Izin</span>
+                 <?php if ($pending_leave_count > 0): ?>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"><?php echo $pending_leave_count; ?></span>
+                <?php endif; ?>
+            </a>
+        </div>
+        <div class="col">
+            <a href="student_problems.php" class="icon-menu-item">
+                <div class="icon-circle bg-danger text-white"><i class="fas fa-exclamation-triangle"></i></div>
+                <span class="icon-label">Catatan Masalah</span>
+            </a>
+        </div>
+    </div>
+
+     <!-- Daftar Siswa Bimbingan -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
             <h6 class="m-0 font-weight-bold text-primary">Daftar Siswa Bimbingan Anda</h6>
         </div>
-        <div class="card-body">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                <table class="table table-striped table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>#</th>
                             <th>Nama Siswa</th>
                             <th>Jurusan</th>
-                            <th>Email</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (count($assigned_students) > 0): ?>
-                            <?php foreach ($assigned_students as $index => $student): ?>
+                            <?php foreach ($assigned_students as $student): ?>
                                 <tr>
-                                    <td><?php echo $index + 1; ?></td>
                                     <td><?php echo htmlspecialchars($student['name']); ?></td>
-                                    <td><?php echo htmlspecialchars($student['department']); ?></td>
-                                    <td><?php echo htmlspecialchars($student['email']); ?></td>
+                                    <td><?php echo htmlspecialchars($student['department_name']); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="4" class="text-center">Anda belum memiliki siswa bimbingan.</td>
+                                <td colspan="2" class="text-center p-4">Anda belum memiliki siswa bimbingan.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -125,16 +126,11 @@ try {
             </div>
         </div>
     </div>
-
 </div>
 
-<style>
-/* Custom styles for dashboard cards */
-.card .border-left-warning { border-left: .25rem solid #f6c23e!important; }
-.card .border-left-danger { border-left: .25rem solid #e74a3b!important; }
-.text-xs { font-size: .7rem; }
-</style>
-
 <?php
+if (in_array($_SESSION['user_role'], ['student', 'teacher', 'instructor'])) {
+    echo '</div>';
+}
 require_once __DIR__ . '/templates/footer.php';
 ?>

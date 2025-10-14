@@ -203,5 +203,8 @@ $(document).ready(function() {
 </script>
 
 <?php
+if (in_array($_SESSION['user_role'], ['student', 'teacher', 'instructor'])) {
+    echo '</div>';
+}
 require_once __DIR__ . '/templates/footer.php';
 ?>

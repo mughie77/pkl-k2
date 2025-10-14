@@ -4,21 +4,14 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Periksa apakah pengguna sudah login dan memiliki peran
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
-    // Jika tidak, jangan tampilkan sidebar atau redirect ke login
-    // Untuk saat ini, kita sembunyikan saja
+// Hanya tampilkan sidebar untuk admin
+if (($_SESSION['user_role'] ?? 'guest') !== 'admin') {
+    // Untuk peran lain, buka wrapper konten full-width dan hentikan skrip
+    echo '<div class="content-wrapper p-3 p-md-4" style="width: 100%;">';
     return;
 }
 
 $user_role = $_SESSION['user_role'];
-
-// Jangan tampilkan sidebar untuk siswa
-if ($user_role === 'student') {
-    // Siswa tidak menggunakan sidebar, hanya konten utama
-    echo '<div class="content-wrapper p-3 p-md-4" style="width: 100%;">'; // Wrapper konten full-width
-    return;
-}
 $current_page = basename($_SERVER['PHP_SELF']);
 
 // Fungsi untuk membuat item menu

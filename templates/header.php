@@ -45,15 +45,13 @@ $is_dashboard_page = isset($_SESSION['user_id']);
 </head>
 <body class="<?php echo $is_dashboard_page ? 'dashboard-body' : ''; ?>">
 
-<?php if (($_SESSION['user_role'] ?? 'guest') !== 'student'): // Sembunyikan navbar untuk siswa ?>
+<?php if (($_SESSION['user_role'] ?? 'guest') === 'admin'): // Hanya tampilkan navbar untuk admin ?>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
     <div class="container-fluid">
-        <?php if ($is_dashboard_page): ?>
-            <!-- Tombol Toggle Sidebar -->
-            <button class="btn btn-dark" id="sidebarToggle" type="button">
-                <i class="fas fa-bars"></i>
-            </button>
-        <?php endif; ?>
+        <!-- Tombol Toggle Sidebar -->
+        <button class="btn btn-dark" id="sidebarToggle" type="button">
+            <i class="fas fa-bars"></i>
+        </button>
 
         <a class="navbar-brand fw-bold ms-2" href="<?php echo $is_dashboard_page ? '#' : 'login.php'; ?>">
             <?php if (!empty($app_settings['school_logo']) && file_exists($app_settings['school_logo'])): ?>
@@ -88,4 +86,4 @@ $is_dashboard_page = isset($_SESSION['user_id']);
 </nav>
 <?php endif; ?>
 
-<div id="wrapper" class="<?php echo ($_SESSION['user_role'] ?? '') === 'student' ? '' : 'd-flex'; ?>">
+<div id="wrapper" class="<?php echo (($_SESSION['user_role'] ?? '') !== 'admin') ? '' : 'd-flex'; ?>">
