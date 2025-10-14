@@ -24,7 +24,11 @@ $table = $auth_config[$user_role]['table'];
 $user_col = $auth_config[$user_role]['user_col'];
 
 try {
-    $stmt = $pdo->prepare("SELECT * FROM {$table} WHERE id = :id");
+    if ($user_role === 'student') {
+        $stmt = $pdo->prepare("SELECT s.*, d.department_name FROM students s JOIN departments d ON s.department_id = d.id WHERE s.id = :id");
+    } else {
+        $stmt = $pdo->prepare("SELECT * FROM {$table} WHERE id = :id");
+    }
     $stmt->execute([':id' => $user_id]);
     $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -56,7 +60,7 @@ try {
                     <p><strong>Peran:</strong> <?php echo ucwords($user_role); ?></p>
                     <p><strong>Username:</strong> <?php echo htmlspecialchars($user_info[$user_col]); ?></p>
                     <?php if ($user_role === 'student'): ?>
-                        <p><strong>Jurusan:</strong> <?php echo htmlspecialchars($user_info['department']); ?></p>
+                        <p><strong>Jurusan:</strong> <?php echo htmlspecialchars($user_info['department_name']); ?></p>
                         <p><strong>Email:</strong> <?php echo htmlspecialchars($user_info['email'] ?? '-'); ?></p>
                         <hr>
                         <form action="core/profile_actions.php" method="POST">
