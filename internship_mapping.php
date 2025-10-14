@@ -136,8 +136,8 @@ try {
                     <input type="hidden" name="academic_year_id" value="<?php echo $active_year_id; ?>">
 
                     <div class="mb-3">
-                        <label for="student_id" class="form-label">Siswa</label>
-                        <select class="form-select" id="student_id" name="student_id" required>
+                        <label for="student_id_mapping" class="form-label">Siswa</label>
+                        <select class="form-select select2-mapping" id="student_id_mapping" name="student_id" required>
                             <option value="" disabled selected>-- Pilih Siswa --</option>
                             <?php foreach ($unmapped_students as $student): ?>
                                 <option value="<?php echo $student['id']; ?>"><?php echo htmlspecialchars($student['name']); ?></option>
@@ -145,8 +145,8 @@ try {
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="teacher_id" class="form-label">Guru Pembimbing</label>
-                        <select class="form-select" id="teacher_id" name="teacher_id" required>
+                        <label for="teacher_id_mapping" class="form-label">Guru Pembimbing</label>
+                        <select class="form-select select2-mapping" id="teacher_id_mapping" name="teacher_id" required>
                             <option value="" disabled selected>-- Pilih Guru --</option>
                             <?php foreach ($teachers as $teacher): ?>
                                 <option value="<?php echo $teacher['id']; ?>"><?php echo htmlspecialchars($teacher['name']); ?></option>
@@ -154,8 +154,8 @@ try {
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="instructor_id" class="form-label">Instruktur DUDIKA</label>
-                        <select class="form-select" id="instructor_id" name="instructor_id" required>
+                        <label for="instructor_id_mapping" class="form-label">Instruktur DUDIKA</label>
+                        <select class="form-select select2-mapping" id="instructor_id_mapping" name="instructor_id" required>
                             <option value="" disabled selected>-- Pilih Instruktur --</option>
                             <?php foreach ($instructors as $instructor): ?>
                                 <option value="<?php echo $instructor['id']; ?>"><?php echo htmlspecialchars($instructor['name'] . ' (' . $instructor['company_name'] . ')'); ?></option>
@@ -183,20 +183,19 @@ try {
 </div>
 
 <script>
-// Script Select2 yang sudah ada akan tetap berfungsi
 $(document).ready(function() {
-    const initSelect2 = () => {
-        $('#student_id, #teacher_id, #instructor_id').select2({
+    const initMappingSelect2 = () => {
+        $('.select2-mapping').select2({
             theme: 'bootstrap-5',
             dropdownParent: $('#mappingModal')
         });
     };
 
     const mappingModal = document.getElementById('mappingModal');
-    const studentSelect = $('#student_id');
+    const studentSelect = $('#student_id_mapping');
 
     mappingModal.addEventListener('show.bs.modal', function(event) {
-        initSelect2();
+        initMappingSelect2();
 
         const button = event.relatedTarget;
         const form = document.getElementById('mappingForm');
@@ -208,8 +207,8 @@ $(document).ready(function() {
             form.querySelector('#form_action').value = 'update';
             form.querySelector('#mapping_id').value = button.dataset.id;
 
-            $('#teacher_id').val(button.dataset.teacher_id).trigger('change');
-            $('#instructor_id').val(button.dataset.instructor_id).trigger('change');
+            $('#teacher_id_mapping').val(button.dataset.teacher_id).trigger('change');
+            $('#instructor_id_mapping').val(button.dataset.instructor_id).trigger('change');
             $('#start_date').val(button.dataset.start_date);
             $('#end_date').val(button.dataset.end_date);
 
@@ -227,7 +226,7 @@ $(document).ready(function() {
             form.querySelector('.modal-title').textContent = 'Buat Mapping PKL Baru';
             form.querySelector('#form_action').value = 'create';
             form.reset();
-            $('#student_id, #teacher_id, #instructor_id').val(null).trigger('change');
+            $('.select2-mapping').val(null).trigger('change');
         }
     });
 });
