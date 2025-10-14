@@ -38,7 +38,7 @@ try {
 }
 ?>
 
-<div class="container-fluid teacher-dashboard">
+<div class="container-fluid teacher-dashboard student-dashboard">
     <!-- Header Dashboard -->
     <div class="dashboard-header card p-3 mb-4 shadow-sm">
         <div class="d-flex justify-content-between align-items-center">
