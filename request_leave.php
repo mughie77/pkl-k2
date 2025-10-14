@@ -123,5 +123,15 @@ function get_status_badge($status) {
 if ($_SESSION['user_role'] === 'student') {
     echo '</div>';
 }
+?>
+<script>
+$(document).ready(function() {
+    $('#leave_type').select2({
+        theme: 'bootstrap-5',
+        minimumResultsForSearch: Infinity // Sembunyikan search box karena hanya ada 2 pilihan
+    });
+});
+</script>
+<?php
 require_once __DIR__ . '/templates/footer.php';
 ?>

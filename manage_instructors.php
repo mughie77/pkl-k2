@@ -145,9 +145,17 @@ try {
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
+    const initInstructorSelect2 = () => {
+        $('#company_id').select2({
+            theme: 'bootstrap-5',
+            dropdownParent: $('#instructorModal')
+        });
+    };
+
     const instructorModal = document.getElementById('instructorModal');
     instructorModal.addEventListener('show.bs.modal', function(event) {
+        initInstructorSelect2();
         const button = event.relatedTarget;
         const modalTitle = instructorModal.querySelector('.modal-title');
         const form = document.getElementById('instructorForm');
@@ -162,14 +170,15 @@ document.addEventListener('DOMContentLoaded', function() {
             actionInput.value = 'update'; // Aksi update hanya akan mengubah nama, posisi, dan perusahaan
             instructorIdInput.value = button.dataset.id;
 
-            document.getElementById('name').value = button.dataset.name;
-            document.getElementById('position').value = button.dataset.position;
-            document.getElementById('company_id').value = button.dataset.company_id;
+            $('#name').val(button.dataset.name);
+            $('#position').val(button.dataset.position);
+            $('#company_id').val(button.dataset.company_id).trigger('change');
         } else {
             modalTitle.textContent = 'Tambah Instruktur Baru';
             actionInput.value = 'create';
             form.reset();
             instructorIdInput.value = '';
+            $('#company_id').val(null).trigger('change');
         }
     });
 });
