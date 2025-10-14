@@ -91,6 +91,7 @@ CREATE TABLE `teachers` (
   `nip` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `department` varchar(100) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `nip` (`nip`)
@@ -140,9 +141,15 @@ CREATE TABLE `instructors` (
 CREATE TABLE `students` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
+  `nis` varchar(20) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
   `nisn` varchar(20) NOT NULL,
+  `birth_place` varchar(100) DEFAULT NULL,
+  `birth_date` date DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `parent_phone` varchar(20) DEFAULT NULL,
   `department_id` int(11) NOT NULL,
   `academic_year_id` int(11) NOT NULL,
   `work_start_time` time DEFAULT '08:00:00',

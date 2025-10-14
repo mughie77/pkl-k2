@@ -21,76 +21,61 @@ function redirect_to_manage_students() {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
-    // Aksi: Tambah Siswa Baru (Create)
-    if ($action === 'create') {
-        $name = trim($_POST['name']);
-        $nisn = trim($_POST['nisn']);
-        $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL) ?: null;
-        $department_id = $_POST['department_id'];
-        $academic_year_id = $_POST['academic_year_id'];
+    // Data dari form
+    $name = trim($_POST['name']);
+    $nis = trim($_POST['nis']);
+    $nisn = trim($_POST['nisn']);
+    $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL) ?: null;
+    $birth_place = trim($_POST['birth_place']);
+    $birth_date = !empty($_POST['birth_date']) ? $_POST['birth_date'] : null;
+    $address = trim($_POST['address']);
+    $phone = trim($_POST['phone']);
+    $parent_phone = trim($_POST['parent_phone']);
+    $department_id = $_POST['department_id'];
+    $academic_year_id = $_POST['academic_year_id'];
 
+    if ($action === 'create') {
         if (empty($name) || empty($nisn) || empty($department_id) || empty($academic_year_id)) {
-            set_flash_message('danger', 'Semua kolom wajib diisi.');
+            set_flash_message('danger', 'Nama, NISN, Jurusan, dan Tahun Pelajaran wajib diisi.');
             redirect_to_manage_students();
         }
 
         $hashed_password = password_hash($nisn, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $pdo->prepare("INSERT INTO students (name, nisn, email, department_id, academic_year_id, password) VALUES (:name, :nisn, :email, :department_id, :academic_year_id, :password)");
+            $stmt = $pdo->prepare("INSERT INTO students (name, nis, email, password, nisn, birth_place, birth_date, address, phone, parent_phone, department_id, academic_year_id) VALUES (:name, :nis, :email, :password, :nisn, :birth_place, :birth_date, :address, :phone, :parent_phone, :department_id, :academic_year_id)");
             $stmt->execute([
-                ':name' => $name,
-                ':nisn' => $nisn,
-                ':email' => $email,
-                ':department_id' => $department_id,
-                ':academic_year_id' => $academic_year_id,
-                ':password' => $hashed_password
+                ':name' => $name, ':nis' => $nis, ':email' => $email, ':password' => $hashed_password, ':nisn' => $nisn,
+                ':birth_place' => $birth_place, ':birth_date' => $birth_date, ':address' => $address, ':phone' => $phone,
+                ':parent_phone' => $parent_phone, ':department_id' => $department_id, ':academic_year_id' => $academic_year_id
             ]);
             set_flash_message('success', 'Data siswa berhasil ditambahkan.');
         } catch (PDOException $e) {
-            if ($e->getCode() == 23000) {
-                set_flash_message('danger', 'Gagal menambahkan data. NISN sudah terdaftar.');
-            } else {
-                set_flash_message('danger', 'Terjadi kesalahan saat menambahkan data: ' . $e->getMessage());
-            }
+            set_flash_message('danger', 'Gagal menambahkan data: ' . $e->getMessage());
         }
         redirect_to_manage_students();
     }
 
-    // Aksi: Perbarui Data Siswa (Update)
     if ($action === 'update') {
         $student_id = $_POST['student_id'];
-        $name = trim($_POST['name']);
-        $nisn = trim($_POST['nisn']);
-        $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL) ?: null;
-        $department_id = $_POST['department_id'];
-        $academic_year_id = $_POST['academic_year_id'];
-
         if (empty($student_id) || empty($name) || empty($nisn) || empty($department_id) || empty($academic_year_id)) {
-            set_flash_message('danger', 'Semua kolom wajib diisi.');
+            set_flash_message('danger', 'Data wajib tidak boleh kosong.');
             redirect_to_manage_students();
         }
 
         $hashed_password = password_hash($nisn, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $pdo->prepare("UPDATE students SET name = :name, nisn = :nisn, email = :email, department_id = :department_id, academic_year_id = :academic_year_id, password = :password WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE students SET name = :name, nis = :nis, email = :email, password = :password, nisn = :nisn, birth_place = :birth_place, birth_date = :birth_date, address = :address, phone = :phone, parent_phone = :parent_phone, department_id = :department_id, academic_year_id = :academic_year_id WHERE id = :id");
             $stmt->execute([
-                ':name' => $name,
-                ':nisn' => $nisn,
-                ':email' => $email,
-                ':department_id' => $department_id,
-                ':academic_year_id' => $academic_year_id,
-                ':password' => $hashed_password,
+                ':name' => $name, ':nis' => $nis, ':email' => $email, ':password' => $hashed_password, ':nisn' => $nisn,
+                ':birth_place' => $birth_place, ':birth_date' => $birth_date, ':address' => $address, ':phone' => $phone,
+                ':parent_phone' => $parent_phone, ':department_id' => $department_id, ':academic_year_id' => $academic_year_id,
                 ':id' => $student_id
             ]);
             set_flash_message('success', 'Data siswa berhasil diperbarui.');
         } catch (PDOException $e) {
-            if ($e->getCode() == 23000) {
-                set_flash_message('danger', 'Gagal memperbarui data. NISN sudah digunakan oleh siswa lain.');
-            } else {
-                set_flash_message('danger', 'Terjadi kesalahan saat memperbarui data: ' . $e->getMessage());
-            }
+            set_flash_message('danger', 'Gagal memperbarui data: ' . $e->getMessage());
         }
         redirect_to_manage_students();
     }
@@ -99,18 +84,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Aksi: Hapus Data Siswa (Delete)
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'delete') {
     $student_id = $_GET['id'] ?? null;
-
-    if (empty($student_id)) {
-        set_flash_message('danger', 'ID siswa tidak valid.');
-        redirect_to_manage_students();
-    }
-
-    try {
-        $stmt = $pdo->prepare("DELETE FROM students WHERE id = :id");
-        $stmt->execute([':id' => $student_id]);
-        set_flash_message('success', 'Data siswa berhasil dihapus.');
-    } catch (PDOException $e) {
-        set_flash_message('danger', 'Gagal menghapus data siswa. Mungkin data ini terkait dengan data lain.');
+    if (!empty($student_id)) {
+        try {
+            $stmt = $pdo->prepare("DELETE FROM students WHERE id = :id");
+            $stmt->execute([':id' => $student_id]);
+            set_flash_message('success', 'Data siswa berhasil dihapus.');
+        } catch (PDOException $e) {
+            set_flash_message('danger', 'Gagal menghapus data siswa.');
+        }
     }
     redirect_to_manage_students();
 }

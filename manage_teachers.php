@@ -45,6 +45,7 @@ try {
                             <th>#</th>
                             <th>Nama Lengkap</th>
                             <th>NIP (Username)</th>
+                            <th>No. HP</th>
                             <th>Jurusan/Bidang</th>
                             <th>Aksi</th>
                         </tr>
@@ -56,12 +57,14 @@ try {
                                     <td><?php echo $index + 1; ?></td>
                                     <td><?php echo htmlspecialchars($teacher['name']); ?></td>
                                     <td><?php echo htmlspecialchars($teacher['nip']); ?></td>
+                                    <td><?php echo htmlspecialchars($teacher['phone']); ?></td>
                                     <td><?php echo htmlspecialchars($teacher['department']); ?></td>
                                     <td>
                                         <button class="btn btn-warning btn-sm edit-btn"
                                                 data-id="<?php echo $teacher['id']; ?>"
                                                 data-name="<?php echo htmlspecialchars($teacher['name']); ?>"
                                                 data-nip="<?php echo htmlspecialchars($teacher['nip']); ?>"
+                                                data-phone="<?php echo htmlspecialchars($teacher['phone']); ?>"
                                                 data-department="<?php echo htmlspecialchars($teacher['department']); ?>"
                                                 data-bs-toggle="modal" data-bs-target="#teacherModal">
                                             <i class="fas fa-edit"></i>
@@ -76,7 +79,7 @@ try {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="text-center">Belum ada data guru.</td>
+                                <td colspan="6" class="text-center">Belum ada data guru.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -109,6 +112,10 @@ try {
                         <small class="form-text text-muted">NIP akan digunakan sebagai username dan password default.</small>
                     </div>
                     <div class="mb-3">
+                        <label for="phone" class="form-label">No. HP</label>
+                        <input type="tel" class="form-control" id="phone" name="phone">
+                    </div>
+                    <div class="mb-3">
                         <label for="department" class="form-label">Jurusan/Bidang Keahlian</label>
                         <input type="text" class="form-control" id="department" name="department" required>
                     </div>
@@ -139,6 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             document.getElementById('name').value = button.dataset.name;
             document.getElementById('nip').value = button.dataset.nip;
+            document.getElementById('phone').value = button.dataset.phone;
             document.getElementById('department').value = button.dataset.department;
         } else {
             modalTitle.textContent = 'Tambah Guru Baru';

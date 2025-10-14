@@ -30,7 +30,7 @@ try {
 
     // Ambil daftar siswa bimbingan
     $stmt_students = $pdo->prepare("
-        SELECT s.name, d.department_name
+        SELECT s.id, s.name, d.department_name
         FROM students s
         JOIN departments d ON s.department_id = d.id
         JOIN internship_mappings m ON s.id = m.student_id
@@ -106,6 +106,7 @@ try {
                         <tr>
                             <th>Nama Siswa</th>
                             <th>Jurusan</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -114,11 +115,16 @@ try {
                                 <tr>
                                     <td><?php echo htmlspecialchars($student['name']); ?></td>
                                     <td><?php echo htmlspecialchars($student['department_name']); ?></td>
+                                    <td>
+                                        <a href="student_details.php?id=<?php echo $student['id']; ?>" class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye"></i> Detail
+                                        </a>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="2" class="text-center p-4">Anda belum memiliki siswa bimbingan.</td>
+                                <td colspan="3" class="text-center p-4">Anda belum memiliki siswa bimbingan.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

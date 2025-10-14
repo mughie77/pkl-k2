@@ -26,9 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name']);
         $nip = trim($_POST['nip']);
         $department = trim($_POST['department']);
+        $phone = trim($_POST['phone']);
 
         if (empty($name) || empty($nip) || empty($department)) {
-            set_flash_message('danger', 'Semua kolom wajib diisi.');
+            set_flash_message('danger', 'Nama, NIP, dan Jurusan wajib diisi.');
             redirect_to_manage_teachers();
         }
 
@@ -36,11 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $hashed_password = password_hash($nip, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $pdo->prepare("INSERT INTO teachers (name, nip, department, password) VALUES (:name, :nip, :department, :password)");
+            $stmt = $pdo->prepare("INSERT INTO teachers (name, nip, department, phone, password) VALUES (:name, :nip, :department, :phone, :password)");
             $stmt->execute([
                 ':name' => $name,
                 ':nip' => $nip,
                 ':department' => $department,
+                ':phone' => $phone,
                 ':password' => $hashed_password
             ]);
             set_flash_message('success', 'Data guru berhasil ditambahkan. Username & Password default adalah NIP.');
@@ -60,9 +62,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name']);
         $nip = trim($_POST['nip']);
         $department = trim($_POST['department']);
+        $phone = trim($_POST['phone']);
 
         if (empty($teacher_id) || empty($name) || empty($nip) || empty($department)) {
-            set_flash_message('danger', 'Semua kolom wajib diisi.');
+            set_flash_message('danger', 'Nama, NIP, dan Jurusan wajib diisi.');
             redirect_to_manage_teachers();
         }
 
@@ -70,11 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $hashed_password = password_hash($nip, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $pdo->prepare("UPDATE teachers SET name = :name, nip = :nip, department = :department, password = :password WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE teachers SET name = :name, nip = :nip, department = :department, phone = :phone, password = :password WHERE id = :id");
             $stmt->execute([
                 ':name' => $name,
                 ':nip' => $nip,
                 ':department' => $department,
+                ':phone' => $phone,
                 ':password' => $hashed_password,
                 ':id' => $teacher_id
             ]);
