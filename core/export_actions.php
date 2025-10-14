@@ -29,8 +29,9 @@ try {
     if ($rekap_type === 'attendance') {
         // Data Rekap Absensi
         $stmt = $pdo->prepare("
-            SELECT s.name, s.department, COUNT(j.id) as total_hadir
+            SELECT s.name, d.department_name, COUNT(j.id) as total_hadir
             FROM students s
+            JOIN departments d ON s.department_id = d.id
             LEFT JOIN internship_journals j ON s.id = j.student_id AND DATE_FORMAT(j.journal_date, '%Y-%m') = :month
             GROUP BY s.id
             ORDER BY s.name ASC
@@ -47,10 +48,11 @@ try {
         // Data Rekap Nilai
         $stmt = $pdo->prepare("
             SELECT
-                s.name as student_name, s.department,
+                s.name as student_name, d.department_name,
                 a.discipline_score, a.skill_score, a.teamwork_score, a.diligence_score,
                 (a.discipline_score + a.skill_score + a.teamwork_score + a.diligence_score) / 4 as average_score
             FROM students s
+            JOIN departments d ON s.department_id = d.id
             LEFT JOIN internship_assessments a ON s.id = a.student_id
             ORDER BY s.name ASC
         ");
@@ -62,7 +64,7 @@ try {
         foreach ($results as $row) {
             $data_to_export[] = [
                 $row['student_name'],
-                $row['department'],
+                $row['department_name'],
                 $row['discipline_score'] ?? 'N/A',
                 $row['skill_score'] ?? 'N/A',
                 $row['teamwork_score'] ?? 'N/A',

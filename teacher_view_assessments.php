@@ -14,12 +14,13 @@ try {
     // Ambil data penilaian dari siswa bimbingan guru ini
     $stmt = $pdo->prepare("
         SELECT
-            s.name as student_name, s.department,
+            s.name as student_name, d.department_name,
             a.discipline_score, a.skill_score, a.teamwork_score, a.diligence_score,
             (a.discipline_score + a.skill_score + a.teamwork_score + a.diligence_score) / 4 as average_score,
             i.name as instructor_name
         FROM internship_assessments a
         JOIN students s ON a.student_id = s.id
+        JOIN departments d ON s.department_id = d.id
         JOIN instructors i ON a.instructor_id = i.id
         JOIN internship_mappings m ON a.student_id = m.student_id
         WHERE m.teacher_id = :teacher_id
@@ -60,7 +61,7 @@ try {
                             <?php foreach ($assessments as $data): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($data['student_name']); ?></td>
-                                <td><?php echo htmlspecialchars($data['department']); ?></td>
+                                <td><?php echo htmlspecialchars($data['department_name']); ?></td>
                                 <td><?php echo $data['discipline_score']; ?></td>
                                 <td><?php echo $data['skill_score']; ?></td>
                                 <td><?php echo $data['teamwork_score']; ?></td>
