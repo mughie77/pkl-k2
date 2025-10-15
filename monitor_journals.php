@@ -221,7 +221,7 @@ function get_status_badge($status) {
 
 
 <script>
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // Initialize Select2
     $('#student_id').select2({
         theme: 'bootstrap-5'
