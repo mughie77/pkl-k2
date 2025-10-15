@@ -195,9 +195,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const journalId = button.dataset.journalId;
         const type = button.dataset.locationType;
 
-        $('#map').html('<div class="d-flex justify-content-center align-items-center h-100"><i class="fas fa-spinner fa-spin fa-3x"></i></div>');
-
-
         $.ajax({
             url: `get_location_map.php?journal_id=${journalId}&type=${type}`,
             success: function(data) {
