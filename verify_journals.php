@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
             success: function(data) {
                 if(map) map.remove();
 
-                const locationData = JSON.parse(data);
+                const locationData = data;
 
                 if(locationData.error) {
                     $('#map').html(`<div class="alert alert-danger">${locationData.error}</div>`);

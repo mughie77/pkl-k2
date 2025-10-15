@@ -172,23 +172,48 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function getLocation(button) {
+    if (window.isSecureContext === false) {
+        alert("Fitur lokasi tidak aman pada koneksi HTTP. Silakan gunakan HTTPS.");
+        return;
+    }
+
     if (navigator.geolocation) {
         button.disabled = true;
         button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mencari Lokasi...';
+
         navigator.geolocation.getCurrentPosition(function(position) {
             document.getElementById('latitude').value = position.coords.latitude;
             document.getElementById('longitude').value = position.coords.longitude;
             button.form.submit();
         }, function(error) {
             console.error("Geolocation error: ", error);
-            alert('Gagal mendapatkan lokasi. Pastikan Anda mengizinkan akses lokasi.');
+            let errorMessage = "Gagal mendapatkan lokasi. ";
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage += "Anda telah menolak izin akses lokasi.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage += "Informasi lokasi tidak tersedia.";
+                    break;
+                case error.TIMEOUT:
+                    errorMessage += "Waktu permintaan untuk mendapatkan lokasi habis.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    errorMessage += "Terjadi kesalahan yang tidak diketahui.";
+                    break;
+            }
+            alert(errorMessage);
+
             button.disabled = false;
-            // Mengembalikan teks tombol ke keadaan semula
             if(button.name === 'action' && button.value === 'check_in') {
                  button.innerHTML = '<i class="fas fa-play-circle me-2"></i>Check-in';
             } else {
                  button.innerHTML = '<i class="fas fa-stop-circle me-2"></i>Check-out';
             }
+        }, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
         });
     } else {
         alert("Geolocation tidak didukung oleh browser ini.");
