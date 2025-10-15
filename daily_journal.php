@@ -179,47 +179,60 @@ function getLocation(button, event) {
         return;
     }
 
-    if (navigator.geolocation) {
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mencari Lokasi...';
+    if (!navigator.geolocation) {
+        alert("Geolocation tidak didukung oleh browser ini.");
+        return;
+    }
 
-        navigator.geolocation.getCurrentPosition(function(position) {
-            document.getElementById('latitude').value = position.coords.latitude;
-            document.getElementById('longitude').value = position.coords.longitude;
-            button.form.submit();
-        }, function(error) {
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mencari Lokasi...';
+
+    const resetButtonStyle = () => {
+        button.disabled = false;
+        if (button.value === 'check_in') {
+            button.innerHTML = '<i class="fas fa-play-circle me-2"></i>Check-in';
+        } else {
+            button.innerHTML = '<i class="fas fa-stop-circle me-2"></i>Check-out';
+        }
+    };
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            try {
+                document.getElementById('latitude').value = position.coords.latitude;
+                document.getElementById('longitude').value = position.coords.longitude;
+                button.form.submit();
+            } catch (e) {
+                alert('Terjadi kesalahan saat memproses lokasi. Silakan coba lagi.');
+                resetButtonStyle();
+            }
+        },
+        (error) => {
             console.error("Geolocation error: ", error);
-            let errorMessage = "Gagal mendapatkan lokasi. ";
+            let errorMessage = "Gagal mendapatkan lokasi: ";
             switch(error.code) {
                 case error.PERMISSION_DENIED:
-                    errorMessage += "Anda telah menolak izin akses lokasi.";
+                    errorMessage += "Anda menolak izin akses lokasi.";
                     break;
                 case error.POSITION_UNAVAILABLE:
                     errorMessage += "Informasi lokasi tidak tersedia.";
                     break;
                 case error.TIMEOUT:
-                    errorMessage += "Waktu permintaan untuk mendapatkan lokasi habis.";
+                    errorMessage += "Waktu permintaan habis.";
                     break;
-                case error.UNKNOWN_ERROR:
+                default:
                     errorMessage += "Terjadi kesalahan yang tidak diketahui.";
                     break;
             }
             alert(errorMessage);
-
-            button.disabled = false;
-            if(button.name === 'action' && button.value === 'check_in') {
-                 button.innerHTML = '<i class="fas fa-play-circle me-2"></i>Check-in';
-            } else {
-                 button.innerHTML = '<i class="fas fa-stop-circle me-2"></i>Check-out';
-            }
-        }, {
+            resetButtonStyle();
+        },
+        {
             enableHighAccuracy: true,
-            timeout: 10000,
+            timeout: 15000, // Increased timeout
             maximumAge: 0
-        });
-    } else {
-        alert("Geolocation tidak didukung oleh browser ini.");
-    }
+        }
+    );
 }
 </script>
 
