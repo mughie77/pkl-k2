@@ -263,8 +263,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 $('#locationModalLabel').text(`Lokasi ${locationData.type} - ${locationData.student_name} (${locationData.date})`);
 
                 map = L.map('map').setView([locationData.lat, locationData.lon], 16);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                 }).addTo(map);
 
                 L.marker([locationData.lat, locationData.lon]).addTo(map)

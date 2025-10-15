@@ -53,7 +53,7 @@ function get_status_badge($status) {
             <h6 class="m-0 font-weight-bold"><i class="fas fa-calendar-day me-2"></i>Jurnal untuk Tanggal: <?php echo date('d M Y'); ?></h6>
         </div>
         <div class="card-body">
-            <form action="core/journal_actions.php" method="POST">
+            <form id="journalForm" action="core/journal_actions.php" method="POST">
                 <input type="hidden" name="latitude" id="latitude">
                 <input type="hidden" name="longitude" id="longitude">
 
@@ -82,7 +82,7 @@ function get_status_badge($status) {
                     <textarea name="activities" id="activities" class="form-control" rows="8" placeholder="Jelaskan kegiatan yang Anda lakukan hari ini..." <?php echo empty($today_journal) ? 'disabled' : ''; ?>><?php echo htmlspecialchars($today_journal['activities'] ?? ''); ?></textarea>
                 </div>
 
-                <button type="submit" name="action" value="submit_journal" class="btn btn-primary w-100" <?php echo empty($today_journal) ? 'disabled' : ''; ?>>
+                <button type="submit" name="action" value="submit_journal" class="btn btn-primary w-100" onclick="submitJournal(event)" <?php echo empty($today_journal) ? 'disabled' : ''; ?>>
                     <i class="fas fa-paper-plane me-2"></i> Kirim Jurnal
                 </button>
                 <?php if (empty($today_journal)): ?>
@@ -254,6 +254,48 @@ function getLocation(button, event) {
             maximumAge: 0
         }
     );
+}
+
+function submitJournal(event) {
+    event.preventDefault();
+    const form = document.getElementById('journalForm');
+    const activities = form.querySelector('#activities').value;
+    const submitButton = form.querySelector('button[value="submit_journal"]');
+
+    if (activities.trim() === '') {
+        alert('Deskripsi kegiatan tidak boleh kosong.');
+        return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mengirim...';
+
+    const formData = new FormData();
+    formData.append('action', 'submit_journal');
+    formData.append('activities', activities);
+
+    fetch('core/journal_actions.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        if (data.status === 'success') {
+            // Optionally, you can just update the UI without reloading
+            // For simplicity, we'll reload to see the message from the session
+            window.location.reload();
+        } else {
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Kirim Jurnal';
+        }
+    })
+    .catch(error => {
+        console.error('Fetch Error:', error);
+        alert('Terjadi kesalahan koneksi. Gagal mengirim jurnal.');
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Kirim Jurnal';
+    });
 }
 </script>
 
