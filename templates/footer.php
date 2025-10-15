@@ -26,7 +26,7 @@ if (in_array($user_role, ['student', 'teacher', 'instructor'])) :
 
         <?php if ($user_role === 'instructor'): ?>
             <a href="verify_journals.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'verify_journals.php' ? 'active' : ''; ?>"><i class="fas fa-tasks"></i><span>Verifikasi</span></a>
-            <a href="manage_leave_requests.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_leave_requests.php' ? 'active' : ''; ?>"><i class="fas fa-calendar-check"></i><span>Izin</span></a>
+            <a href="instructor_view_journals.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'instructor_view_journals.php' ? 'active' : ''; ?>"><i class="fas fa-book-open"></i><span>R. Absen</span></a>
             <a href="input_assessment.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'input_assessment.php' ? 'active' : ''; ?>"><i class="fas fa-edit"></i><span>Menilai</span></a>
         <?php endif; ?>
 
