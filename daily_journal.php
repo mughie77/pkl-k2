@@ -196,40 +196,61 @@ function getLocation(button, event) {
         }
     };
 
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            try {
-                document.getElementById('latitude').value = position.coords.latitude;
-                document.getElementById('longitude').value = position.coords.longitude;
-                button.form.submit();
-            } catch (e) {
-                alert('Terjadi kesalahan saat memproses lokasi. Silakan coba lagi.');
+    const sendData = (latitude, longitude) => {
+        const formData = new FormData();
+        formData.append('action', button.value);
+        formData.append('latitude', latitude);
+        formData.append('longitude', longitude);
+
+        fetch('core/journal_actions.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
                 resetButtonStyle();
             }
+        })
+        .catch(error => {
+            console.error('Fetch Error:', error);
+            alert('Terjadi kesalahan koneksi. Gagal mengirim data.');
+            resetButtonStyle();
+        });
+    };
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            sendData(position.coords.latitude, position.coords.longitude);
         },
         (error) => {
             console.error("Geolocation error: ", error);
             let errorMessage = "Gagal mendapatkan lokasi: ";
             switch(error.code) {
                 case error.PERMISSION_DENIED:
-                    errorMessage += "Anda menolak izin akses lokasi.";
+                    errorMessage += "Anda menolak izin akses lokasi. Check-in tetap dilanjutkan tanpa data lokasi.";
                     break;
                 case error.POSITION_UNAVAILABLE:
-                    errorMessage += "Informasi lokasi tidak tersedia.";
+                    errorMessage += "Informasi lokasi tidak tersedia. Check-in tetap dilanjutkan tanpa data lokasi.";
                     break;
                 case error.TIMEOUT:
-                    errorMessage += "Waktu permintaan habis.";
+                    errorMessage += "Waktu permintaan habis. Check-in tetap dilanjutkan tanpa data lokasi.";
                     break;
                 default:
-                    errorMessage += "Terjadi kesalahan yang tidak diketahui.";
+                    errorMessage += "Terjadi kesalahan tidak diketahui. Check-in tetap dilanjutkan tanpa data lokasi.";
                     break;
             }
             alert(errorMessage);
-            resetButtonStyle();
+            // Tetap kirim data meskipun lokasi gagal didapat
+            sendData(null, null);
         },
         {
             enableHighAccuracy: true,
-            timeout: 15000, // Increased timeout
+            timeout: 10000,
             maximumAge: 0
         }
     );
