@@ -28,7 +28,8 @@ try {
     // Bangun query utama
     $query = "
         SELECT
-            j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
+            j.id as journal_id, j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
+            j.check_in_latitude, j.check_in_longitude, j.check_out_latitude, j.check_out_longitude,
             s.name as student_name, s.work_start_time, s.work_end_time
         FROM internship_journals j
         JOIN students s ON j.student_id = s.id
@@ -144,8 +145,30 @@ function get_status_badge($status) {
                                                 data-student-name="<?php echo htmlspecialchars($journal['student_name']); ?>"
                                                 data-journal-date="<?php echo date('d M Y', strtotime($journal['journal_date'])); ?>"
                                                 data-bs-toggle="modal" data-bs-target="#viewJournalModal">
-                                            <i class="fas fa-eye"></i> Lihat Jurnal
+                                            <i class="fas fa-eye"></i>
                                         </button>
+
+                                        <?php if (!empty($journal['check_in_latitude']) && !empty($journal['check_in_longitude'])): ?>
+                                            <button class="btn btn-success btn-sm view-location-btn"
+                                                    data-journal-id="<?php echo $journal['journal_id']; ?>"
+                                                    data-location-type="check_in"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#locationModal"
+                                                    title="Lihat Lokasi Check-in">
+                                                <i class="fas fa-map-marker-alt"></i> In
+                                            </button>
+                                        <?php endif; ?>
+
+                                        <?php if (!empty($journal['check_out_latitude']) && !empty($journal['check_out_longitude'])): ?>
+                                            <button class="btn btn-danger btn-sm view-location-btn"
+                                                    data-journal-id="<?php echo $journal['journal_id']; ?>"
+                                                    data-location-type="check_out"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#locationModal"
+                                                    title="Lihat Lokasi Check-out">
+                                                <i class="fas fa-map-marker-alt"></i> Out
+                                            </button>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -181,6 +204,22 @@ function get_status_badge($status) {
     </div>
 </div>
 
+<!-- Modal untuk Peta Lokasi -->
+<div class="modal fade" id="locationModal" tabindex="-1" aria-labelledby="locationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="locationModalLabel">Lokasi Absen Siswa</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="map" style="height: 450px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <script>
 $(document).ready(function() {
     // Initialize Select2
@@ -198,6 +237,51 @@ $(document).ready(function() {
         viewJournalModal.querySelector('#modal_student_name').textContent = studentName;
         viewJournalModal.querySelector('#modal_journal_date').textContent = journalDate;
         viewJournalModal.querySelector('#journal_activities_content').textContent = activities;
+    });
+
+    // Handle location modal
+    var map;
+    const locationModal = document.getElementById('locationModal');
+    locationModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const journalId = button.dataset.journalId;
+        const type = button.dataset.locationType;
+
+        // AJAX call to get map content
+        $.ajax({
+            url: `get_location_map.php?journal_id=${journalId}&type=${type}`,
+            success: function(data) {
+                if(map) map.remove();
+
+                const locationData = JSON.parse(data);
+
+                if(locationData.error) {
+                    $('#map').html(`<div class="alert alert-danger">${locationData.error}</div>`);
+                    return;
+                }
+
+                $('#locationModalLabel').text(`Lokasi ${locationData.type} - ${locationData.student_name} (${locationData.date})`);
+
+                map = L.map('map').setView([locationData.lat, locationData.lon], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                L.marker([locationData.lat, locationData.lon]).addTo(map)
+                    .bindPopup(`<b>${locationData.type}</b><br>Pukul: ${locationData.time}`)
+                    .openPopup();
+            },
+            error: function() {
+                 $('#map').html('<div class="alert alert-danger">Gagal memuat data lokasi.</div>');
+            }
+        });
+    });
+
+     locationModal.addEventListener('hidden.bs.modal', function () {
+        if (map) {
+            map.remove();
+        }
+        $('#map').html(''); // Clear previous content
     });
 });
 </script>

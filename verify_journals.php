@@ -15,6 +15,7 @@ try {
     $stmt = $pdo->prepare("
         SELECT
             j.id, j.journal_date, j.check_in_time, j.check_out_time, j.activities,
+            j.check_in_latitude, j.check_in_longitude, j.check_out_latitude, j.check_out_longitude,
             s.name as student_name
         FROM internship_journals j
         JOIN internship_mappings m ON j.student_id = m.student_id
@@ -74,8 +75,29 @@ try {
                                                 data-checkout="<?php echo $journal['check_out_time'] ? date('H:i', strtotime($journal['check_out_time'])) : 'N/A'; ?>"
                                                 data-activities="<?php echo htmlspecialchars($journal['activities']); ?>"
                                                 data-bs-toggle="modal" data-bs-target="#journalModal">
-                                            <i class="fas fa-eye me-1"></i> Detail & Aksi
+                                            <i class="fas fa-eye me-1"></i> Detail
                                         </button>
+                                         <?php if (!empty($journal['check_in_latitude']) && !empty($journal['check_in_longitude'])): ?>
+                                            <button class="btn btn-success btn-sm view-location-btn"
+                                                    data-journal-id="<?php echo $journal['id']; ?>"
+                                                    data-location-type="check_in"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#locationModal"
+                                                    title="Lihat Lokasi Check-in">
+                                                <i class="fas fa-map-marker-alt"></i> In
+                                            </button>
+                                        <?php endif; ?>
+
+                                        <?php if (!empty($journal['check_out_latitude']) && !empty($journal['check_out_longitude'])): ?>
+                                            <button class="btn btn-danger btn-sm view-location-btn"
+                                                    data-journal-id="<?php echo $journal['id']; ?>"
+                                                    data-location-type="check_out"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#locationModal"
+                                                    title="Lihat Lokasi Check-out">
+                                                <i class="fas fa-map-marker-alt"></i> Out
+                                            </button>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -123,6 +145,21 @@ try {
     </div>
 </div>
 
+<!-- Modal untuk Peta Lokasi -->
+<div class="modal fade" id="locationModal" tabindex="-1" aria-labelledby="locationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="locationModalLabel">Lokasi Absen Siswa</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="map" style="height: 450px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const journalModal = document.getElementById('journalModal');
@@ -136,6 +173,51 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('modal_activities').textContent = button.dataset.activities;
         document.getElementById('modal_journal_id').value = button.dataset.id;
         document.getElementById('modal_journal_id_approve').value = button.dataset.id;
+    });
+
+    // Handle location modal
+    var map;
+    const locationModal = document.getElementById('locationModal');
+    locationModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const journalId = button.dataset.journalId;
+        const type = button.dataset.locationType;
+
+        // AJAX call to get map content
+        $.ajax({
+            url: `get_location_map.php?journal_id=${journalId}&type=${type}`,
+            success: function(data) {
+                if(map) map.remove();
+
+                const locationData = JSON.parse(data);
+
+                if(locationData.error) {
+                    $('#map').html(`<div class="alert alert-danger">${locationData.error}</div>`);
+                    return;
+                }
+
+                $('#locationModalLabel').text(`Lokasi ${locationData.type} - ${locationData.student_name} (${locationData.date})`);
+
+                map = L.map('map').setView([locationData.lat, locationData.lon], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                L.marker([locationData.lat, locationData.lon]).addTo(map)
+                    .bindPopup(`<b>${locationData.type}</b><br>Pukul: ${locationData.time}`)
+                    .openPopup();
+            },
+            error: function() {
+                 $('#map').html('<div class="alert alert-danger">Gagal memuat data lokasi.</div>');
+            }
+        });
+    });
+
+     locationModal.addEventListener('hidden.bs.modal', function () {
+        if (map) {
+            map.remove();
+        }
+        $('#map').html(''); // Clear previous content
     });
 });
 </script>

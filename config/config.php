@@ -9,12 +9,12 @@ date_default_timezone_set('Asia/Jakarta');
 
 // Database Credentials
 define('DB_HOST', '127.0.0.1'); // atau 'localhost'
-define('DB_USER', 'root');
-define('DB_PASS', ''); // Sesuaikan dengan password database Anda
+define('DB_USER', 'pkl_user');
+define('DB_PASS', 'password');
 define('DB_NAME', 'pkl_digital_app');
 
 // Application URL
-define('BASE_URL', 'http://localhost/pkl-digital'); // Sesuaikan dengan URL proyek Anda
+define('BASE_URL', 'http://localhost:8080');
 
 // PDO Database Connection
 try {
