@@ -63,14 +63,14 @@ function get_status_badge($status) {
                     </div>
                     <div class="col-md-auto">
                         <?php if (empty($today_journal)): ?>
-                            <button type="submit" name="action" value="check_in" class="btn btn-success" onclick="getLocation(this)"><i class="fas fa-play-circle me-2"></i>Check-in</button>
+                            <button type="submit" name="action" value="check_in" class="btn btn-success" onclick="getLocation(this, event)"><i class="fas fa-play-circle me-2"></i>Check-in</button>
                         <?php else: ?>
                             <button type="button" class="btn btn-success disabled"><i class="fas fa-check-circle me-2"></i>Checked-in at <?php echo date('H:i', strtotime($today_journal['check_in_time'])); ?></button>
                         <?php endif; ?>
                     </div>
                     <div class="col-md-auto">
                          <?php if (!empty($today_journal) && empty($today_journal['check_out_time'])): ?>
-                            <button type="submit" name="action" value="check_out" class="btn btn-danger" onclick="getLocation(this)"><i class="fas fa-stop-circle me-2"></i>Check-out</button>
+                            <button type="submit" name="action" value="check_out" class="btn btn-danger" onclick="getLocation(this, event)"><i class="fas fa-stop-circle me-2"></i>Check-out</button>
                         <?php elseif(!empty($today_journal) && !empty($today_journal['check_out_time'])): ?>
                             <button type="button" class="btn btn-danger disabled"><i class="fas fa-check-circle me-2"></i>Checked-out at <?php echo date('H:i', strtotime($today_journal['check_out_time'])); ?></button>
                         <?php endif; ?>
@@ -171,7 +171,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function getLocation(button) {
+function getLocation(button, event) {
+    event.preventDefault();
+
     if (window.isSecureContext === false) {
         alert("Fitur lokasi tidak aman pada koneksi HTTP. Silakan gunakan HTTPS.");
         return;

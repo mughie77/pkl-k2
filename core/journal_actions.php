@@ -84,8 +84,8 @@ if ($user_role === 'student') {
             $journal = $journal_stmt->fetch(PDO::FETCH_ASSOC);
 
             $current_time = date('H:i:s');
-            $latitude = $_POST['latitude'] ?? null;
-            $longitude = $_POST['longitude'] ?? null;
+            $latitude = !empty($_POST['latitude']) ? $_POST['latitude'] : null;
+            $longitude = !empty($_POST['longitude']) ? $_POST['longitude'] : null;
 
 
             if ($action === 'check_in') {
