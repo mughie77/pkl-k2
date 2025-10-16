@@ -46,10 +46,37 @@ try {
     <?php if (isset($_SESSION['flash_message'])): ?>
         <div class="alert alert-<?php echo $_SESSION['flash_message']['type']; ?> alert-dismissible fade show" role="alert">
             <?php echo $_SESSION['flash_message']['message']; ?>
+            <?php if (isset($_SESSION['error_report_file'])): ?>
+                <a href="uploads/<?php echo $_SESSION['error_report_file']; ?>" class="alert-link">Unduh Laporan Error</a>
+                <?php unset($_SESSION['error_report_file']); ?>
+            <?php endif; ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <?php unset($_SESSION['flash_message']); ?>
     <?php endif; ?>
+
+    <!-- Form Import Siswa -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-file-excel me-2"></i>Import Data Siswa</h6>
+        </div>
+        <div class="card-body">
+            <form action="core/import_actions.php" method="POST" enctype="multipart/form-data">
+                <p>Gunakan template ini untuk mengimpor data siswa secara massal. Pastikan format data sesuai dengan template.</p>
+                <div class="d-flex align-items-center">
+                    <a href="core/download_template.php" class="btn btn-success me-3">
+                        <i class="fas fa-download me-2"></i>Unduh Template
+                    </a>
+                    <div class="flex-grow-1">
+                        <input type="file" class="form-control" name="excel_file" id="excel_file" accept=".xlsx, .xls" required>
+                    </div>
+                    <button type="submit" name="import_students" class="btn btn-info ms-3">
+                        <i class="fas fa-upload me-2"></i>Import Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">

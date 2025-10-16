@@ -20,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Daftar peran dan konfigurasi tabelnya
         $roles_config = [
             'admin' => ['table' => 'admins', 'user_col' => 'username'],
-            'waka_humas' => ['table' => 'waka_humas', 'user_col' => 'username'],
             'teacher' => ['table' => 'teachers', 'user_col' => 'nip'],
             'instructor' => ['table' => 'instructors', 'user_col' => 'serial_number'],
             'student' => ['table' => 'students', 'user_col' => 'nisn']

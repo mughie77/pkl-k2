@@ -7,6 +7,9 @@ error_reporting(E_ALL);
 // Timezone Setting
 date_default_timezone_set('Asia/Jakarta');
 
+// Composer Autoloader
+require_once __DIR__ . '/../vendor/autoload.php';
+
 // Database Credentials
 define('DB_HOST', '127.0.0.1'); // atau 'localhost'
 define('DB_USER', 'root');
