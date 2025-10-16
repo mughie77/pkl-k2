@@ -4,8 +4,8 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Hanya tampilkan sidebar untuk admin dan waka humas
-if (!in_array(($_SESSION['user_role'] ?? 'guest'), ['admin', 'waka_humas'])) {
+// Hanya tampilkan sidebar untuk admin
+if (($_SESSION['user_role'] ?? 'guest') !== 'admin') {
     // Untuk peran lain, buka wrapper konten full-width dan hentikan skrip
     echo '<div class="content-wrapper p-3 p-md-4" style="width: 100%;">';
     return;
@@ -74,14 +74,6 @@ function create_nav_item($link, $icon, $text, $current_page) {
             <?php create_nav_item('daily_journal.php', 'fa-book', 'Jurnal Harian', $current_page); ?>
             <?php create_nav_item('view_assessment.php', 'fa-chart-bar', 'Lihat Penilaian', $current_page); ?>
             <?php create_nav_item('upload_report.php', 'fa-file-upload', 'Unggah Laporan', $current_page); ?>
-        <?php endif; ?>
-
-        <?php if ($user_role == 'waka_humas'): ?>
-            <?php create_nav_item('waka_humas_dashboard.php', 'fa-tachometer-alt', 'Dashboard', $current_page); ?>
-            <?php create_nav_item('rekap_absensi_waka.php', 'fa-calendar-check', 'Rekap Absensi', $current_page); ?>
-            <?php create_nav_item('manage_dudika_locations.php', 'fa-map-marked-alt', 'Penitikan Lokasi', $current_page); ?>
-            <?php create_nav_item('direktori_dudika.php', 'fa-address-book', 'Direktori DUDIKA', $current_page); ?>
-            <?php create_nav_item('waka_view_problems.php', 'fa-exclamation-triangle', 'Permasalahan Siswa', $current_page); ?>
         <?php endif; ?>
 
     </ul>

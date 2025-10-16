@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?php
-if (in_array($_SESSION['user_role'], ['student', 'teacher', 'instructor'])) {
+if (in_array($_SESSION['user_role'], ['student', 'teacher', 'instructor', 'waka_humas'])) {
     echo '</div>';
 }
 require_once __DIR__ . '/templates/footer.php';

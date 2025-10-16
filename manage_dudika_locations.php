@@ -185,7 +185,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-
 <?php
 require_once __DIR__ . '/templates/footer.php';
 ?>
