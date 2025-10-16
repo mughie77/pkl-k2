@@ -93,7 +93,7 @@ try {
             </a>
         </div>
         <div class="col">
-            <a href="riwayat_absensi_instruktur.php" class="icon-menu-item">
+            <a href="monitor_journals.php" class="icon-menu-item">
                 <div class="icon-circle bg-info text-white"><i class="fas fa-book-open"></i></div>
                 <span class="icon-label">R. Absen</span>
             </a>

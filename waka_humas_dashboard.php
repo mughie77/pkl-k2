@@ -19,6 +19,14 @@ if ($hour >= 18) $greeting = 'Selamat Malam';
 
 ?>
 
+<?php
+try {
+    $stmt_companies = $pdo->query("SELECT name, contact_person, address FROM companies ORDER BY name ASC");
+    $all_companies = $stmt_companies->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Error fetching company data: " . $e->getMessage());
+}
+?>
 <div class="container-fluid waka-humas-dashboard student-dashboard">
     <!-- Header Dashboard -->
     <div class="dashboard-header card p-3 mb-4 shadow-sm">
@@ -63,13 +71,38 @@ if ($hour >= 18) $greeting = 'Selamat Malam';
         </div>
     </div>
 
-    <!-- Informasi Tambahan atau Statistik bisa ditambahkan di sini -->
+    <!-- Daftar DUDIKA -->
     <div class="card shadow-sm">
         <div class="card-header bg-white">
-            <h6 class="m-0 font-weight-bold text-primary">Selamat Datang di Dashboard Waka Humas</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Daftar DUDIKA Terdaftar</h6>
         </div>
-        <div class="card-body">
-            <p>Gunakan menu di atas untuk mengakses fitur yang tersedia. Anda dapat memonitor seluruh data absensi siswa, mengelola lokasi DUDIKA, melihat direktori kontak, dan meninjau permasalahan siswa secara terpusat.</p>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nama DUDIKA</th>
+                            <th>Alamat</th>
+                            <th>Narahubung</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (count($all_companies) > 0): ?>
+                            <?php foreach ($all_companies as $company): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($company['name']); ?></td>
+                                    <td><?php echo htmlspecialchars($company['address']); ?></td>
+                                    <td><?php echo htmlspecialchars($company['contact_person']); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="3" class="text-center p-4">Belum ada data DUDIKA yang terdaftar.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

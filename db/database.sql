@@ -77,7 +77,7 @@ CREATE TABLE `waka_humas` (
 --
 
 INSERT INTO `waka_humas` (`id`, `name`, `username`, `password`) VALUES
-(1, 'Waka Humas', 'waka', '$2y$10$9.M4B3Y.X2a5c.dE6f.gH8i.jK0l.mN1o.pQ2r.sT3u.vW4x.yZ5'); -- password: admin
+(1, 'Waka Humas', 'waka', '$2y$10$your_password_hash_here'); -- Please change this password
 
 -- --------------------------------------------------------
 

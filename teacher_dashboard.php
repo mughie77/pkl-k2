@@ -41,13 +41,13 @@ try {
 <div class="container-fluid teacher-dashboard student-dashboard">
     <!-- Header Dashboard -->
     <div class="dashboard-header card p-3 mb-4 shadow-sm">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-            <div class="text-center text-md-start">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
                 <p class="text-muted mb-0"><?php echo date('d M Y'); ?></p>
                 <h5 class="mb-1"><?php echo $greeting; ?>!</h5>
                 <h3 class="fw-bold mb-0"><?php echo htmlspecialchars($teacher_name); ?></h3>
             </div>
-            <div class="text-center text-md-end mt-3 mt-md-0">
+            <div class="text-end">
                 <p class="text-muted mb-0">Peran</p>
                 <h5 class="fw-bold mb-0">Guru Pembimbing</h5>
             </div>

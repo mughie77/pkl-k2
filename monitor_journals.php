@@ -3,12 +3,13 @@ require_once __DIR__ . '/templates/header.php';
 require_once __DIR__ . '/templates/sidebar.php';
 
 // Proteksi halaman
-if ($_SESSION['user_role'] !== 'teacher') {
+if (!in_array($_SESSION['user_role'], ['teacher', 'instructor'])) {
     header("Location: login.php");
     exit;
 }
 
-$teacher_id = $_SESSION['user_id'];
+$user_id = $_SESSION['user_id'];
+$user_role = $_SESSION['user_role'];
 
 // Filter
 $filter_student_id = $_GET['student_id'] ?? 'all';
@@ -17,12 +18,15 @@ $filter_end_date = $_GET['end_date'] ?? '';
 
 try {
     // Ambil daftar siswa bimbingan untuk filter dropdown
-    $stmt_students = $pdo->prepare("
-        SELECT s.id, s.name FROM students s
-        JOIN internship_mappings m ON s.id = m.student_id
-        WHERE m.teacher_id = :teacher_id ORDER BY s.name ASC
-    ");
-    $stmt_students->execute([':teacher_id' => $teacher_id]);
+    $student_query_sql = "SELECT s.id, s.name FROM students s JOIN internship_mappings m ON s.id = m.student_id WHERE ";
+    if ($user_role === 'teacher') {
+        $student_query_sql .= "m.teacher_id = :user_id";
+    } else {
+        $student_query_sql .= "m.instructor_id = :user_id";
+    }
+    $student_query_sql .= " ORDER BY s.name ASC";
+    $stmt_students = $pdo->prepare($student_query_sql);
+    $stmt_students->execute([':user_id' => $user_id]);
     $students_for_filter = $stmt_students->fetchAll(PDO::FETCH_ASSOC);
 
     // Bangun query utama
@@ -34,22 +38,33 @@ try {
         FROM internship_journals j
         JOIN students s ON j.student_id = s.id
         JOIN internship_mappings m ON j.student_id = m.student_id
-        WHERE m.teacher_id = :teacher_id
     ";
 
-    $params = [':teacher_id' => $teacher_id];
+    $where_clauses = [];
+    $params = [];
+
+    if ($user_role === 'teacher') {
+        $where_clauses[] = "m.teacher_id = :user_id";
+    } else {
+        $where_clauses[] = "m.instructor_id = :user_id";
+    }
+    $params[':user_id'] = $user_id;
 
     if ($filter_student_id !== 'all' && !empty($filter_student_id)) {
-        $query .= " AND j.student_id = :student_id";
+        $where_clauses[] = "j.student_id = :student_id";
         $params[':student_id'] = $filter_student_id;
     }
     if (!empty($filter_start_date)) {
-        $query .= " AND j.journal_date >= :start_date";
+        $where_clauses[] = "j.journal_date >= :start_date";
         $params[':start_date'] = $filter_start_date;
     }
     if (!empty($filter_end_date)) {
-        $query .= " AND j.journal_date <= :end_date";
+        $where_clauses[] = "j.journal_date <= :end_date";
         $params[':end_date'] = $filter_end_date;
+    }
+
+    if (count($where_clauses) > 0) {
+        $query .= " WHERE " . implode(" AND ", $where_clauses);
     }
 
     $query .= " ORDER BY j.journal_date DESC, s.name ASC";
