@@ -30,6 +30,12 @@ if (in_array($user_role, ['student', 'teacher', 'instructor'])) :
             <a href="input_assessment.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'input_assessment.php' ? 'active' : ''; ?>"><i class="fas fa-edit"></i><span>Menilai</span></a>
         <?php endif; ?>
 
+        <?php if ($user_role === 'waka_humas'): ?>
+            <a href="rekap_absensi_waka.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'rekap_absensi_waka.php' ? 'active' : ''; ?>"><i class="fas fa-calendar-check"></i><span>Rekap</span></a>
+            <a href="manage_dudika_locations.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_dudika_locations.php' ? 'active' : ''; ?>"><i class="fas fa-map-marked-alt"></i><span>Lokasi</span></a>
+            <a href="direktori_dudika.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'direktori_dudika.php' ? 'active' : ''; ?>"><i class="fas fa-address-book"></i><span>Direktori</span></a>
+        <?php endif; ?>
+
         <a href="profile.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active' : ''; ?>">
             <i class="fas fa-user"></i>
             <span>Profil</span>
