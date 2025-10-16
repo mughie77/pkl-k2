@@ -21,10 +21,19 @@ if ($hour >= 18) $greeting = 'Selamat Malam';
 
 <?php
 try {
-    $stmt_companies = $pdo->query("SELECT name, contact_person, address FROM companies ORDER BY name ASC");
-    $all_companies = $stmt_companies->fetchAll(PDO::FETCH_ASSOC);
+    // Ambil semua data siswa
+    $stmt_students = $pdo->query("
+        SELECT s.id, s.name, d.department_name, c.name as company_name
+        FROM students s
+        LEFT JOIN departments d ON s.department_id = d.id
+        LEFT JOIN internship_mappings m ON s.id = m.student_id
+        LEFT JOIN instructors i ON m.instructor_id = i.id
+        LEFT JOIN companies c ON i.company_id = c.id
+        ORDER BY s.name ASC
+    ");
+    $all_students = $stmt_students->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die("Error fetching company data: " . $e->getMessage());
+    die("Error fetching student data: " . $e->getMessage());
 }
 ?>
 <div class="container-fluid waka-humas-dashboard student-dashboard">
@@ -71,33 +80,33 @@ try {
         </div>
     </div>
 
-    <!-- Daftar DUDIKA -->
+    <!-- Daftar Semua Siswa -->
     <div class="card shadow-sm">
         <div class="card-header bg-white">
-            <h6 class="m-0 font-weight-bold text-primary">Daftar DUDIKA Terdaftar</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Daftar Semua Siswa</h6>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-striped table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>Nama DUDIKA</th>
-                            <th>Alamat</th>
-                            <th>Narahubung</th>
+                            <th>Nama Siswa</th>
+                            <th>Jurusan</th>
+                            <th>Ditempatkan di</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (count($all_companies) > 0): ?>
-                            <?php foreach ($all_companies as $company): ?>
+                        <?php if (count($all_students) > 0): ?>
+                            <?php foreach ($all_students as $student): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($company['name']); ?></td>
-                                    <td><?php echo htmlspecialchars($company['address']); ?></td>
-                                    <td><?php echo htmlspecialchars($company['contact_person']); ?></td>
+                                    <td><?php echo htmlspecialchars($student['name']); ?></td>
+                                    <td><?php echo htmlspecialchars($student['department_name'] ?? 'N/A'); ?></td>
+                                    <td><?php echo htmlspecialchars($student['company_name'] ?? 'Belum ditempatkan'); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="3" class="text-center p-4">Belum ada data DUDIKA yang terdaftar.</td>
+                                <td colspan="3" class="text-center p-4">Belum ada data siswa.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
