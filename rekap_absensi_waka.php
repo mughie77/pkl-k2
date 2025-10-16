@@ -32,8 +32,9 @@ try {
             t.name as teacher_name
         FROM internship_journals j
         JOIN students s ON j.student_id = s.id
-        JOIN internship_mappings m ON j.student_id = m.student_id
-        JOIN companies c ON m.instructor_id IN (SELECT id FROM instructors WHERE company_id = c.id)
+        JOIN internship_mappings m ON s.id = m.student_id
+        JOIN instructors i ON m.instructor_id = i.id
+        JOIN companies c ON i.company_id = c.id
         JOIN departments d ON s.department_id = d.id
         JOIN teachers t ON m.teacher_id = t.id
     ";
