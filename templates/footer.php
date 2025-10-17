@@ -1,10 +1,10 @@
 <?php
 $user_role = $_SESSION['user_role'] ?? 'guest';
 
-if (in_array($user_role, ['student', 'teacher', 'instructor'])) :
+if (in_array($user_role, ['student', 'teacher', 'instructor', 'waka_humas'])) :
     // Menu untuk peran non-admin
 ?>
-    </div> <!-- .content-wrapper (penutup dari sidebar.php atau halaman peran non-admin) -->
+    </div> <!-- .content-wrapper (penutup dari header.php atau halaman peran non-admin) -->
 
     <nav class="bottom-nav">
         <a href="<?php echo $user_role; ?>_dashboard.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == $user_role.'_dashboard.php' ? 'active' : ''; ?>">
@@ -28,6 +28,12 @@ if (in_array($user_role, ['student', 'teacher', 'instructor'])) :
             <a href="verify_journals.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'verify_journals.php' ? 'active' : ''; ?>"><i class="fas fa-tasks"></i><span>Verifikasi</span></a>
             <a href="manage_leave_requests.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_leave_requests.php' ? 'active' : ''; ?>"><i class="fas fa-calendar-check"></i><span>Izin</span></a>
             <a href="input_assessment.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'input_assessment.php' ? 'active' : ''; ?>"><i class="fas fa-edit"></i><span>Menilai</span></a>
+        <?php endif; ?>
+
+        <?php if ($user_role === 'waka_humas'): ?>
+            <a href="manage_companies.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_companies.php' ? 'active' : ''; ?>"><i class="fas fa-building"></i><span>Perusahaan</span></a>
+            <a href="internship_mapping.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'internship_mapping.php' ? 'active' : ''; ?>"><i class="fas fa-random"></i><span>Pemetaan</span></a>
+            <a href="global_recap.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'global_recap.php' ? 'active' : ''; ?>"><i class="fas fa-file-excel"></i><span>Rekap</span></a>
         <?php endif; ?>
 
         <a href="profile.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active' : ''; ?>">
