@@ -89,7 +89,12 @@ try {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Klik pada peta untuk memilih lokasi. Anda bisa menyeret marker untuk presisi.</p>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <p class="mb-0">Klik pada peta untuk memilih lokasi, atau gunakan lokasi Anda saat ini.</p>
+                    <button type="button" id="useCurrentLocationBtn" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-location-arrow me-2"></i>Gunakan Lokasi Saya
+                    </button>
+                </div>
                 <div id="map"></div>
                 <form id="locationForm" action="core/company_actions.php" method="POST" class="mt-3">
                     <input type="hidden" name="company_id" id="loc_company_id">
@@ -187,6 +192,49 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('saveLocationBtn').addEventListener('click', function() {
         document.getElementById('locationForm').submit();
+    });
+
+    document.getElementById('useCurrentLocationBtn').addEventListener('click', function() {
+        if (!navigator.geolocation) {
+            alert('Geolocation tidak didukung oleh browser Anda.');
+            return;
+        }
+
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mencari...';
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const latlng = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+
+                map.setView(latlng, 18);
+                if (marker) {
+                    marker.setLatLng(latlng);
+                } else {
+                    marker = L.marker(latlng, { draggable: true }).addTo(map);
+                    // This assumes bindMarkerEvents is available in the scope
+                    if(typeof bindMarkerEvents === 'function') {
+                        bindMarkerEvents();
+                    }
+                }
+                // This assumes updateFormFields is available in the scope
+                if(typeof updateFormFields === 'function') {
+                    updateFormFields(latlng);
+                }
+
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-location-arrow me-2"></i>Gunakan Lokasi Saya';
+            },
+            function() {
+                alert('Gagal mendapatkan lokasi Anda. Pastikan izin lokasi telah diberikan.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-location-arrow me-2"></i>Gunakan Lokasi Saya';
+            }
+        );
     });
 });
 </script>
