@@ -39,9 +39,14 @@ try {
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800">Manajemen Data Siswa <span class="badge bg-info"><?php echo htmlspecialchars($active_year['year_name'] ?? 'Tahun Ajaran Belum Dipilih'); ?></span></h1>
 
-    <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#studentModal">
-        <i class="fas fa-plus-circle me-2"></i> Tambah Siswa Baru
-    </button>
+    <div class="d-flex mb-4">
+        <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#studentModal">
+            <i class="fas fa-plus-circle me-2"></i> Tambah Siswa Baru
+        </button>
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="fas fa-file-excel me-2"></i> Impor dari Excel
+        </button>
+    </div>
 
     <?php if (isset($_SESSION['flash_message'])): ?>
         <div class="alert alert-<?php echo $_SESSION['flash_message']['type']; ?> alert-dismissible fade show" role="alert">
@@ -96,6 +101,50 @@ try {
         </div>
     </div>
 </div>
+
+<!-- Modal untuk Impor Excel -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">Impor Data Siswa dari Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="core/import_student_action.php" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <p>
+                        Unggah file Excel (.xlsx) untuk mengimpor data siswa secara massal. Pastikan file Anda sesuai dengan format template.
+                    </p>
+                    <p>
+                        Kolom yang diperlukan adalah: <strong>NISN, NIS, Nama Lengkap, Email, Tempat Lahir, Tanggal Lahir (YYYY-MM-DD), Alamat, No. HP Siswa, No. HP Orang Tua, Nama Jurusan</strong>.
+                    </p>
+                    <div class="mb-3">
+                        <label for="excelFile" class="form-label">Pilih File Excel</label>
+                        <input class="form-control" type="file" id="excelFile" name="excelFile" accept=".xlsx" required>
+                    </div>
+                     <div class="mb-3">
+                        <label for="import_academic_year_id" class="form-label">Tahun Pelajaran untuk Impor</label>
+                        <select class="form-select" id="import_academic_year_id" name="academic_year_id" required>
+                            <option value="">-- Pilih Tahun Pelajaran --</option>
+                            <?php foreach ($academic_years as $year): ?>
+                                <option value="<?php echo $year['id']; ?>" <?php echo ($year['id'] == $active_year_id) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($year['year_name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i> Unggah dan Impor
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 
 <!-- Modal untuk Tambah/Edit Siswa -->
 <div class="modal fade" id="studentModal" tabindex="-1" aria-labelledby="studentModalLabel" aria-hidden="true">

@@ -1,0 +1,6 @@
+# Ignore vendor directory
+vendor/
+
+# Ignore composer files
+composer.lock
+composer.phar
