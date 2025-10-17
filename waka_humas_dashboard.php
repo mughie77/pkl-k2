@@ -36,9 +36,9 @@ if ($hour >= 18) $greeting = 'Selamat Malam';
     <!-- Menu Ikon -->
     <div class="row row-cols-2 row-cols-md-4 text-center g-3 mb-4">
         <div class="col">
-            <a href="manage_companies.php" class="icon-menu-item">
-                <div class="icon-circle bg-primary text-white"><i class="fas fa-building"></i></div>
-                <span class="icon-label">Data Perusahaan</span>
+            <a href="manage_dudika_locations.php" class="icon-menu-item">
+                <div class="icon-circle bg-primary text-white"><i class="fas fa-map-marked-alt"></i></div>
+                <span class="icon-label">Lokasi DUDIKA</span>
             </a>
         </div>
         <div class="col">

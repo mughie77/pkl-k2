@@ -87,17 +87,44 @@ if ($user_role === 'student') {
 
             if ($action === 'check_in') {
                 if (!$journal) {
-                    $stmt = $pdo->prepare("INSERT INTO internship_journals (student_id, journal_date, check_in_time, activities) VALUES (:student_id, :journal_date, :check_in_time, '')");
-                    $stmt->execute([':student_id' => $user_id, ':journal_date' => $today, ':check_in_time' => $current_time]);
-                    set_flash_message('success', 'Check-in berhasil dicatat.');
+                    $latitude = $_POST['latitude'] ?? null;
+                    $longitude = $_POST['longitude'] ?? null;
+
+                    if (!is_numeric($latitude) || !is_numeric($longitude)) {
+                        set_flash_message('danger', 'Gagal mendapatkan lokasi GPS Anda. Pastikan izin lokasi telah diberikan dan coba lagi.');
+                        redirect_based_on_role($user_role);
+                    }
+
+                    $stmt = $pdo->prepare("INSERT INTO internship_journals (student_id, journal_date, check_in_time, activities, check_in_latitude, check_in_longitude) VALUES (:student_id, :journal_date, :check_in_time, '', :latitude, :longitude)");
+                    $stmt->execute([
+                        ':student_id' => $user_id,
+                        ':journal_date' => $today,
+                        ':check_in_time' => $current_time,
+                        ':latitude' => $latitude,
+                        ':longitude' => $longitude
+                    ]);
+                    set_flash_message('success', 'Check-in berhasil dicatat dengan lokasi Anda.');
                 } else {
                     set_flash_message('warning', 'Anda sudah melakukan check-in hari ini.');
                 }
             } elseif ($action === 'check_out') {
                 if ($journal && !$journal['check_out_time']) {
-                    $stmt = $pdo->prepare("UPDATE internship_journals SET check_out_time = :check_out_time WHERE id = :id");
-                    $stmt->execute([':check_out_time' => $current_time, ':id' => $journal['id']]);
-                    set_flash_message('success', 'Check-out berhasil dicatat.');
+                    $latitude = $_POST['latitude'] ?? null;
+                    $longitude = $_POST['longitude'] ?? null;
+
+                    if (!is_numeric($latitude) || !is_numeric($longitude)) {
+                        set_flash_message('danger', 'Gagal mendapatkan lokasi GPS Anda. Pastikan izin lokasi telah diberikan dan coba lagi.');
+                        redirect_based_on_role($user_role);
+                    }
+
+                    $stmt = $pdo->prepare("UPDATE internship_journals SET check_out_time = :check_out_time, check_out_latitude = :latitude, check_out_longitude = :longitude WHERE id = :id");
+                    $stmt->execute([
+                        ':check_out_time' => $current_time,
+                        ':latitude' => $latitude,
+                        ':longitude' => $longitude,
+                        ':id' => $journal['id']
+                    ]);
+                    set_flash_message('success', 'Check-out berhasil dicatat dengan lokasi Anda.');
                 } else {
                     set_flash_message('warning', 'Anda belum check-in atau sudah check-out hari ini.');
                 }
