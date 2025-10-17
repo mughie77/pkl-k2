@@ -54,6 +54,7 @@ function get_status_badge($status) {
         </div>
         <div class="card-body">
             <form id="journalForm" action="core/journal_actions.php" method="POST">
+                <input type="hidden" name="action" id="formAction">
                 <input type="hidden" name="latitude" id="latitude">
                 <input type="hidden" name="longitude" id="longitude">
 
@@ -63,14 +64,14 @@ function get_status_badge($status) {
                     </div>
                     <div class="col-md-auto">
                         <?php if (empty($today_journal)): ?>
-                            <button type="submit" name="action" value="check_in" id="checkInBtn" class="btn btn-success"><i class="fas fa-play-circle me-2"></i>Check-in</button>
+                            <button type="button" id="checkInBtn" value="check_in" class="btn btn-success"><i class="fas fa-play-circle me-2"></i>Check-in</button>
                         <?php else: ?>
                             <button type="button" class="btn btn-success disabled"><i class="fas fa-check-circle me-2"></i>Checked-in at <?php echo date('H:i', strtotime($today_journal['check_in_time'])); ?></button>
                         <?php endif; ?>
                     </div>
                     <div class="col-md-auto">
                          <?php if (!empty($today_journal) && empty($today_journal['check_out_time'])): ?>
-                            <button type="submit" name="action" value="check_out" id="checkOutBtn" class="btn btn-danger"><i class="fas fa-stop-circle me-2"></i>Check-out</button>
+                            <button type="button" id="checkOutBtn" value="check_out" class="btn btn-danger"><i class="fas fa-stop-circle me-2"></i>Check-out</button>
                         <?php elseif(!empty($today_journal) && !empty($today_journal['check_out_time'])): ?>
                             <button type="button" class="btn btn-danger disabled"><i class="fas fa-check-circle me-2"></i>Checked-out at <?php echo date('H:i', strtotime($today_journal['check_out_time'])); ?></button>
                         <?php endif; ?>
@@ -194,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
             function(position) {
                 document.getElementById('latitude').value = position.coords.latitude;
                 document.getElementById('longitude').value = position.coords.longitude;
-                journalForm.querySelector('button[name="action"]').value = button.value;
+                document.getElementById('formAction').value = button.value;
                 journalForm.submit();
             },
             function(error) {
