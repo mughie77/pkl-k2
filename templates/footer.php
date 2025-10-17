@@ -22,6 +22,7 @@ if (in_array($user_role, ['student', 'teacher', 'instructor', 'waka_humas'])) :
             <a href="monitor_journals.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'monitor_journals.php' ? 'active' : ''; ?>"><i class="fas fa-book-reader"></i><span>Jurnal</span></a>
             <a href="student_problems.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'student_problems.php' ? 'active' : ''; ?>"><i class="fas fa-exclamation-triangle"></i><span>Masalah</span></a>
             <a href="teacher_view_assessments.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'teacher_view_assessments.php' ? 'active' : ''; ?>"><i class="fas fa-graduation-cap"></i><span>Nilai</span></a>
+            <a href="teacher_set_locations.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'teacher_set_locations.php' ? 'active' : ''; ?>"><i class="fas fa-map-marked-alt"></i><span>Lokasi</span></a>
         <?php endif; ?>
 
         <?php if ($user_role === 'instructor'): ?>

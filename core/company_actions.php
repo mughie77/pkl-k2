@@ -47,6 +47,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect_to_manage_companies();
     }
 
+    // Aksi: Set Lokasi GPS (oleh Guru)
+    if ($action === 'set_location_teacher') {
+        if ($_SESSION['user_role'] !== 'teacher') {
+            set_flash_message('danger', 'Anda tidak memiliki izin untuk melakukan aksi ini.');
+            header("Location: ../login.php");
+            exit;
+        }
+
+        $company_id = $_POST['company_id'];
+        $latitude = $_POST['latitude'];
+        $longitude = $_POST['longitude'];
+        $teacher_id = $_SESSION['user_id'];
+
+        // Verifikasi bahwa guru ini berhak mengubah lokasi perusahaan ini
+        $verify_stmt = $pdo->prepare("
+            SELECT COUNT(m.id) FROM internship_mappings m
+            JOIN instructors i ON m.instructor_id = i.id
+            WHERE m.teacher_id = :teacher_id AND i.company_id = :company_id
+        ");
+        $verify_stmt->execute([':teacher_id' => $teacher_id, ':company_id' => $company_id]);
+
+        if ($verify_stmt->fetchColumn() == 0) {
+            $_SESSION['flash_message'] = ['type' => 'danger', 'message' => 'Akses ditolak. Anda tidak membimbing siswa di DUDIKA ini.'];
+            header("Location: ../teacher_set_locations.php");
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("UPDATE companies SET latitude = :latitude, longitude = :longitude WHERE id = :id");
+            $stmt->execute([':latitude' => $latitude, ':longitude' => $longitude, ':id' => $company_id]);
+            $_SESSION['flash_message'] = ['type' => 'success', 'message' => 'Lokasi DUDIKA berhasil diperbarui.'];
+        } catch (PDOException $e) {
+            $_SESSION['flash_message'] = ['type' => 'danger', 'message' => 'Gagal memperbarui lokasi: ' . $e->getMessage()];
+        }
+        header("Location: ../teacher_set_locations.php");
+        exit;
+    }
+
     // Aksi: Set Lokasi GPS (oleh Waka Humas)
     if ($action === 'set_location_waka') {
         if ($_SESSION['user_role'] !== 'waka_humas') {
