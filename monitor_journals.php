@@ -37,7 +37,7 @@ try {
     $query = "
         SELECT
             j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
-            j.check_in_latitude, j.check_in_longitude,
+            j.check_in_latitude, j.check_in_longitude, j.check_out_latitude, j.check_out_longitude,
             s.name as student_name, s.work_start_time, s.work_end_time,
             c.name as company_name, c.latitude as company_latitude, c.longitude as company_longitude
         FROM internship_journals j
