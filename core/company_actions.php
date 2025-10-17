@@ -1,8 +1,9 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 
-// Keamanan: Pastikan hanya admin yang bisa mengakses
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+// Keamanan: Pastikan hanya admin atau waka humas yang bisa mengakses
+$allowed_roles = ['admin', 'waka_humas'];
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], $allowed_roles)) {
     $_SESSION['flash_message'] = ['type' => 'danger', 'message' => 'Akses ditolak.'];
     header("Location: ../login.php");
     exit;
@@ -46,8 +47,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect_to_manage_companies();
     }
 
+    // Aksi: Set Lokasi GPS (oleh Waka Humas)
+    if ($action === 'set_location_waka') {
+        if ($_SESSION['user_role'] !== 'waka_humas') {
+            set_flash_message('danger', 'Anda tidak memiliki izin untuk melakukan aksi ini.');
+            header("Location: ../login.php");
+            exit;
+        }
+
+        $company_id = $_POST['company_id'];
+        $latitude = $_POST['latitude'];
+        $longitude = $_POST['longitude'];
+
+        if (empty($company_id) || !is_numeric($latitude) || !is_numeric($longitude)) {
+            $_SESSION['flash_message'] = ['type' => 'danger', 'message' => 'Data lokasi tidak valid.'];
+            header("Location: ../manage_dudika_locations.php");
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("UPDATE companies SET latitude = :latitude, longitude = :longitude WHERE id = :id");
+            $stmt->execute([
+                ':latitude' => $latitude,
+                ':longitude' => $longitude,
+                ':id' => $company_id
+            ]);
+            $_SESSION['flash_message'] = ['type' => 'success', 'message' => 'Lokasi DUDIKA berhasil diperbarui.'];
+        } catch (PDOException $e) {
+            $_SESSION['flash_message'] = ['type' => 'danger', 'message' => 'Gagal memperbarui lokasi: ' . $e->getMessage()];
+        }
+        header("Location: ../manage_dudika_locations.php");
+        exit;
+    }
+
     // Aksi: Perbarui DUDIKA (Update)
     if ($action === 'update') {
+        if ($_SESSION['user_role'] !== 'admin') {
+            set_flash_message('danger', 'Anda tidak memiliki izin untuk melakukan aksi ini.');
+            redirect_to_manage_companies();
+        }
         $company_id = $_POST['company_id'];
         $name = trim($_POST['name']);
         $address = trim($_POST['address']);

@@ -42,21 +42,9 @@ if ($hour >= 18) $greeting = 'Selamat Malam';
             </a>
         </div>
         <div class="col">
-            <a href="internship_mapping.php" class="icon-menu-item">
-                <div class="icon-circle bg-info text-white"><i class="fas fa-random"></i></div>
-                <span class="icon-label">Pemetaan PKL</span>
-            </a>
-        </div>
-        <div class="col">
             <a href="global_recap.php" class="icon-menu-item">
-                <div class="icon-circle bg-success text-white"><i class="fas fa-file-excel"></i></div>
-                <span class="icon-label">Rekap Global</span>
-            </a>
-        </div>
-        <div class="col">
-            <a href="monitor_journals.php" class="icon-menu-item">
-                <div class="icon-circle bg-warning text-white"><i class="fas fa-book-open"></i></div>
-                <span class="icon-label">Monitoring Jurnal</span>
+                <div class="icon-circle bg-success text-white"><i class="fas fa-clipboard-list"></i></div>
+                <span class="icon-label">Rekap Absensi</span>
             </a>
         </div>
     </div>
