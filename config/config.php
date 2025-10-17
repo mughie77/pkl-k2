@@ -1,32 +1,6 @@
 <?php
-// PSR-4-like autoloader for PhpSpreadsheet.
-// This is to manually load the library since Composer is not available.
-spl_autoload_register(function ($class) {
-    // We are only interested in PhpSpreadsheet classes.
-    $prefix = 'PhpOffice\\PhpSpreadsheet\\';
-    $len = strlen($prefix);
-    if (strncmp($prefix, $class, $len) !== 0) {
-        // Not a PhpSpreadsheet class, move to the next registered autoloader.
-        return;
-    }
-
-    // Base directory for the namespace prefix.
-    // __DIR__ is the directory of config.php (config/), so we go one level up.
-    $base_dir = __DIR__ . '/../vendor/phpspreadsheet/src/PhpSpreadsheet/';
-
-    // Get the relative class name.
-    $relative_class = substr($class, $len);
-
-    // Replace the namespace prefix with the base directory, replace namespace
-    // separators with directory separators, and append with .php.
-    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
-
-    // If the file exists, require it.
-    if (file_exists($file)) {
-        require $file;
-    }
-});
-
+// Include Composer's autoloader
+require_once __DIR__ . '/../vendor/autoload.php';
 
 // Enable error reporting for development
 ini_set('display_errors', 1);
