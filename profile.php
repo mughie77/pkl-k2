@@ -26,7 +26,14 @@ $user_col = $auth_config[$user_role]['user_col'];
 
 try {
     if ($user_role === 'student') {
-        $stmt = $pdo->prepare("SELECT s.*, d.department_name FROM students s JOIN departments d ON s.department_id = d.id WHERE s.id = :id");
+        $stmt = $pdo->prepare("
+            SELECT s.*, k.kelas_name, kk.konsentrasi_name, pk.program_name
+            FROM students s
+            JOIN kelas k ON s.kelas_id = k.id
+            JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+            JOIN program_keahlian pk ON kk.program_id = pk.id
+            WHERE s.id = :id
+        ");
     } else {
         $stmt = $pdo->prepare("SELECT * FROM {$table} WHERE id = :id");
     }
@@ -61,7 +68,9 @@ try {
                     <p><strong>Peran:</strong> <?php echo ucwords($user_role); ?></p>
                     <p><strong>Username:</strong> <?php echo htmlspecialchars($user_info[$user_col]); ?></p>
                     <?php if ($user_role === 'student'): ?>
-                        <p><strong>Jurusan:</strong> <?php echo htmlspecialchars($user_info['department_name']); ?></p>
+                        <p><strong>Program Keahlian:</strong> <?php echo htmlspecialchars($user_info['program_name']); ?></p>
+                        <p><strong>Konsentrasi Keahlian:</strong> <?php echo htmlspecialchars($user_info['konsentrasi_name']); ?></p>
+                        <p><strong>Kelas:</strong> <?php echo htmlspecialchars($user_info['kelas_name']); ?></p>
                         <p><strong>Email:</strong> <?php echo htmlspecialchars($user_info['email'] ?? '-'); ?></p>
                         <hr>
                         <form action="core/profile_actions.php" method="POST">

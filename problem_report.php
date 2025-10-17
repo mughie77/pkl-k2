@@ -18,7 +18,7 @@ try {
 }
 
 // Proses filter
-$filter_dept = $_GET['department_id'] ?? 'all';
+$filter_program = $_GET['program_id'] ?? 'all';
 $filter_teacher = $_GET['teacher_id'] ?? 'all';
 $filter_company = $_GET['company_id'] ?? 'all';
 $filter_start_date = $_GET['start_date'] ?? '';
@@ -28,13 +28,15 @@ $query = "
     SELECT
         n.note, n.created_at, n.creator_role,
         s.name as student_name,
-        d.department_name,
+        pk.program_name,
         c.name as company_name,
         t.name as teacher_name,
         i.name as instructor_name
     FROM student_notes n
     JOIN students s ON n.student_id = s.id
-    JOIN departments d ON s.department_id = d.id
+    JOIN kelas k ON s.kelas_id = k.id
+    JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+    JOIN program_keahlian pk ON kk.program_id = pk.id
     LEFT JOIN internship_mappings m ON n.student_id = m.student_id
     LEFT JOIN instructors i ON m.instructor_id = i.id
     LEFT JOIN companies c ON i.company_id = c.id
@@ -43,7 +45,7 @@ $query = "
 $params = [];
 $where_clauses = [];
 
-if ($filter_dept !== 'all') { $where_clauses[] = "s.department_id = :dept_id"; $params[':dept_id'] = $filter_dept; }
+if ($filter_program !== 'all') { $where_clauses[] = "pk.id = :program_id"; $params[':program_id'] = $filter_program; }
 if ($filter_teacher !== 'all') { $where_clauses[] = "m.teacher_id = :teacher_id"; $params[':teacher_id'] = $filter_teacher; }
 if ($filter_company !== 'all') { $where_clauses[] = "i.company_id = :company_id"; $params[':company_id'] = $filter_company; }
 if (!empty($filter_start_date)) { $where_clauses[] = "DATE(n.created_at) >= :start_date"; $params[':start_date'] = $filter_start_date; }
@@ -86,10 +88,10 @@ try {
                     </select>
                 </div>
                  <div class="col-md-2">
-                    <label class="form-label">Jurusan</label>
-                    <select name="department_id" class="form-select select2">
-                        <option value="all">Semua Jurusan</option>
-                        <?php foreach ($depts as $d): ?><option value="<?php echo $d['id']; ?>" <?php echo ($filter_dept == $d['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($d['department_name']); ?></option><?php endforeach; ?>
+                    <label class="form-label">Program Keahlian</label>
+                    <select name="program_id" class="form-select select2">
+                        <option value="all">Semua Program</option>
+                        <?php foreach ($depts as $d): ?><option value="<?php echo $d['id']; ?>" <?php echo ($filter_program == $d['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($d['department_name']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-2">

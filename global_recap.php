@@ -17,10 +17,10 @@ try {
     $teachers = $pdo->query("SELECT id, name FROM teachers ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
     $companies = $pdo->query("SELECT id, name FROM companies ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-    $student_query = "SELECT s.id, s.name, s.department_id FROM students s ";
+    $student_query = "SELECT s.id, s.name, k.id as kelas_id, kk.id as konsentrasi_id, pk.id as program_id FROM students s JOIN kelas k ON s.kelas_id = k.id JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id";
     $student_params = [];
     if ($user_role === 'instructor') {
-        $student_query .= "JOIN internship_mappings m ON s.id = m.student_id WHERE m.instructor_id = :user_id";
+        $student_query .= " JOIN internship_mappings m ON s.id = m.student_id WHERE m.instructor_id = :user_id";
         $student_params[':user_id'] = $user_id;
     }
     $student_query .= " ORDER BY s.name ASC";
@@ -33,7 +33,7 @@ try {
 }
 
 // Proses filter
-$filter_dept = $_GET['department_id'] ?? 'all';
+$filter_program = $_GET['program_id'] ?? 'all';
 $filter_teacher = $_GET['teacher_id'] ?? 'all';
 $filter_company = $_GET['company_id'] ?? 'all';
 $filter_student = $_GET['student_id'] ?? 'all';
@@ -45,12 +45,14 @@ $query = "
         j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
         j.check_in_latitude, j.check_in_longitude, j.check_out_latitude, j.check_out_longitude,
         s.name as student_name,
-        d.department_name,
+            pk.program_name,
         c.name as company_name, c.latitude as company_latitude, c.longitude as company_longitude,
         t.name as teacher_name
     FROM internship_journals j
     JOIN students s ON j.student_id = s.id
-    JOIN departments d ON s.department_id = d.id
+        JOIN kelas k ON s.kelas_id = k.id
+        JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+        JOIN program_keahlian pk ON kk.program_id = pk.id
     LEFT JOIN internship_mappings m ON j.student_id = m.student_id
     LEFT JOIN instructors i ON m.instructor_id = i.id
     LEFT JOIN companies c ON i.company_id = c.id
@@ -64,7 +66,7 @@ if ($user_role === 'instructor') {
     $params[':user_id'] = $user_id;
 }
 
-if ($filter_dept !== 'all') { $where_clauses[] = "s.department_id = :dept_id"; $params[':dept_id'] = $filter_dept; }
+if ($filter_program !== 'all') { $where_clauses[] = "pk.id = :program_id"; $params[':program_id'] = $filter_program; }
 if ($filter_teacher !== 'all') { $where_clauses[] = "m.teacher_id = :teacher_id"; $params[':teacher_id'] = $filter_teacher; }
 if ($filter_company !== 'all') { $where_clauses[] = "i.company_id = :company_id"; $params[':company_id'] = $filter_company; }
 if ($filter_student !== 'all') { $where_clauses[] = "j.student_id = :student_id"; $params[':student_id'] = $filter_student; }
@@ -121,10 +123,10 @@ function get_status_badge($status) {
                     </select>
                 </div>
                  <div class="col-md-3">
-                    <label class="form-label">Jurusan</label>
-                    <select name="department_id" id="department_id" class="form-select">
-                        <option value="all">Semua Jurusan</option>
-                        <?php foreach ($depts as $d): ?><option value="<?php echo $d['id']; ?>" <?php echo ($filter_dept == $d['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($d['department_name']); ?></option><?php endforeach; ?>
+                    <label class="form-label">Program Keahlian</label>
+                    <select name="program_id" id="program_id" class="form-select">
+                        <option value="all">Semua Program</option>
+                        <?php foreach ($programs as $p): ?><option value="<?php echo $p['id']; ?>" <?php echo ($filter_program == $p['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($p['program_name']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
                 <?php endif; ?>
@@ -175,7 +177,7 @@ function get_status_badge($status) {
                                     <td><?php echo htmlspecialchars($recap['company_name'] ?? '-'); ?></td>
                                     <td><?php echo htmlspecialchars($recap['teacher_name'] ?? '-'); ?></td>
                                     <?php endif; ?>
-                                    <td><?php echo $recap['check_in_time'] ? date('H:i', strtotime($recap['check_in_time'])) : '-'; ?></td>
+                                    <td><?php echo $recap['check_in_time'] ? date('H:i', strtotime($recap['check_in_time'])) : '-'; ?> s/d <?php echo $recap['check_out_time'] ? date('H:i', strtotime($recap['check_out_time'])) : '-'; ?></td>
                                     <td><span class="badge <?php echo get_status_badge($recap['status']); ?>"><?php echo htmlspecialchars($recap['status']); ?></span></td>
                                     <td>
                                          <?php if (!empty($recap['check_in_latitude'])): ?>

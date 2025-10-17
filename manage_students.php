@@ -10,11 +10,10 @@ if ($_SESSION['user_role'] !== 'admin') {
 
 // Ambil data untuk dropdowns
 try {
-    $stmt_depts = $pdo->query("SELECT id, department_name FROM departments ORDER BY department_name ASC");
-    $departments = $stmt_depts->fetchAll(PDO::FETCH_ASSOC);
-
-    $stmt_years = $pdo->query("SELECT id, year_name FROM academic_years ORDER BY year_name DESC");
-    $academic_years = $stmt_years->fetchAll(PDO::FETCH_ASSOC);
+    $programs = $pdo->query("SELECT * FROM program_keahlian ORDER BY program_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $konsentrasi_list = $pdo->query("SELECT * FROM konsentrasi_keahlian ORDER BY konsentrasi_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $kelas_list = $pdo->query("SELECT * FROM kelas ORDER BY kelas_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $academic_years = $pdo->query("SELECT id, year_name FROM academic_years ORDER BY year_name DESC")->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Error fetching dropdown data: " . $e->getMessage());
 }
@@ -23,9 +22,11 @@ try {
 $active_year_id = $active_year['id'] ?? 0;
 try {
     $stmt = $pdo->prepare("
-        SELECT s.*, d.department_name
+        SELECT s.*, k.kelas_name, kk.konsentrasi_name, pk.program_name
         FROM students s
-        JOIN departments d ON s.department_id = d.id
+        JOIN kelas k ON s.kelas_id = k.id
+        JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+        JOIN program_keahlian pk ON kk.program_id = pk.id
         WHERE s.academic_year_id = :year_id
         ORDER BY s.name ASC
     ");
@@ -67,7 +68,8 @@ try {
                         <tr>
                             <th>Nama Lengkap</th>
                             <th>NISN</th>
-                            <th>Jurusan</th>
+                            <th>Program Keahlian</th>
+                            <th>Kelas</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -76,7 +78,8 @@ try {
                             <tr>
                                 <td><?php echo htmlspecialchars($student['name']); ?></td>
                                 <td><?php echo htmlspecialchars($student['nisn']); ?></td>
-                                <td><?php echo htmlspecialchars($student['department_name']); ?></td>
+                                <td><?php echo htmlspecialchars($student['program_name']); ?></td>
+                                <td><?php echo htmlspecialchars($student['kelas_name']); ?></td>
                                 <td>
                                     <button class="btn btn-warning btn-sm edit-btn"
                                             data-bs-toggle="modal"
@@ -116,7 +119,7 @@ try {
                         Unggah file Excel (.xlsx) untuk mengimpor data siswa secara massal. Pastikan file Anda sesuai dengan format template.
                     </p>
                     <p>
-                        Kolom yang diperlukan adalah: <strong>NISN, NIS, Nama Lengkap, Email, Tempat Lahir, Tanggal Lahir (YYYY-MM-DD), Alamat, No. HP Siswa, No. HP Orang Tua, Nama Jurusan</strong>.
+                        Kolom yang diperlukan adalah: <strong>NISN, NIS, Nama Lengkap, Email, Tempat Lahir, Tanggal Lahir (YYYY-MM-DD), Alamat, No. HP Siswa, No. HP Orang Tua, Nama Kelas</strong>. Pastikan Nama Kelas sudah terdaftar di sistem.
                     </p>
                     <div class="mb-3">
                         <label for="excelFile" class="form-label">Pilih File Excel</label>
@@ -177,8 +180,38 @@ try {
                         <div class="col-md-6 mb-3"><label for="parent_phone" class="form-label">No. HP Orang Tua</label><input type="tel" class="form-control" id="parent_phone" name="parent_phone"></div>
                     </div>
                      <div class="row">
-                        <div class="col-md-6 mb-3"><label for="department_id" class="form-label">Jurusan</label><select class="form-select" id="department_id" name="department_id" required><option value="">-- Pilih Jurusan --</option><?php foreach ($departments as $dept): ?><option value="<?php echo $dept['id']; ?>"><?php echo htmlspecialchars($dept['department_name']); ?></option><?php endforeach; ?></select></div>
-                        <div class="col-md-6 mb-3"><label for="academic_year_id" class="form-label">Tahun Pelajaran</label><select class="form-select" id="academic_year_id" name="academic_year_id" required><option value="">-- Pilih Tahun Pelajaran --</option><?php foreach ($academic_years as $year): ?><option value="<?php echo $year['id']; ?>"><?php echo htmlspecialchars($year['year_name']); ?></option><?php endforeach; ?></select></div>
+                        <div class="col-md-4 mb-3">
+                            <label for="program_id" class="form-label">Program Keahlian</label>
+                            <select class="form-select" id="program_id" name="program_id" required>
+                                <option value="">-- Pilih Program --</option>
+                                <?php foreach ($programs as $program): ?>
+                                    <option value="<?php echo $program['id']; ?>"><?php echo htmlspecialchars($program['program_name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="konsentrasi_id" class="form-label">Konsentrasi Keahlian</label>
+                            <select class="form-select" id="konsentrasi_id" name="konsentrasi_id" required disabled>
+                                <option value="">-- Pilih Konsentrasi --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="kelas_id" class="form-label">Kelas</label>
+                            <select class="form-select" id="kelas_id" name="kelas_id" required disabled>
+                                <option value="">-- Pilih Kelas --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="academic_year_id" class="form-label">Tahun Pelajaran</label>
+                            <select class="form-select" id="academic_year_id" name="academic_year_id" required>
+                                <option value="">-- Pilih Tahun Pelajaran --</option>
+                                <?php foreach ($academic_years as $year): ?>
+                                    <option value="<?php echo $year['id']; ?>"><?php echo htmlspecialchars($year['year_name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -192,8 +225,49 @@ try {
 
 <script>
 $(document).ready(function() {
+    // Store all options
+    const allKonsentrasi = <?php echo json_encode($konsentrasi_list); ?>;
+    const allKelas = <?php echo json_encode($kelas_list); ?>;
+
+    function populateKonsentrasi(programId, selectedId = null) {
+        const konsentrasiSelect = $('#konsentrasi_id');
+        konsentrasiSelect.html('<option value="">-- Pilih Konsentrasi --</option>').prop('disabled', true);
+        const filtered = allKonsentrasi.filter(k => k.program_id == programId);
+
+        if (filtered.length > 0) {
+            filtered.forEach(k => {
+                konsentrasiSelect.append(new Option(k.konsentrasi_name, k.id));
+            });
+            konsentrasiSelect.prop('disabled', false);
+        }
+        if(selectedId) konsentrasiSelect.val(selectedId);
+        konsentrasiSelect.trigger('change');
+    }
+
+    function populateKelas(konsentrasiId, selectedId = null) {
+        const kelasSelect = $('#kelas_id');
+        kelasSelect.html('<option value="">-- Pilih Kelas --</option>').prop('disabled', true);
+        const filtered = allKelas.filter(k => k.konsentrasi_id == konsentrasiId);
+
+        if (filtered.length > 0) {
+            filtered.forEach(k => {
+                kelasSelect.append(new Option(k.kelas_name, k.id));
+            });
+            kelasSelect.prop('disabled', false);
+        }
+        if(selectedId) kelasSelect.val(selectedId);
+    }
+
+    $('#program_id').on('change', function() {
+        populateKonsentrasi($(this).val());
+    });
+
+    $('#konsentrasi_id').on('change', function() {
+        populateKelas($(this).val());
+    });
+
     const initStudentSelect2 = () => {
-        $('#department_id, #academic_year_id').select2({ theme: 'bootstrap-5', dropdownParent: $('#studentModal') });
+        $('#program_id, #konsentrasi_id, #kelas_id, #academic_year_id').select2({ theme: 'bootstrap-5', dropdownParent: $('#studentModal') });
     };
 
     const studentModal = document.getElementById('studentModal');
@@ -207,23 +281,32 @@ $(document).ready(function() {
             form.querySelector('#form_action').value = 'update';
             const studentData = JSON.parse(button.dataset.student);
 
-            $('#student_id').val(studentData.id);
-            $('#name').val(studentData.name);
-            $('#email').val(studentData.email);
-            $('#nis').val(studentData.nis);
-            $('#nisn').val(studentData.nisn);
-            $('#birth_place').val(studentData.birth_place);
-            $('#birth_date').val(studentData.birth_date);
-            $('#address').val(studentData.address);
-            $('#phone').val(studentData.phone);
-            $('#parent_phone').val(studentData.parent_phone);
-            $('#department_id').val(studentData.department_id).trigger('change');
+            // Populate form fields
+            Object.keys(studentData).forEach(key => {
+                const el = form.querySelector(`#${key}`);
+                if (el) el.value = studentData[key];
+            });
+
+            // Handle dropdowns
+            $.get('api/get_student_hierarchy.php?student_id=' + studentData.id, function(data) {
+                if(data.program_id) {
+                    $('#program_id').val(data.program_id).trigger('change');
+                    setTimeout(() => {
+                        populateKonsentrasi(data.program_id, data.konsentrasi_id);
+                        setTimeout(() => {
+                           populateKelas(data.konsentrasi_id, data.kelas_id);
+                        }, 200);
+                    }, 200);
+                }
+            });
             $('#academic_year_id').val(studentData.academic_year_id).trigger('change');
+
         } else {
             form.querySelector('.modal-title').textContent = 'Tambah Siswa Baru';
             form.querySelector('#form_action').value = 'create';
             form.reset();
-            $('#department_id, #academic_year_id').val(null).trigger('change');
+            $('#program_id, #konsentrasi_id, #kelas_id, #academic_year_id').val(null).trigger('change');
+            $('#konsentrasi_id, #kelas_id').prop('disabled', true);
             $('#academic_year_id').val('<?php echo $active_year_id; ?>').trigger('change');
         }
     });

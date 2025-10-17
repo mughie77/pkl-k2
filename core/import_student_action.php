@@ -41,12 +41,12 @@ if (empty($academic_year_id)) {
 
 // --- Main Logic ---
 
-// Fetch all departments to map names to IDs
+// Fetch all classes to map names to IDs
 try {
-    $stmt_depts = $pdo->query("SELECT id, LOWER(department_name) as department_name FROM departments");
-    $departments = $stmt_depts->fetchAll(PDO::FETCH_KEY_PAIR);
+    $stmt_kelas = $pdo->query("SELECT id, LOWER(kelas_name) as kelas_name FROM kelas");
+    $kelas_map = $stmt_kelas->fetchAll(PDO::FETCH_KEY_PAIR);
 } catch (PDOException $e) {
-    set_flash_and_redirect('danger', 'Gagal mengambil data jurusan: ' . $e->getMessage());
+    set_flash_and_redirect('danger', 'Gagal mengambil data kelas: ' . $e->getMessage());
 }
 
 $success_count = 0;
@@ -95,20 +95,20 @@ try {
         $address = trim($sheet->getCell('G' . $row)->getValue());
         $phone = trim($sheet->getCell('H' . $row)->getValue());
         $parent_phone = trim($sheet->getCell('I' . $row)->getValue());
-        $department_name = strtolower(trim($sheet->getCell('J' . $row)->getValue()));
+        $kelas_name = strtolower(trim($sheet->getCell('J' . $row)->getValue()));
 
         // --- Data Validation ---
-        if (empty($name) || empty($department_name)) {
+        if (empty($name) || empty($kelas_name)) {
             $error_count++;
-            $error_messages[] = "Baris $row: Nama dan Jurusan tidak boleh kosong.";
+            $error_messages[] = "Baris $row: Nama dan Kelas tidak boleh kosong.";
             continue;
         }
 
-        // Find department ID from name
-        $department_id = array_search($department_name, $departments);
-        if ($department_id === false) {
+        // Find kelas ID from name
+        $kelas_id = array_search($kelas_name, $kelas_map);
+        if ($kelas_id === false) {
             $error_count++;
-            $error_messages[] = "Baris $row: Jurusan '$department_name' tidak ditemukan.";
+            $error_messages[] = "Baris $row: Kelas '$kelas_name' tidak ditemukan.";
             continue;
         }
 
@@ -117,8 +117,8 @@ try {
 
         // Prepare and execute insert statement
         $stmt = $pdo->prepare(
-            "INSERT INTO students (nisn, nis, name, email, password, birth_place, birth_date, address, phone, parent_phone, department_id, academic_year_id)
-             VALUES (:nisn, :nis, :name, :email, :password, :birth_place, :birth_date, :address, :phone, :parent_phone, :department_id, :academic_year_id)"
+            "INSERT INTO students (nisn, nis, name, email, password, birth_place, birth_date, address, phone, parent_phone, kelas_id, academic_year_id)
+             VALUES (:nisn, :nis, :name, :email, :password, :birth_place, :birth_date, :address, :phone, :parent_phone, :kelas_id, :academic_year_id)"
         );
 
         $stmt->execute([
@@ -132,7 +132,7 @@ try {
             ':address' => $address,
             ':phone' => $phone,
             ':parent_phone' => $parent_phone,
-            ':department_id' => $department_id,
+            ':kelas_id' => $kelas_id,
             ':academic_year_id' => $academic_year_id
         ]);
 

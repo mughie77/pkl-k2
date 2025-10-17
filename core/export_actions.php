@@ -29,9 +29,11 @@ try {
     if ($rekap_type === 'attendance') {
         // Data Rekap Absensi
         $stmt = $pdo->prepare("
-            SELECT s.name, d.department_name, COUNT(j.id) as total_hadir
+            SELECT s.name, pk.program_name, kk.konsentrasi_name, k.kelas_name, COUNT(j.id) as total_hadir
             FROM students s
-            JOIN departments d ON s.department_id = d.id
+            JOIN kelas k ON s.kelas_id = k.id
+            JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+            JOIN program_keahlian pk ON kk.program_id = pk.id
             LEFT JOIN internship_journals j ON s.id = j.student_id AND DATE_FORMAT(j.journal_date, '%Y-%m') = :month
             GROUP BY s.id
             ORDER BY s.name ASC
@@ -39,7 +41,7 @@ try {
         $stmt->execute([':month' => $selected_month]);
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $header = ['Nama Siswa', 'Jurusan', 'Total Kehadiran (Hari)'];
+        $header = ['Nama Siswa', 'Program Keahlian', 'Konsentrasi', 'Kelas', 'Total Kehadiran (Hari)'];
         $filename = 'rekap_absensi_' . str_replace('-', '_', $selected_month) . '.csv';
 
         output_csv($filename, $header, $data);
@@ -48,23 +50,27 @@ try {
         // Data Rekap Nilai
         $stmt = $pdo->prepare("
             SELECT
-                s.name as student_name, d.department_name,
+                s.name as student_name, pk.program_name, kk.konsentrasi_name, k.kelas_name,
                 a.discipline_score, a.skill_score, a.teamwork_score, a.diligence_score,
                 (a.discipline_score + a.skill_score + a.teamwork_score + a.diligence_score) / 4 as average_score
             FROM students s
-            JOIN departments d ON s.department_id = d.id
+            JOIN kelas k ON s.kelas_id = k.id
+            JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+            JOIN program_keahlian pk ON kk.program_id = pk.id
             LEFT JOIN internship_assessments a ON s.id = a.student_id
             ORDER BY s.name ASC
         ");
         $stmt->execute();
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $header = ['Nama Siswa', 'Jurusan', 'Disiplin', 'Skill', 'Kerja Tim', 'Kerajinan', 'Rata-rata'];
+        $header = ['Nama Siswa', 'Program Keahlian', 'Konsentrasi', 'Kelas', 'Disiplin', 'Skill', 'Kerja Tim', 'Kerajinan', 'Rata-rata'];
         $data_to_export = [];
         foreach ($results as $row) {
             $data_to_export[] = [
                 $row['student_name'],
-                $row['department_name'],
+                $row['program_name'],
+                $row['konsentrasi_name'],
+                $row['kelas_name'],
                 $row['discipline_score'] ?? 'N/A',
                 $row['skill_score'] ?? 'N/A',
                 $row['teamwork_score'] ?? 'N/A',

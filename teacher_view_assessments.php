@@ -14,13 +14,15 @@ try {
     // Ambil data penilaian dari siswa bimbingan guru ini
     $stmt = $pdo->prepare("
         SELECT
-            s.name as student_name, d.department_name,
+            s.name as student_name, pk.program_name,
             a.discipline_score, a.skill_score, a.teamwork_score, a.diligence_score,
             (a.discipline_score + a.skill_score + a.teamwork_score + a.diligence_score) / 4 as average_score,
             i.name as instructor_name
         FROM internship_assessments a
         JOIN students s ON a.student_id = s.id
-        JOIN departments d ON s.department_id = d.id
+        JOIN kelas k ON s.kelas_id = k.id
+        JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+        JOIN program_keahlian pk ON kk.program_id = pk.id
         JOIN instructors i ON a.instructor_id = i.id
         JOIN internship_mappings m ON a.student_id = m.student_id
         WHERE m.teacher_id = :teacher_id
@@ -47,7 +49,7 @@ try {
                     <thead>
                         <tr>
                             <th>Nama Siswa</th>
-                            <th>Jurusan</th>
+                            <th>Program Keahlian</th>
                             <th>Disiplin</th>
                             <th>Skill</th>
                             <th>Kerja Tim</th>
@@ -61,7 +63,7 @@ try {
                             <?php foreach ($assessments as $data): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($data['student_name']); ?></td>
-                                <td><?php echo htmlspecialchars($data['department_name']); ?></td>
+                                <td><?php echo htmlspecialchars($data['program_name']); ?></td>
                                 <td><?php echo $data['discipline_score']; ?></td>
                                 <td><?php echo $data['skill_score']; ?></td>
                                 <td><?php echo $data['teamwork_score']; ?></td>

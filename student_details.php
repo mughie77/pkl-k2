@@ -19,13 +19,15 @@ try {
     $stmt = $pdo->prepare("
         SELECT
             s.*,
-            d.department_name,
+            k.kelas_name, kk.konsentrasi_name, pk.program_name,
             ay.year_name,
             t.name as teacher_name, t.phone as teacher_phone,
             i.name as instructor_name,
             c.name as company_name
         FROM students s
-        LEFT JOIN departments d ON s.department_id = d.id
+        LEFT JOIN kelas k ON s.kelas_id = k.id
+        LEFT JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+        LEFT JOIN program_keahlian pk ON kk.program_id = pk.id
         LEFT JOIN academic_years ay ON s.academic_year_id = ay.id
         LEFT JOIN internship_mappings m ON s.id = m.student_id
         LEFT JOIN teachers t ON m.teacher_id = t.id
@@ -76,7 +78,9 @@ function create_whatsapp_link($phone) {
                         <tr><th>NISN</th><td>: <?php echo htmlspecialchars($student['nisn'] ?? '-'); ?></td></tr>
                         <tr><th>TTL</th><td>: <?php echo htmlspecialchars($student['birth_place'] ?? '-'); ?>, <?php echo $student['birth_date'] ? date('d M Y', strtotime($student['birth_date'])) : '-'; ?></td></tr>
                         <tr><th>Alamat</th><td>: <?php echo htmlspecialchars($student['address'] ?? '-'); ?></td></tr>
-                        <tr><th>Jurusan</th><td>: <?php echo htmlspecialchars($student['department_name'] ?? '-'); ?></td></tr>
+                        <tr><th>Program Keahlian</th><td>: <?php echo htmlspecialchars($student['program_name'] ?? '-'); ?></td></tr>
+                        <tr><th>Konsentrasi</th><td>: <?php echo htmlspecialchars($student['konsentrasi_name'] ?? '-'); ?></td></tr>
+                        <tr><th>Kelas</th><td>: <?php echo htmlspecialchars($student['kelas_name'] ?? '-'); ?></td></tr>
                         <tr><th>Thn. Pelajaran</th><td>: <?php echo htmlspecialchars($student['year_name'] ?? '-'); ?></td></tr>
                         <tr><th>No. HP</th><td>: <?php echo htmlspecialchars($student['phone'] ?? '-'); ?>
                             <?php if(!empty($student['phone'])): ?>

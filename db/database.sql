@@ -46,17 +46,45 @@ INSERT INTO `academic_years` (`id`, `year_name`, `status`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `departments`
+-- Table structure for table `program_keahlian`
 --
 
-CREATE TABLE `departments` (
+CREATE TABLE `program_keahlian` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `department_name` varchar(100) NOT NULL,
+  `program_name` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `department_name` (`department_name`)
+  UNIQUE KEY `program_name` (`program_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
+
+--
+-- Table structure for table `konsentrasi_keahlian`
+--
+
+CREATE TABLE `konsentrasi_keahlian` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `program_id` int(11) NOT NULL,
+  `konsentrasi_name` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `program_id` (`program_id`),
+  CONSTRAINT `fk_konsentrasi_program` FOREIGN KEY (`program_id`) REFERENCES `program_keahlian` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `kelas`
+--
+
+CREATE TABLE `kelas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `konsentrasi_id` int(11) NOT NULL,
+  `kelas_name` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `konsentrasi_id` (`konsentrasi_id`),
+  CONSTRAINT `fk_kelas_konsentrasi` FOREIGN KEY (`konsentrasi_id`) REFERENCES `konsentrasi_keahlian` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Table structure for table `admins`
@@ -152,16 +180,16 @@ CREATE TABLE `students` (
   `address` text DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `parent_phone` varchar(20) DEFAULT NULL,
-  `department_id` int(11) NOT NULL,
+  `kelas_id` int(11) NOT NULL,
   `academic_year_id` int(11) NOT NULL,
   `work_start_time` time DEFAULT '08:00:00',
   `work_end_time` time DEFAULT '16:00:00',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `nisn` (`nisn`),
-  KEY `department_id` (`department_id`),
+  KEY `kelas_id` (`kelas_id`),
   KEY `academic_year_id` (`academic_year_id`),
-  CONSTRAINT `fk_student_department` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_student_kelas` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_student_academicyear` FOREIGN KEY (`academic_year_id`) REFERENCES `academic_years` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
