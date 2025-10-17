@@ -375,9 +375,11 @@ $(document).ready(function() {
     });
 
     locationViewModal.addEventListener('shown.bs.modal', function () {
-        if (mapView) {
-            mapView.invalidateSize();
-        }
+        setTimeout(function() {
+            if (mapView) {
+                mapView.invalidateSize();
+            }
+        }, 10); // A small delay to allow the modal to fully render
     });
 });
 </script>
