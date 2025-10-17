@@ -34,7 +34,7 @@ if ($hour >= 18) $greeting = 'Selamat Malam';
     </div>
 
     <!-- Menu Ikon -->
-    <div class="row row-cols-2 text-center g-3 mb-4">
+    <div class="row row-cols-2 row-cols-md-4 text-center g-3 mb-4">
         <div class="col">
             <a href="manage_dudika_locations.php" class="icon-menu-item">
                 <div class="icon-circle bg-primary text-white"><i class="fas fa-map-marked-alt"></i></div>
@@ -42,9 +42,21 @@ if ($hour >= 18) $greeting = 'Selamat Malam';
             </a>
         </div>
         <div class="col">
+            <a href="mapping_report.php" class="icon-menu-item">
+                <div class="icon-circle bg-info text-white"><i class="fas fa-sitemap"></i></div>
+                <span class="icon-label">Data Pemetaan</span>
+            </a>
+        </div>
+        <div class="col">
             <a href="global_recap.php" class="icon-menu-item">
                 <div class="icon-circle bg-success text-white"><i class="fas fa-clipboard-list"></i></div>
                 <span class="icon-label">Rekap Absensi</span>
+            </a>
+        </div>
+        <div class="col">
+            <a href="problem_report.php" class="icon-menu-item">
+                <div class="icon-circle bg-danger text-white"><i class="fas fa-exclamation-triangle"></i></div>
+                <span class="icon-label">Masalah Siswa</span>
             </a>
         </div>
     </div>
