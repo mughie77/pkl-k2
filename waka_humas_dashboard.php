@@ -34,7 +34,7 @@ if ($hour >= 18) $greeting = 'Selamat Malam';
     </div>
 
     <!-- Menu Ikon -->
-    <div class="row row-cols-2 row-cols-md-4 text-center g-3 mb-4">
+    <div class="row row-cols-2 text-center g-3 mb-4">
         <div class="col">
             <a href="manage_dudika_locations.php" class="icon-menu-item">
                 <div class="icon-circle bg-primary text-white"><i class="fas fa-map-marked-alt"></i></div>
@@ -52,6 +52,10 @@ if ($hour >= 18) $greeting = 'Selamat Malam';
     <div class="alert alert-info">
         <i class="fas fa-info-circle me-2"></i>
         Selamat datang di dasbor Waka Humas. Gunakan menu di atas atau di bawah untuk navigasi.
+    </div>
+
+    <div class="mt-4 d-grid">
+        <a href="logout.php" class="btn btn-danger"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
     </div>
 
 </div>

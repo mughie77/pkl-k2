@@ -171,18 +171,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             updateFormFields(e.latlng);
         });
-
-        function bindMarkerEvents() {
-            marker.on('dragend', function(e) {
-                updateFormFields(e.target.getLatLng());
-            });
-        }
-
-        function updateFormFields(latlng) {
-            document.getElementById('latitude').value = latlng.lat.toFixed(8);
-            document.getElementById('longitude').value = latlng.lng.toFixed(8);
-        }
     });
+
+    function bindMarkerEvents() {
+        if (!marker) return;
+        marker.on('dragend', function(e) {
+            updateFormFields(e.target.getLatLng());
+        });
+    }
+
+    function updateFormFields(latlng) {
+        document.getElementById('latitude').value = latlng.lat.toFixed(8);
+        document.getElementById('longitude').value = latlng.lng.toFixed(8);
+    }
 
     locationModal.addEventListener('shown.bs.modal', function () {
         if (map) {

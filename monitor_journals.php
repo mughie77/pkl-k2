@@ -3,7 +3,7 @@ require_once __DIR__ . '/templates/header.php';
 require_once __DIR__ . '/templates/sidebar.php';
 
 // Proteksi halaman
-$allowed_roles = ['teacher', 'instructor', 'waka_humas'];
+$allowed_roles = ['teacher', 'instructor'];
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], $allowed_roles)) {
     header("Location: login.php");
     exit;

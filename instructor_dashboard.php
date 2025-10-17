@@ -92,6 +92,12 @@ try {
                 <span class="icon-label">Catatan Masalah</span>
             </a>
         </div>
+        <div class="col">
+            <a href="global_recap.php" class="icon-menu-item">
+                <div class="icon-circle bg-info text-white"><i class="fas fa-clipboard-list"></i></div>
+                <span class="icon-label">Rekap Absen</span>
+            </a>
+        </div>
     </div>
 
      <!-- Daftar Siswa Bimbingan -->
