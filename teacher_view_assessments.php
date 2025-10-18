@@ -1,11 +1,16 @@
 <?php
 require_once __DIR__ . '/templates/header.php';
-// Sidebar tidak diperlukan untuk peran guru dengan navigasi bawah
-// require_once __DIR__ . '/templates/sidebar.php';
 
 // Proteksi halaman
 if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'teacher') {
     header("Location: login.php");
+    exit;
+}
+
+// Validasi sesi tahun ajaran
+if (!isset($_SESSION['selected_academic_year_id'])) {
+    $_SESSION['error_message'] = "Silakan pilih tahun ajaran terlebih dahulu.";
+    header("Location: teacher_dashboard.php");
     exit;
 }
 
@@ -14,6 +19,7 @@ $academic_year_id = $_SESSION['selected_academic_year_id'];
 
 try {
     // Ambil data penilaian dari siswa bimbingan guru ini
+    // Query ini sudah benar, memfilter academic_year_id dari tabel mappings (m)
     $stmt = $pdo->prepare("
         SELECT
             s.id as student_id, s.name as student_name, pk.program_name,
@@ -85,7 +91,7 @@ try {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="text-center">Belum ada siswa bimbingan yang dinilai oleh instruktur.</td>
+                                <td colspan="5" class="text-center">Belum ada siswa bimbingan yang dinilai pada tahun ajaran ini.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

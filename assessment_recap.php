@@ -8,9 +8,17 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], $allowed_r
     exit;
 }
 
+// Validasi sesi tahun ajaran
+if (!isset($_SESSION['selected_academic_year_id'])) {
+    $_SESSION['error_message'] = "Silakan pilih tahun ajaran terlebih dahulu.";
+    $dashboard = ($_SESSION['user_role'] === 'admin') ? 'admin_dashboard.php' : 'waka_humas_dashboard.php';
+    header("Location: $dashboard");
+    exit;
+}
 $academic_year_id = $_SESSION['selected_academic_year_id'];
 
 try {
+    // Query yang diperbaiki: JOIN dengan internship_mappings dan filter academic_year_id dari sana
     $stmt = $pdo->prepare("
         SELECT
             s.id as student_id, s.name as student_name, pk.program_name,
@@ -19,11 +27,12 @@ try {
             i.name as instructor_name
         FROM internship_assessments a
         JOIN students s ON a.student_id = s.id
+        JOIN internship_mappings m ON s.id = m.student_id
         JOIN kelas k ON s.kelas_id = k.id
         JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
         JOIN program_keahlian pk ON kk.program_id = pk.id
         JOIN instructors i ON a.instructor_id = i.id
-        WHERE a.academic_year_id = :academic_year_id
+        WHERE m.academic_year_id = :academic_year_id
         ORDER BY s.name ASC
     ");
     $stmt->execute([':academic_year_id' => $academic_year_id]);
@@ -81,7 +90,7 @@ try {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="text-center">Belum ada siswa yang dinilai.</td>
+                                <td colspan="5" class="text-center">Belum ada siswa yang dinilai pada tahun ajaran ini.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
