@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 
-// Keamanan: Pastikan hanya admin atau waka humas yang bisa mengakses
-$allowed_roles = ['admin', 'waka_humas'];
+// Keamanan: Pastikan hanya peran yang berwenang yang bisa mengakses
+$allowed_roles = ['admin', 'waka_humas', 'teacher'];
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], $allowed_roles)) {
     $_SESSION['flash_message'] = ['type' => 'danger', 'message' => 'Akses ditolak.'];
     header("Location: ../login.php");
