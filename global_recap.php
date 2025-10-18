@@ -13,7 +13,7 @@ $user_role = $_SESSION['user_role'];
 
 // Ambil data untuk filter
 try {
-    $depts = $pdo->query("SELECT id, department_name FROM departments ORDER BY department_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $depts = $pdo->query("SELECT id, program_name as department_name FROM program_keahlian ORDER BY program_name ASC")->fetchAll(PDO::FETCH_ASSOC);
     $teachers = $pdo->query("SELECT id, name FROM teachers ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
     $companies = $pdo->query("SELECT id, name FROM companies ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
