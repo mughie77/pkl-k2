@@ -67,7 +67,12 @@ try {
 ?>
 
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Laporan Permasalahan Siswa</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Laporan Permasalahan Siswa</h1>
+        <a href="#" id="exportBtn" class="btn btn-success">
+            <i class="fas fa-file-excel me-2"></i>Ekspor ke Excel
+        </a>
+    </div>
 
     <div class="card shadow mb-4">
         <div class="card-header"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-filter me-2"></i>Filter Data</h6></div>
@@ -152,6 +157,15 @@ try {
 <script>
 $(document).ready(function() {
     $('.select2').select2({ theme: 'bootstrap-5' });
+
+    function updateExportLink() {
+        const params = new URLSearchParams(window.location.search);
+        params.set('type', 'rekap_masalah');
+        $('#exportBtn').attr('href', 'core/export_handler.php?' + params.toString());
+    }
+
+    updateExportLink();
+    $('select, input[type=date]').on('change', updateExportLink);
 });
 </script>
 

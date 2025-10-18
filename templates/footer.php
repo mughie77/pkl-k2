@@ -36,6 +36,7 @@ if (in_array($user_role, ['student', 'teacher', 'instructor', 'waka_humas'])) :
             <a href="manage_dudika_locations.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_dudika_locations.php' ? 'active' : ''; ?>"><i class="fas fa-map-marked-alt"></i><span>Lokasi</span></a>
             <a href="mapping_report.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'mapping_report.php' ? 'active' : ''; ?>"><i class="fas fa-sitemap"></i><span>Pemetaan</span></a>
             <a href="problem_report.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'problem_report.php' ? 'active' : ''; ?>"><i class="fas fa-exclamation-triangle"></i><span>Masalah</span></a>
+            <a href="assessment_recap.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'assessment_recap.php' ? 'active' : ''; ?>"><i class="fas fa-graduation-cap"></i><span>Skor</span></a>
             <a href="global_recap.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'global_recap.php' ? 'active' : ''; ?>"><i class="fas fa-clipboard-list"></i><span>Absensi</span></a>
         <?php endif; ?>
 

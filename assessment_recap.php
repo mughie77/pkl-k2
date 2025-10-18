@@ -1,18 +1,15 @@
 <?php
 require_once __DIR__ . '/templates/header.php';
-require_once __DIR__ . '/templates/sidebar.php';
 
 // Proteksi halaman
-if ($_SESSION['user_role'] !== 'teacher') {
+$allowed_roles = ['waka_humas', 'admin'];
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], $allowed_roles)) {
     header("Location: login.php");
     exit;
 }
 
-$teacher_id = $_SESSION['user_id'];
-
 try {
-    // Ambil data penilaian dari siswa bimbingan guru ini
-    $stmt = $pdo->prepare("
+    $stmt = $pdo->query("
         SELECT
             s.name as student_name, pk.program_name,
             a.score_1, a.score_2, a.score_3, a.score_4, a.notes,
@@ -24,11 +21,8 @@ try {
         JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
         JOIN program_keahlian pk ON kk.program_id = pk.id
         JOIN instructors i ON a.instructor_id = i.id
-        JOIN internship_mappings m ON a.student_id = m.student_id
-        WHERE m.teacher_id = :teacher_id
         ORDER BY s.name ASC
     ");
-    $stmt->execute([':teacher_id' => $teacher_id]);
     $assessments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
@@ -38,7 +32,7 @@ try {
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Daftar Skor Siswa Bimbingan</h1>
+        <h1 class="h3 mb-0 text-gray-800">Rekapitulasi Skor Siswa</h1>
         <a href="core/export_handler.php?type=rekap_nilai" class="btn btn-success">
             <i class="fas fa-file-excel me-2"></i>Ekspor ke Excel
         </a>
@@ -46,11 +40,11 @@ try {
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Rekapitulasi Nilai Akhir dari Instruktur</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Rekapitulasi Skor Akhir dari Instruktur</h6>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th>Nama Siswa</th>
@@ -80,7 +74,7 @@ try {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="8" class="text-center">Belum ada siswa bimbingan yang dinilai oleh instruktur.</td>
+                                <td colspan="5" class="text-center">Belum ada siswa yang dinilai.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -101,61 +95,10 @@ try {
             <div class="modal-body">
                 <h6 class="mb-3">Siswa: <span id="modal_student_name" class="fw-normal"></span></h6>
                 <table class="table table-striped">
-                    <tr>
-                        <td>1. Memahami alur bisnis dunia kerja tempat PKL dan wawasan wirausaha</td>
-                        <td class="text-end"><span id="modal_score_1" class="badge bg-primary"></span></td>
-                    </tr>
-                    <tr>
-                        <td>2. Menerapkan soft skill yang dibutuhkan dalam dunia kerja</td>
-                        <td class="text-end"><span id="modal_score_2" class="badge bg-primary"></span></td>
-                    </tr>
-                    <tr>
-                        <td>3. Menerapkan norma, SOP dan K3LH yang ada pada dunia kerja</td>
-                        <td class="text-end"><span id="modal_score_3" class="badge bg-primary"></span></td>
-                    </tr>
-                    <tr>
-                        <td>4. Menerapkan kompetensi teknis yang sudah dipelajari di sekolah dan/ atau baru dipelajari pada dunia kerja</td>
-                        <td class="text-end"><span id="modal_score_4" class="badge bg-primary"></span></td>
-                    </tr>
-                </table>
-                <hr>
-                <h6>Catatan dari Instruktur:</h6>
-                <p id="modal_notes" class="fst-italic bg-light p-2 rounded"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal untuk Detail Penilaian -->
-<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="detailsModalLabel">Detail Skor Siswa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <h6 class="mb-3">Siswa: <span id="modal_student_name" class="fw-normal"></span></h6>
-                <table class="table table-striped">
-                    <tr>
-                        <td>1. Memahami alur bisnis dunia kerja tempat PKL dan wawasan wirausaha</td>
-                        <td class="text-end"><span id="modal_score_1" class="badge bg-primary"></span></td>
-                    </tr>
-                    <tr>
-                        <td>2. Menerapkan soft skill yang dibutuhkan dalam dunia kerja</td>
-                        <td class="text-end"><span id="modal_score_2" class="badge bg-primary"></span></td>
-                    </tr>
-                    <tr>
-                        <td>3. Menerapkan norma, SOP dan K3LH yang ada pada dunia kerja</td>
-                        <td class="text-end"><span id="modal_score_3" class="badge bg-primary"></span></td>
-                    </tr>
-                    <tr>
-                        <td>4. Menerapkan kompetensi teknis yang sudah dipelajari di sekolah dan/ atau baru dipelajari pada dunia kerja</td>
-                        <td class="text-end"><span id="modal_score_4" class="badge bg-primary"></span></td>
-                    </tr>
+                    <tr><td>1. Memahami alur bisnis dunia kerja tempat PKL dan wawasan wirausaha</td><td class="text-end"><span id="modal_score_1" class="badge bg-primary"></span></td></tr>
+                    <tr><td>2. Menerapkan soft skill yang dibutuhkan dalam dunia kerja</td><td class="text-end"><span id="modal_score_2" class="badge bg-primary"></span></td></tr>
+                    <tr><td>3. Menerapkan norma, SOP dan K3LH yang ada pada dunia kerja</td><td class="text-end"><span id="modal_score_3" class="badge bg-primary"></span></td></tr>
+                    <tr><td>4. Menerapkan kompetensi teknis yang sudah dipelajari di sekolah dan/ atau baru dipelajari pada dunia kerja</td><td class="text-end"><span id="modal_score_4" class="badge bg-primary"></span></td></tr>
                 </table>
                 <hr>
                 <h6>Catatan dari Instruktur:</h6>
@@ -174,7 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
     detailsModal.addEventListener('show.bs.modal', function(event) {
         const button = event.relatedTarget;
         const data = JSON.parse(button.dataset.assessment);
-
         document.getElementById('modal_student_name').textContent = data.student_name;
         document.getElementById('modal_score_1').textContent = data.score_1;
         document.getElementById('modal_score_2').textContent = data.score_2;
@@ -185,9 +127,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<?php
-if (in_array($_SESSION['user_role'], ['student', 'teacher', 'instructor'])) {
-    echo '</div>';
-}
-require_once __DIR__ . '/templates/footer.php';
-?>
+<?php require_once __DIR__ . '/templates/footer.php'; ?>

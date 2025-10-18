@@ -59,6 +59,12 @@ if ($hour >= 18) $greeting = 'Selamat Malam';
                 <span class="icon-label">Masalah Siswa</span>
             </a>
         </div>
+        <div class="col">
+            <a href="assessment_recap.php" class="icon-menu-item">
+                <div class="icon-circle bg-warning text-dark"><i class="fas fa-graduation-cap"></i></div>
+                <span class="icon-label">Rekap Skor</span>
+            </a>
+        </div>
     </div>
 
     <div class="alert alert-info">
