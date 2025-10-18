@@ -8,10 +8,12 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], $allowed_r
     exit;
 }
 
+$academic_year_id = $_SESSION['selected_academic_year_id'];
+
 try {
-    $stmt = $pdo->query("
+    $stmt = $pdo->prepare("
         SELECT
-            s.name as student_name, pk.program_name,
+            s.id as student_id, s.name as student_name, pk.program_name,
             a.score_1, a.score_2, a.score_3, a.score_4, a.notes,
             (a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4 as average_score,
             i.name as instructor_name
@@ -21,8 +23,10 @@ try {
         JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
         JOIN program_keahlian pk ON kk.program_id = pk.id
         JOIN instructors i ON a.instructor_id = i.id
+        WHERE a.academic_year_id = :academic_year_id
         ORDER BY s.name ASC
     ");
+    $stmt->execute([':academic_year_id' => $academic_year_id]);
     $assessments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
@@ -69,6 +73,9 @@ try {
                                             data-assessment='<?php echo htmlspecialchars(json_encode($data), ENT_QUOTES, 'UTF-8'); ?>'>
                                         <i class="fas fa-eye"></i> Detail
                                     </button>
+                                    <a href="generate_pdf_report.php?student_id=<?php echo $data['student_id']; ?>" class="btn btn-danger btn-sm" target="_blank">
+                                        <i class="fas fa-file-pdf"></i> Cetak Rapor
+                                    </a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

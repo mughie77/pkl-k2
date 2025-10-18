@@ -1,20 +1,22 @@
 <?php
 require_once __DIR__ . '/templates/header.php';
-require_once __DIR__ . '/templates/sidebar.php';
+// Sidebar tidak diperlukan untuk peran guru dengan navigasi bawah
+// require_once __DIR__ . '/templates/sidebar.php';
 
 // Proteksi halaman
-if ($_SESSION['user_role'] !== 'teacher') {
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'teacher') {
     header("Location: login.php");
     exit;
 }
 
 $teacher_id = $_SESSION['user_id'];
+$academic_year_id = $_SESSION['selected_academic_year_id'];
 
 try {
     // Ambil data penilaian dari siswa bimbingan guru ini
     $stmt = $pdo->prepare("
         SELECT
-            s.name as student_name, pk.program_name,
+            s.id as student_id, s.name as student_name, pk.program_name,
             a.score_1, a.score_2, a.score_3, a.score_4, a.notes,
             (a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4 as average_score,
             i.name as instructor_name
@@ -25,10 +27,10 @@ try {
         JOIN program_keahlian pk ON kk.program_id = pk.id
         JOIN instructors i ON a.instructor_id = i.id
         JOIN internship_mappings m ON a.student_id = m.student_id
-        WHERE m.teacher_id = :teacher_id
+        WHERE m.teacher_id = :teacher_id AND m.academic_year_id = :academic_year_id
         ORDER BY s.name ASC
     ");
-    $stmt->execute([':teacher_id' => $teacher_id]);
+    $stmt->execute([':teacher_id' => $teacher_id, ':academic_year_id' => $academic_year_id]);
     $assessments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
@@ -39,7 +41,7 @@ try {
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0 text-gray-800">Daftar Skor Siswa Bimbingan</h1>
-        <a href="core/export_handler.php?type=rekap_nilai" class="btn btn-success">
+        <a href="core/export_handler.php?type=rekap_nilai_guru" class="btn btn-success">
             <i class="fas fa-file-excel me-2"></i>Ekspor ke Excel
         </a>
     </div>
@@ -50,7 +52,7 @@ try {
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th>Nama Siswa</th>
@@ -75,55 +77,19 @@ try {
                                             data-assessment='<?php echo htmlspecialchars(json_encode($data), ENT_QUOTES, 'UTF-8'); ?>'>
                                         <i class="fas fa-eye"></i> Detail
                                     </button>
+                                    <a href="generate_pdf_report.php?student_id=<?php echo $data['student_id']; ?>" class="btn btn-danger btn-sm" target="_blank">
+                                        <i class="fas fa-file-pdf"></i> Cetak Rapor
+                                    </a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="8" class="text-center">Belum ada siswa bimbingan yang dinilai oleh instruktur.</td>
+                                <td colspan="5" class="text-center">Belum ada siswa bimbingan yang dinilai oleh instruktur.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal untuk Detail Penilaian -->
-<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="detailsModalLabel">Detail Skor Siswa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <h6 class="mb-3">Siswa: <span id="modal_student_name" class="fw-normal"></span></h6>
-                <table class="table table-striped">
-                    <tr>
-                        <td>1. Memahami alur bisnis dunia kerja tempat PKL dan wawasan wirausaha</td>
-                        <td class="text-end"><span id="modal_score_1" class="badge bg-primary"></span></td>
-                    </tr>
-                    <tr>
-                        <td>2. Menerapkan soft skill yang dibutuhkan dalam dunia kerja</td>
-                        <td class="text-end"><span id="modal_score_2" class="badge bg-primary"></span></td>
-                    </tr>
-                    <tr>
-                        <td>3. Menerapkan norma, SOP dan K3LH yang ada pada dunia kerja</td>
-                        <td class="text-end"><span id="modal_score_3" class="badge bg-primary"></span></td>
-                    </tr>
-                    <tr>
-                        <td>4. Menerapkan kompetensi teknis yang sudah dipelajari di sekolah dan/ atau baru dipelajari pada dunia kerja</td>
-                        <td class="text-end"><span id="modal_score_4" class="badge bg-primary"></span></td>
-                    </tr>
-                </table>
-                <hr>
-                <h6>Catatan dari Instruktur:</h6>
-                <p id="modal_notes" class="fst-italic bg-light p-2 rounded"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -186,8 +152,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?php
-if (in_array($_SESSION['user_role'], ['student', 'teacher', 'instructor'])) {
-    echo '</div>';
-}
 require_once __DIR__ . '/templates/footer.php';
 ?>
