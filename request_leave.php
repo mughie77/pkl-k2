@@ -54,8 +54,9 @@ function get_status_badge($status) {
                     <div class="col-md-4 mb-3">
                         <label for="leave_type" class="form-label">Jenis Pengajuan</label>
                         <select name="leave_type" id="leave_type" class="form-select">
-                            <option value="Izin" <?php echo ($leave_type_default === 'Izin') ? 'selected' : ''; ?>>Izin</option>
-                            <option value="Cuti" <?php echo ($leave_type_default === 'Cuti') ? 'selected' : ''; ?>>Cuti</option>
+                            <option value="Sakit">Sakit</option>
+                            <option value="Izin">Izin</option>
+                            <option value="Tanpa Keterangan">Tanpa Keterangan</option>
                         </select>
                     </div>
                     <div class="col-md-4 mb-3">

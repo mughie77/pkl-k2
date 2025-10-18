@@ -15,7 +15,7 @@ try {
     // Ambil data penilaian untuk siswa yang sedang login
     $stmt = $pdo->prepare("
         SELECT
-            a.discipline_score, a.skill_score, a.teamwork_score, a.diligence_score, a.feedback, a.assessment_date,
+            a.score_1, a.score_2, a.score_3, a.score_4, a.notes, a.assessment_date,
             i.name as instructor_name
         FROM internship_assessments a
         JOIN instructors i ON a.instructor_id = i.id
@@ -53,16 +53,16 @@ try {
         <div class="col-lg-4">
             <div class="card shadow mb-4">
                 <div class="card-header bg-info text-white">
-                    <h6 class="m-0 font-weight-bold"><i class="fas fa-comment-alt me-2"></i>Feedback dari Instruktur</h6>
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-comment-alt me-2"></i>Catatan dari Instruktur</h6>
                 </div>
                 <div class="card-body">
                     <?php if ($assessment_data): ?>
                         <p><strong>Dinilai oleh:</strong> <?php echo htmlspecialchars($assessment_data['instructor_name']); ?></p>
                         <p><strong>Tanggal:</strong> <?php echo date('d M Y', strtotime($assessment_data['assessment_date'])); ?></p>
                         <hr>
-                        <p class="fst-italic">"<?php echo nl2br(htmlspecialchars($assessment_data['feedback'] ?? 'Tidak ada feedback tambahan.')); ?>"</p>
+                        <p class="fst-italic">"<?php echo nl2br(htmlspecialchars($assessment_data['notes'] ?? 'Tidak ada catatan tambahan.')); ?>"</p>
                     <?php else: ?>
-                        <p>Belum ada feedback yang tersedia.</p>
+                        <p>Belum ada catatan yang tersedia.</p>
                     <?php endif; ?>
                 </div>
             </div>
@@ -70,13 +70,13 @@ try {
             <?php if ($assessment_data): ?>
             <div class="card shadow mb-4">
                 <div class="card-header bg-secondary text-white">
-                    <h6 class="m-0 font-weight-bold"><i class="fas fa-list-ol me-2"></i>Rincian Nilai</h6>
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-list-ol me-2"></i>Rincian Skor</h6>
                 </div>
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between align-items-center">Kedisiplinan <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['discipline_score']; ?></span></li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">Keahlian (Skill) <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['skill_score']; ?></span></li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">Kerja Tim <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['teamwork_score']; ?></span></li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">Kerajinan <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['diligence_score']; ?></span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Memahami alur bisnis <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_1']; ?></span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Menerapkan soft skill <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_2']; ?></span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Menerapkan norma, SOP, K3LH <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_3']; ?></span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Menerapkan kompetensi teknis <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_4']; ?></span></li>
                 </ul>
             </div>
             <?php endif; ?>
@@ -94,18 +94,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const data = {
         labels: [
-            'Kedisiplinan',
-            'Keahlian (Skill)',
-            'Kerja Tim',
-            'Kerajinan'
+            'Memahami Alur Bisnis',
+            'Penerapan Soft Skill',
+            'Penerapan Norma & SOP',
+            'Penerapan Kompetensi Teknis'
         ],
         datasets: [{
             label: 'Skor Penilaian',
             data: [
-                <?php echo $assessment_data['discipline_score']; ?>,
-                <?php echo $assessment_data['skill_score']; ?>,
-                <?php echo $assessment_data['teamwork_score']; ?>,
-                <?php echo $assessment_data['diligence_score']; ?>
+                <?php echo $assessment_data['score_1']; ?>,
+                <?php echo $assessment_data['score_2']; ?>,
+                <?php echo $assessment_data['score_3']; ?>,
+                <?php echo $assessment_data['score_4']; ?>
             ],
             fill: true,
             backgroundColor: 'rgba(54, 162, 235, 0.2)',

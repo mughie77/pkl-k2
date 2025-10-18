@@ -110,6 +110,27 @@ INSERT INTO `admins` (`name`, `username`, `password`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `waka_humas`
+--
+
+CREATE TABLE `waka_humas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `waka_humas`
+--
+
+INSERT INTO `waka_humas` (`name`, `username`, `password`) VALUES
+('Waka Humas', 'waka', '$2y$10$9.M4B3Y.X2a5c.dE6f.gH8i.jK0l.mN1o.pQ2r.sT3u.vW4x.yZ5'); -- password: waka
+
+--
 -- Table structure for table `teachers`
 --
 
@@ -253,11 +274,11 @@ CREATE TABLE `internship_assessments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `student_id` int(11) NOT NULL,
   `instructor_id` int(11) NOT NULL,
-  `discipline_score` tinyint(3) unsigned DEFAULT NULL,
-  `skill_score` tinyint(3) unsigned DEFAULT NULL,
-  `teamwork_score` tinyint(3) unsigned DEFAULT NULL,
-  `diligence_score` tinyint(3) unsigned DEFAULT NULL,
-  `feedback` text DEFAULT NULL,
+  `score_1` tinyint(3) unsigned DEFAULT NULL COMMENT 'Memahami alur bisnis',
+  `score_2` tinyint(3) unsigned DEFAULT NULL COMMENT 'Menerapkan soft skill',
+  `score_3` tinyint(3) unsigned DEFAULT NULL COMMENT 'Menerapkan norma, SOP, K3LH',
+  `score_4` tinyint(3) unsigned DEFAULT NULL COMMENT 'Menerapkan kompetensi teknis',
+  `notes` text DEFAULT NULL,
   `assessment_date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `student_id` (`student_id`),
@@ -296,7 +317,7 @@ CREATE TABLE `leave_requests` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `student_id` int(11) NOT NULL,
   `instructor_id` int(11) NOT NULL,
-  `leave_type` enum('Izin','Cuti') NOT NULL,
+  `leave_type` enum('Sakit','Izin','Tanpa Keterangan') NOT NULL,
   `start_date` date NOT NULL,
   `end_date` date NOT NULL,
   `reason` text NOT NULL,
