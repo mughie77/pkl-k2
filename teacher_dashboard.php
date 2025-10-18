@@ -77,9 +77,9 @@ try {
             </a>
         </div>
         <div class="col">
-            <a href="student_problems.php" class="icon-menu-item">
+            <a href="teacher_problem_report.php" class="icon-menu-item">
                 <div class="icon-circle bg-danger text-white"><i class="fas fa-exclamation-triangle"></i></div>
-                <span class="icon-label">Catatan Masalah</span>
+                <span class="icon-label">Laporan Masalah</span>
             </a>
         </div>
          <div class="col">

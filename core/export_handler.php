@@ -79,7 +79,15 @@ switch ($export_type) {
         $stmt->execute($params);
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $header = ['Nama Siswa', 'Program Keahlian', 'Dinilai oleh', 'Skor 1', 'Skor 2', 'Skor 3', 'Skor 4', 'Rata-rata', 'Catatan'];
+        $header = [
+            'Nama Siswa', 'Program Keahlian', 'Dinilai oleh',
+            'Skor 1: Memahami alur bisnis',
+            'Skor 2: Menerapkan soft skill',
+            'Skor 3: Menerapkan norma, SOP, K3LH',
+            'Skor 4: Menerapkan kompetensi teknis',
+            'Rata-rata',
+            'Catatan'
+        ];
         $sheet->fromArray($header, NULL, 'A1');
         $sheet->fromArray($data, NULL, 'A2');
 

@@ -121,7 +121,12 @@ function get_status_badge($status) {
 </style>
 
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Monitoring Jurnal dan Absensi Siswa</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Monitoring Jurnal dan Absensi Siswa</h1>
+        <a href="#" id="exportBtn" class="btn btn-success">
+            <i class="fas fa-file-excel me-2"></i>Ekspor ke Excel
+        </a>
+    </div>
 
     <!-- Filter Form -->
     <div class="card shadow mb-4">
@@ -267,6 +272,15 @@ function get_status_badge($status) {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 $(document).ready(function() {
+    function updateExportLink() {
+        const params = new URLSearchParams(window.location.search);
+        params.set('type', 'rekap_absen');
+        $('#exportBtn').attr('href', 'core/export_handler.php?' + params.toString());
+    }
+
+    updateExportLink();
+    $('select, input[type=date]').on('change', updateExportLink);
+
     // Initialize Select2
     $('#student_id').select2({
         theme: 'bootstrap-5'
