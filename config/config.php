@@ -71,4 +71,13 @@ try {
 } catch (PDOException $e) {
     // Biarkan $active_year null jika ada error
 }
+
+// Automatically set the selected academic year in session if not already set
+// This ensures all pages have a default active year.
+if (isset($_SESSION['user_id']) && !isset($_SESSION['selected_academic_year_id'])) {
+    if ($active_year) {
+        $_SESSION['selected_academic_year_id'] = $active_year['id'];
+        $_SESSION['selected_academic_year_name'] = $active_year['year_name'];
+    }
+}
 ?>
