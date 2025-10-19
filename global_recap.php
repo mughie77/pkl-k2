@@ -45,20 +45,19 @@ $query = "
         j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
         j.check_in_latitude, j.check_in_longitude, j.check_out_latitude, j.check_out_longitude,
         s.name as student_name,
-            pk.program_name,
+        pk.program_name,
         c.name as company_name, c.latitude as company_latitude, c.longitude as company_longitude,
         t.name as teacher_name
     FROM internship_journals j
     JOIN students s ON j.student_id = s.id
-        JOIN kelas k ON s.kelas_id = k.id
-        JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
-        JOIN program_keahlian pk ON kk.program_id = pk.id
-    LEFT JOIN internship_mappings m ON j.student_id = m.student_id
-    LEFT JOIN instructors i ON m.instructor_id = i.id
-    LEFT JOIN companies c ON i.company_id = c.id
+    JOIN internship_mappings m ON s.id = m.student_id AND m.academic_year_id = :academic_year_id
+    JOIN kelas k ON s.kelas_id = k.id
+    JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+    JOIN program_keahlian pk ON kk.program_id = pk.id
+    LEFT JOIN companies c ON m.company_id = c.id
     LEFT JOIN teachers t ON m.teacher_id = t.id
 ";
-$params = [];
+$params = [':academic_year_id' => $_SESSION['selected_academic_year_id']];
 $where_clauses = [];
 
 if ($user_role === 'instructor') {
