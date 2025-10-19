@@ -57,8 +57,13 @@ if (!$data) {
 }
 
 // Assessment Scores
-$stmt_assessment = $pdo->prepare("SELECT score_1, score_2, score_3, score_4, notes FROM internship_assessments WHERE student_id = ? AND academic_year_id = ?");
-$stmt_assessment->execute([$student_id, $academic_year_id]);
+$stmt_assessment = $pdo->prepare("
+    SELECT a.score_1, a.score_2, a.score_3, a.score_4, a.notes
+    FROM internship_assessments a
+    JOIN internship_mappings m ON a.student_id = m.student_id
+    WHERE a.student_id = :student_id AND m.academic_year_id = :academic_year_id
+");
+$stmt_assessment->execute([':student_id' => $student_id, ':academic_year_id' => $academic_year_id]);
 $assessment = $stmt_assessment->fetch(PDO::FETCH_ASSOC);
 
 // Attendance Summary
