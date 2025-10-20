@@ -62,14 +62,14 @@ function get_status_badge($status) {
                     </div>
                     <div class="col-md-auto">
                         <?php if (empty($today_journal)): ?>
-                            <button type="submit" name="action" value="check_in" class="btn btn-success"><i class="fas fa-play-circle me-2"></i>Check-in</button>
+                            <button type="button" id="check-in-btn" class="btn btn-success"><i class="fas fa-play-circle me-2"></i>Check-in</button>
                         <?php else: ?>
                             <button type="button" class="btn btn-success disabled"><i class="fas fa-check-circle me-2"></i>Checked-in at <?php echo date('H:i', strtotime($today_journal['check_in_time'])); ?></button>
                         <?php endif; ?>
                     </div>
                     <div class="col-md-auto">
                          <?php if (!empty($today_journal) && empty($today_journal['check_out_time'])): ?>
-                            <button type="submit" name="action" value="check_out" class="btn btn-danger"><i class="fas fa-stop-circle me-2"></i>Check-out</button>
+                            <button type="button" id="check-out-btn" class="btn btn-danger"><i class="fas fa-stop-circle me-2"></i>Check-out</button>
                         <?php elseif(!empty($today_journal) && !empty($today_journal['check_out_time'])): ?>
                             <button type="button" class="btn btn-danger disabled"><i class="fas fa-check-circle me-2"></i>Checked-out at <?php echo date('H:i', strtotime($today_journal['check_out_time'])); ?></button>
                         <?php endif; ?>
@@ -172,38 +172,48 @@ document.addEventListener('DOMContentLoaded', function() {
     const journalForm = document.getElementById('journal-form');
     const latitudeInput = document.getElementById('latitude');
     const longitudeInput = document.getElementById('longitude');
+    const checkInBtn = document.getElementById('check-in-btn');
+    const checkOutBtn = document.getElementById('check-out-btn');
 
-    journalForm.addEventListener('submit', function(event) {
-        const action = document.activeElement.value;
-        if (action === 'check_in' || action === 'check_out') {
-            event.preventDefault();
-            if ("geolocation" in navigator) {
-                document.activeElement.disabled = true;
-                document.activeElement.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mendapatkan Lokasi...';
+    const handleLocationAction = (action, button) => {
+        if ("geolocation" in navigator) {
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mendapatkan Lokasi...';
 
-                navigator.geolocation.getCurrentPosition(position => {
-                    latitudeInput.value = position.coords.latitude;
-                    longitudeInput.value = position.coords.longitude;
+            navigator.geolocation.getCurrentPosition(position => {
+                latitudeInput.value = position.coords.latitude;
+                longitudeInput.value = position.coords.longitude;
 
-                    // Create an input to hold the action and submit
-                    const actionInput = document.createElement('input');
-                    actionInput.type = 'hidden';
-                    actionInput.name = 'action';
-                    actionInput.value = action;
-                    journalForm.appendChild(actionInput);
-                    journalForm.submit();
-
-                }, error => {
-                    alert('Gagal mendapatkan lokasi. Pastikan Anda memberikan izin akses lokasi dan coba lagi.');
-                    console.error("Geolocation error: ", error);
-                    document.activeElement.disabled = false;
-                    document.activeElement.innerHTML = action === 'check_in' ? '<i class="fas fa-play-circle me-2"></i>Check-in' : '<i class="fas fa-stop-circle me-2"></i>Check-out';
-                });
-            } else {
-                alert("Browser Anda tidak mendukung Geolocation. Check-in/out tidak dapat dilanjutkan.");
-            }
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = action;
+                journalForm.appendChild(actionInput);
+                journalForm.submit();
+            }, error => {
+                alert('Gagal mendapatkan lokasi. Pastikan Anda memberikan izin akses lokasi dan coba lagi.');
+                console.error("Geolocation error: ", error);
+                button.disabled = false;
+                button.innerHTML = action === 'check_in' ? '<i class="fas fa-play-circle me-2"></i>Check-in' : '<i class="fas fa-stop-circle me-2"></i>Check-out';
+            });
+        } else {
+            alert("Browser Anda tidak mendukung Geolocation. Check-in/out tidak dapat dilanjutkan.");
         }
-    });
+    };
+
+    if (checkInBtn) {
+        checkInBtn.addEventListener('click', function(event) {
+            event.preventDefault();
+            handleLocationAction('check_in', this);
+        });
+    }
+
+    if (checkOutBtn) {
+        checkOutBtn.addEventListener('click', function(event) {
+            event.preventDefault();
+            handleLocationAction('check_out', this);
+        });
+    }
 });
 </script>
 
