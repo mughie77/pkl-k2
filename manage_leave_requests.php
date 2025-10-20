@@ -14,11 +14,11 @@ try {
     // Ambil pengajuan yang menunggu persetujuan dari siswa bimbingan instruktur ini
     $stmt = $pdo->prepare("
         SELECT
-            lr.id, lr.leave_type, lr.start_date, lr.end_date, lr.leave_reason,
-            s.student_name
+            lr.id, lr.leave_type, lr.start_date, lr.end_date, lr.reason,
+            s.name as student_name
         FROM leave_requests lr
         JOIN students s ON lr.student_id = s.id
-        WHERE lr.instructor_id = :instructor_id AND lr.leave_status = 'Pending'
+        WHERE lr.instructor_id = :instructor_id AND lr.status = 'Pending'
         ORDER BY lr.created_at ASC
     ");
     $stmt->execute([':instructor_id' => $instructor_id]);
@@ -63,7 +63,7 @@ try {
                                     <td><?php echo htmlspecialchars($request['student_name']); ?></td>
                                     <td><?php echo htmlspecialchars($request['leave_type']); ?></td>
                                     <td><?php echo date('d M Y', strtotime($request['start_date'])) . ' - ' . date('d M Y', strtotime($request['end_date'])); ?></td>
-                                    <td><?php echo nl2br(htmlspecialchars($request['leave_reason'])); ?></td>
+                                    <td><?php echo nl2br(htmlspecialchars($request['reason'])); ?></td>
                                     <td>
                                         <form action="core/leave_actions.php" method="POST" class="d-inline">
                                             <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">

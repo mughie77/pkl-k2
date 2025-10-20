@@ -18,9 +18,9 @@ $notes = [];
 try {
     // Ambil daftar siswa bimbingan
     if ($user_role === 'teacher') {
-        $stmt_students = $pdo->prepare("SELECT s.id, s.student_name FROM students s JOIN internship_mappings m ON s.id = m.student_id WHERE m.teacher_id = :user_id ORDER BY s.student_name ASC");
+        $stmt_students = $pdo->prepare("SELECT s.id, s.name FROM students s JOIN internship_mappings m ON s.id = m.student_id WHERE m.teacher_id = :user_id ORDER BY s.name ASC");
     } else { // instructor
-        $stmt_students = $pdo->prepare("SELECT s.id, s.student_name FROM students s JOIN internship_mappings m ON s.id = m.student_id WHERE m.instructor_id = :user_id ORDER BY s.student_name ASC");
+        $stmt_students = $pdo->prepare("SELECT s.id, s.name FROM students s JOIN internship_mappings m ON s.id = m.student_id WHERE m.instructor_id = :user_id ORDER BY s.name ASC");
     }
     $stmt_students->execute([':user_id' => $user_id]);
     $students_list = $stmt_students->fetchAll(PDO::FETCH_ASSOC);
@@ -30,8 +30,8 @@ try {
         $query = "
             SELECT n.note, n.created_at, n.creator_role,
                    CASE
-                       WHEN n.creator_role = 'teacher' THEN t.teacher_name
-                       WHEN n.creator_role = 'instructor' THEN i.instructor_name
+                       WHEN n.creator_role = 'teacher' THEN t.name
+                       WHEN n.creator_role = 'instructor' THEN i.name
                    END as creator_name
             FROM student_notes n
             LEFT JOIN teachers t ON n.creator_id = t.id AND n.creator_role = 'teacher'
@@ -78,7 +78,7 @@ try {
                         <option value="">-- Pilih Siswa --</option>
                         <?php foreach ($students_list as $student): ?>
                             <option value="<?php echo $student['id']; ?>" <?php echo ($selected_student_id == $student['id']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($student['student_name']); ?>
+                                <?php echo htmlspecialchars($student['name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

@@ -1,10 +1,10 @@
 <?php
 $user_role = $_SESSION['user_role'] ?? 'guest';
 
-if (in_array($user_role, ['student', 'teacher', 'instructor', 'waka_humas'])) :
+if (in_array($user_role, ['student', 'teacher', 'instructor'])) :
     // Menu untuk peran non-admin
 ?>
-    </div> <!-- .content-wrapper (penutup dari header.php atau halaman peran non-admin) -->
+    </div> <!-- .content-wrapper (penutup dari sidebar.php atau halaman peran non-admin) -->
 
     <nav class="bottom-nav">
         <a href="<?php echo $user_role; ?>_dashboard.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == $user_role.'_dashboard.php' ? 'active' : ''; ?>">
@@ -20,24 +20,14 @@ if (in_array($user_role, ['student', 'teacher', 'instructor', 'waka_humas'])) :
 
         <?php if ($user_role === 'teacher'): ?>
             <a href="monitor_journals.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'monitor_journals.php' ? 'active' : ''; ?>"><i class="fas fa-book-reader"></i><span>Jurnal</span></a>
-            <a href="teacher_problem_report.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'teacher_problem_report.php' ? 'active' : ''; ?>"><i class="fas fa-exclamation-triangle"></i><span>Masalah</span></a>
+            <a href="student_problems.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'student_problems.php' ? 'active' : ''; ?>"><i class="fas fa-exclamation-triangle"></i><span>Masalah</span></a>
             <a href="teacher_view_assessments.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'teacher_view_assessments.php' ? 'active' : ''; ?>"><i class="fas fa-graduation-cap"></i><span>Nilai</span></a>
-            <a href="teacher_set_locations.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'teacher_set_locations.php' ? 'active' : ''; ?>"><i class="fas fa-map-marked-alt"></i><span>Lokasi</span></a>
         <?php endif; ?>
 
         <?php if ($user_role === 'instructor'): ?>
             <a href="verify_journals.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'verify_journals.php' ? 'active' : ''; ?>"><i class="fas fa-tasks"></i><span>Verifikasi</span></a>
             <a href="manage_leave_requests.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_leave_requests.php' ? 'active' : ''; ?>"><i class="fas fa-calendar-check"></i><span>Izin</span></a>
             <a href="input_assessment.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'input_assessment.php' ? 'active' : ''; ?>"><i class="fas fa-edit"></i><span>Menilai</span></a>
-            <a href="global_recap.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'global_recap.php' ? 'active' : ''; ?>"><i class="fas fa-clipboard-list"></i><span>Rekap</span></a>
-        <?php endif; ?>
-
-        <?php if ($user_role === 'waka_humas'): ?>
-            <a href="manage_dudika_locations.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_dudika_locations.php' ? 'active' : ''; ?>"><i class="fas fa-map-marked-alt"></i><span>Lokasi</span></a>
-            <a href="mapping_report.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'mapping_report.php' ? 'active' : ''; ?>"><i class="fas fa-sitemap"></i><span>Pemetaan</span></a>
-            <a href="problem_report.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'problem_report.php' ? 'active' : ''; ?>"><i class="fas fa-exclamation-triangle"></i><span>Masalah</span></a>
-            <a href="assessment_recap.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'assessment_recap.php' ? 'active' : ''; ?>"><i class="fas fa-graduation-cap"></i><span>Skor</span></a>
-            <a href="global_recap.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'global_recap.php' ? 'active' : ''; ?>"><i class="fas fa-clipboard-list"></i><span>Absensi</span></a>
         <?php endif; ?>
 
         <a href="profile.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active' : ''; ?>">
@@ -73,6 +63,10 @@ if (in_array($user_role, ['student', 'teacher', 'instructor', 'waka_humas'])) :
         </div>
     </footer>
 <?php endif; ?>
+
+
+<!-- jQuery (diperlukan oleh Select2) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 
 <!-- Bootstrap 5 JS Bundle (Popper.js included) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>

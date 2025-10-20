@@ -8,20 +8,20 @@ if ($_SESSION['user_role'] !== 'admin') {
     exit;
 }
 
-// Ambil data program keahlian dari database
+// Ambil data jurusan dari database
 try {
-    $stmt = $pdo->query("SELECT * FROM program_keahlian ORDER BY program_name ASC");
-    $programs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $pdo->query("SELECT * FROM departments ORDER BY department_name ASC");
+    $departments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die("Error: Could not fetch program keahlian data. " . $e->getMessage());
+    die("Error: Could not fetch departments data. " . $e->getMessage());
 }
 ?>
 
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Manajemen Program Keahlian</h1>
+    <h1 class="h3 mb-4 text-gray-800">Manajemen Data Jurusan</h1>
 
-    <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#programKeahlianModal">
-        <i class="fas fa-plus-circle me-2"></i> Tambah Program Keahlian Baru
+    <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#departmentModal">
+        <i class="fas fa-plus-circle me-2"></i> Tambah Jurusan Baru
     </button>
 
     <?php if (isset($_SESSION['flash_message'])): ?>
@@ -34,34 +34,34 @@ try {
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Daftar Program Keahlian</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Daftar Jurusan</h6>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Nama Program Keahlian</th>
+                            <th>Nama Jurusan</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (count($programs) > 0): ?>
-                            <?php foreach ($programs as $index => $program): ?>
+                        <?php if (count($departments) > 0): ?>
+                            <?php foreach ($departments as $index => $department): ?>
                                 <tr>
                                     <td><?php echo $index + 1; ?></td>
-                                    <td><?php echo htmlspecialchars($program['program_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($department['department_name']); ?></td>
                                     <td>
                                         <button class="btn btn-warning btn-sm edit-btn"
-                                                data-id="<?php echo $program['id']; ?>"
-                                                data-name="<?php echo htmlspecialchars($program['program_name']); ?>"
-                                                data-bs-toggle="modal" data-bs-target="#programKeahlianModal">
+                                                data-id="<?php echo $department['id']; ?>"
+                                                data-name="<?php echo htmlspecialchars($department['department_name']); ?>"
+                                                data-bs-toggle="modal" data-bs-target="#departmentModal">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <a href="core/program_keahlian_actions.php?action=delete&id=<?php echo $program['id']; ?>"
+                                        <a href="core/department_actions.php?action=delete&id=<?php echo $department['id']; ?>"
                                            class="btn btn-danger btn-sm btn-delete"
-                                           onclick="return confirm('Menghapus ini akan menghapus semua data terkait (konsentrasi, kelas, siswa). Lanjutkan?');">
+                                           onclick="return confirm('Apakah Anda yakin ingin menghapus jurusan ini?');">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </td>
@@ -69,7 +69,7 @@ try {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="3" class="text-center">Belum ada data program keahlian.</td>
+                                <td colspan="3" class="text-center">Belum ada data jurusan.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -79,21 +79,21 @@ try {
     </div>
 </div>
 
-<!-- Modal untuk Tambah/Edit Program Keahlian -->
-<div class="modal fade" id="programKeahlianModal" tabindex="-1" aria-labelledby="programKeahlianModalLabel" aria-hidden="true">
+<!-- Modal untuk Tambah/Edit Jurusan -->
+<div class="modal fade" id="departmentModal" tabindex="-1" aria-labelledby="departmentModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="programKeahlianModalLabel">Form Program Keahlian</h5>
+                <h5 class="modal-title" id="departmentModalLabel">Form Data Jurusan</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="programForm" action="core/program_keahlian_actions.php" method="POST">
+            <form id="departmentForm" action="core/department_actions.php" method="POST">
                 <div class="modal-body">
-                    <input type="hidden" name="program_id" id="program_id">
+                    <input type="hidden" name="department_id" id="department_id">
                     <input type="hidden" name="action" id="form_action" value="create">
                     <div class="mb-3">
-                        <label for="program_name" class="form-label">Nama Program Keahlian</label>
-                        <input type="text" class="form-control" id="program_name" name="program_name" required>
+                        <label for="department_name" class="form-label">Nama Jurusan</label>
+                        <input type="text" class="form-control" id="department_name" name="department_name" required>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -107,24 +107,24 @@ try {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const programModal = document.getElementById('programKeahlianModal');
-    programModal.addEventListener('show.bs.modal', function(event) {
+    const departmentModal = document.getElementById('departmentModal');
+    departmentModal.addEventListener('show.bs.modal', function(event) {
         const button = event.relatedTarget;
-        const modalTitle = programModal.querySelector('.modal-title');
-        const form = document.getElementById('programForm');
+        const modalTitle = departmentModal.querySelector('.modal-title');
+        const form = document.getElementById('departmentForm');
         const actionInput = document.getElementById('form_action');
-        const programIdInput = document.getElementById('program_id');
+        const departmentIdInput = document.getElementById('department_id');
 
         if (button.classList.contains('edit-btn')) {
-            modalTitle.textContent = 'Edit Program Keahlian';
+            modalTitle.textContent = 'Edit Data Jurusan';
             actionInput.value = 'update';
-            programIdInput.value = button.dataset.id;
-            document.getElementById('program_name').value = button.dataset.name;
+            departmentIdInput.value = button.dataset.id;
+            document.getElementById('department_name').value = button.dataset.name;
         } else {
-            modalTitle.textContent = 'Tambah Program Keahlian Baru';
+            modalTitle.textContent = 'Tambah Jurusan Baru';
             actionInput.value = 'create';
             form.reset();
-            programIdInput.value = '';
+            departmentIdInput.value = '';
         }
     });
 });

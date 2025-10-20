@@ -45,7 +45,7 @@ try {
                             <th>#</th>
                             <th>Nama DUDIKA</th>
                             <th>Alamat</th>
-                            <th>Lokasi GPS</th>
+                            <th>Narahubung</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -56,13 +56,7 @@ try {
                                     <td><?php echo $index + 1; ?></td>
                                     <td><?php echo htmlspecialchars($company['name']); ?></td>
                                     <td><?php echo htmlspecialchars($company['address']); ?></td>
-                                    <td>
-                                        <?php if (!empty($company['latitude']) && !empty($company['longitude'])): ?>
-                                            <span class="badge bg-success">Sudah Di-set</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-danger">Belum Di-set</span>
-                                        <?php endif; ?>
-                                    </td>
+                                    <td><?php echo htmlspecialchars($company['contact_person']); ?></td>
                                     <td>
                                         <button class="btn btn-warning btn-sm edit-btn"
                                                 data-id="<?php echo $company['id']; ?>"
@@ -129,7 +123,6 @@ try {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Logic for company add/edit modal
     const companyModal = document.getElementById('companyModal');
     companyModal.addEventListener('show.bs.modal', function(event) {
         const button = event.relatedTarget;

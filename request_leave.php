@@ -13,7 +13,7 @@ $leave_type_default = $_GET['type'] ?? 'Izin';
 
 try {
     // Ambil riwayat pengajuan
-    $stmt = $pdo->prepare("SELECT leave_type, start_date, end_date, leave_reason, leave_status FROM leave_requests WHERE student_id = :student_id ORDER BY created_at DESC");
+    $stmt = $pdo->prepare("SELECT * FROM leave_requests WHERE student_id = :student_id ORDER BY created_at DESC");
     $stmt->execute([':student_id' => $student_id]);
     $leave_history = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -54,9 +54,8 @@ function get_status_badge($status) {
                     <div class="col-md-4 mb-3">
                         <label for="leave_type" class="form-label">Jenis Pengajuan</label>
                         <select name="leave_type" id="leave_type" class="form-select">
-                            <option value="Sakit">Sakit</option>
-                            <option value="Izin">Izin</option>
-                            <option value="Tanpa Keterangan">Tanpa Keterangan</option>
+                            <option value="Izin" <?php echo ($leave_type_default === 'Izin') ? 'selected' : ''; ?>>Izin</option>
+                            <option value="Cuti" <?php echo ($leave_type_default === 'Cuti') ? 'selected' : ''; ?>>Cuti</option>
                         </select>
                     </div>
                     <div class="col-md-4 mb-3">
@@ -69,8 +68,8 @@ function get_status_badge($status) {
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label for="leave_reason" class="form-label">Alasan</label>
-                    <textarea name="leave_reason" id="leave_reason" class="form-control" rows="4" required></textarea>
+                    <label for="reason" class="form-label">Alasan</label>
+                    <textarea name="reason" id="reason" class="form-control" rows="4" required></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary">Kirim Pengajuan</button>
             </form>
@@ -99,10 +98,10 @@ function get_status_badge($status) {
                                 <tr>
                                     <td><?php echo htmlspecialchars($request['leave_type']); ?></td>
                                     <td><?php echo date('d M Y', strtotime($request['start_date'])) . ' - ' . date('d M Y', strtotime($request['end_date'])); ?></td>
-                                    <td><?php echo nl2br(htmlspecialchars($request['leave_reason'])); ?></td>
+                                    <td><?php echo nl2br(htmlspecialchars($request['reason'])); ?></td>
                                     <td>
-                                        <span class="badge <?php echo get_status_badge($request['leave_status']); ?>">
-                                            <?php echo htmlspecialchars($request['leave_status']); ?>
+                                        <span class="badge <?php echo get_status_badge($request['status']); ?>">
+                                            <?php echo htmlspecialchars($request['status']); ?>
                                         </span>
                                     </td>
                                 </tr>

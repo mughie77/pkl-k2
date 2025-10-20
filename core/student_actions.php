@@ -31,23 +31,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $address = trim($_POST['address']);
     $phone = trim($_POST['phone']);
     $parent_phone = trim($_POST['parent_phone']);
-    $kelas_id = $_POST['kelas_id'];
+    $department_id = $_POST['department_id'];
     $academic_year_id = $_POST['academic_year_id'];
 
     if ($action === 'create') {
-        if (empty($name) || empty($nisn) || empty($kelas_id) || empty($academic_year_id)) {
-            set_flash_message('danger', 'Nama, NISN, Kelas, dan Tahun Pelajaran wajib diisi.');
+        if (empty($name) || empty($nisn) || empty($department_id) || empty($academic_year_id)) {
+            set_flash_message('danger', 'Nama, NISN, Jurusan, dan Tahun Pelajaran wajib diisi.');
             redirect_to_manage_students();
         }
 
         $hashed_password = password_hash($nisn, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $pdo->prepare("INSERT INTO students (name, nis, email, password, nisn, birth_place, birth_date, address, phone, parent_phone, kelas_id, academic_year_id) VALUES (:name, :nis, :email, :password, :nisn, :birth_place, :birth_date, :address, :phone, :parent_phone, :kelas_id, :academic_year_id)");
+            $stmt = $pdo->prepare("INSERT INTO students (name, nis, email, password, nisn, birth_place, birth_date, address, phone, parent_phone, department_id, academic_year_id) VALUES (:name, :nis, :email, :password, :nisn, :birth_place, :birth_date, :address, :phone, :parent_phone, :department_id, :academic_year_id)");
             $stmt->execute([
                 ':name' => $name, ':nis' => $nis, ':email' => $email, ':password' => $hashed_password, ':nisn' => $nisn,
                 ':birth_place' => $birth_place, ':birth_date' => $birth_date, ':address' => $address, ':phone' => $phone,
-                ':parent_phone' => $parent_phone, ':kelas_id' => $kelas_id, ':academic_year_id' => $academic_year_id
+                ':parent_phone' => $parent_phone, ':department_id' => $department_id, ':academic_year_id' => $academic_year_id
             ]);
             set_flash_message('success', 'Data siswa berhasil ditambahkan.');
         } catch (PDOException $e) {
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'update') {
         $student_id = $_POST['student_id'];
-        if (empty($student_id) || empty($name) || empty($nisn) || empty($kelas_id) || empty($academic_year_id)) {
+        if (empty($student_id) || empty($name) || empty($nisn) || empty($department_id) || empty($academic_year_id)) {
             set_flash_message('danger', 'Data wajib tidak boleh kosong.');
             redirect_to_manage_students();
         }
@@ -66,11 +66,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $hashed_password = password_hash($nisn, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $pdo->prepare("UPDATE students SET name = :name, nis = :nis, email = :email, password = :password, nisn = :nisn, birth_place = :birth_place, birth_date = :birth_date, address = :address, phone = :phone, parent_phone = :parent_phone, kelas_id = :kelas_id, academic_year_id = :academic_year_id WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE students SET name = :name, nis = :nis, email = :email, password = :password, nisn = :nisn, birth_place = :birth_place, birth_date = :birth_date, address = :address, phone = :phone, parent_phone = :parent_phone, department_id = :department_id, academic_year_id = :academic_year_id WHERE id = :id");
             $stmt->execute([
                 ':name' => $name, ':nis' => $nis, ':email' => $email, ':password' => $hashed_password, ':nisn' => $nisn,
                 ':birth_place' => $birth_place, ':birth_date' => $birth_date, ':address' => $address, ':phone' => $phone,
-                ':parent_phone' => $parent_phone, ':kelas_id' => $kelas_id, ':academic_year_id' => $academic_year_id,
+                ':parent_phone' => $parent_phone, ':department_id' => $department_id, ':academic_year_id' => $academic_year_id,
                 ':id' => $student_id
             ]);
             set_flash_message('success', 'Data siswa berhasil diperbarui.');

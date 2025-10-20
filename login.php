@@ -19,11 +19,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // Daftar peran dan konfigurasi tabelnya
         $roles_config = [
-            'admin' => ['table' => 'admins', 'user_col' => 'username', 'pass_col' => 'password'],
-            'waka_humas' => ['table' => 'waka_humas', 'user_col' => 'username', 'pass_col' => 'password'],
-            'teacher' => ['table' => 'teachers', 'user_col' => 'teacher_nip', 'pass_col' => 'teacher_password'],
-            'instructor' => ['table' => 'instructors', 'user_col' => 'instructor_serial_number', 'pass_col' => 'instructor_password'],
-            'student' => ['table' => 'students', 'user_col' => 'nisn', 'pass_col' => 'password']
+            'admin' => ['table' => 'admins', 'user_col' => 'username'],
+            'teacher' => ['table' => 'teachers', 'user_col' => 'nip'],
+            'instructor' => ['table' => 'instructors', 'user_col' => 'serial_number'],
+            'student' => ['table' => 'students', 'user_col' => 'nisn']
         ];
 
         $user_found = false;
@@ -33,31 +32,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($roles_config as $role => $config) {
                 $table_name = $config['table'];
                 $user_col = $config['user_col'];
-                $pass_col = $config['pass_col'];
 
                 $stmt = $pdo->prepare("SELECT * FROM {$table_name} WHERE {$user_col} = :username");
                 $stmt->execute([':username' => $username]);
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                if ($user && password_verify($password, $user[$pass_col])) {
+                if ($user && password_verify($password, $user['password'])) {
                     // Jika pengguna ditemukan dan password cocok
                     session_regenerate_id(true);
 
                     $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['user_name'] = $user['name'];
                     $_SESSION['user_role'] = $role;
 
-                    // Set user_name berdasarkan peran
-                    if ($role === 'teacher') {
-                        $_SESSION['user_name'] = $user['teacher_name'];
-                    } elseif ($role === 'instructor') {
-                        $_SESSION['user_name'] = $user['instructor_name'];
-                    } elseif ($role === 'student') {
-                        $_SESSION['user_name'] = $user['student_name'];
-                         if (isset($user['email'])) {
-                            $_SESSION['user_email'] = $user['email'];
-                        }
-                    } else {
-                        $_SESSION['user_name'] = $user['name']; // Untuk admin dan waka_humas
+                    // Simpan email jika ada (untuk siswa)
+                    if ($role === 'student' && isset($user['email'])) {
+                        $_SESSION['user_email'] = $user['email'];
                     }
 
                     $user_found = true;

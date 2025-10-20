@@ -53,25 +53,21 @@ function get_status_badge($status) {
             <h6 class="m-0 font-weight-bold"><i class="fas fa-calendar-day me-2"></i>Jurnal untuk Tanggal: <?php echo date('d M Y'); ?></h6>
         </div>
         <div class="card-body">
-            <form id="journalForm" action="core/journal_actions.php" method="POST">
-                <input type="hidden" name="action" id="formAction">
-                <input type="hidden" name="latitude" id="latitude">
-                <input type="hidden" name="longitude" id="longitude">
-
+            <form action="core/journal_actions.php" method="POST">
                 <div class="row align-items-center mb-3">
                     <div class="col-md-auto">
                         <strong>Absensi:</strong>
                     </div>
                     <div class="col-md-auto">
                         <?php if (empty($today_journal)): ?>
-                            <button type="button" id="checkInBtn" value="check_in" class="btn btn-success"><i class="fas fa-play-circle me-2"></i>Check-in</button>
+                            <button type="submit" name="action" value="check_in" class="btn btn-success"><i class="fas fa-play-circle me-2"></i>Check-in</button>
                         <?php else: ?>
                             <button type="button" class="btn btn-success disabled"><i class="fas fa-check-circle me-2"></i>Checked-in at <?php echo date('H:i', strtotime($today_journal['check_in_time'])); ?></button>
                         <?php endif; ?>
                     </div>
                     <div class="col-md-auto">
                          <?php if (!empty($today_journal) && empty($today_journal['check_out_time'])): ?>
-                            <button type="button" id="checkOutBtn" value="check_out" class="btn btn-danger"><i class="fas fa-stop-circle me-2"></i>Check-out</button>
+                            <button type="submit" name="action" value="check_out" class="btn btn-danger"><i class="fas fa-stop-circle me-2"></i>Check-out</button>
                         <?php elseif(!empty($today_journal) && !empty($today_journal['check_out_time'])): ?>
                             <button type="button" class="btn btn-danger disabled"><i class="fas fa-check-circle me-2"></i>Checked-out at <?php echo date('H:i', strtotime($today_journal['check_out_time'])); ?></button>
                         <?php endif; ?>
@@ -163,67 +159,13 @@ function get_status_badge($status) {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Logic for viewing journal details
     const viewJournalModal = document.getElementById('viewJournalModal');
-    if (viewJournalModal) {
-        viewJournalModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const activities = button.dataset.activities;
-            const modalBody = viewJournalModal.querySelector('#journal_activities_content');
-            modalBody.textContent = activities;
-        });
-    }
-
-    // --- Geolocation Logic ---
-    const journalForm = document.getElementById('journalForm');
-    const checkInBtn = document.getElementById('checkInBtn');
-    const checkOutBtn = document.getElementById('checkOutBtn');
-
-    function requestLocationAndSubmit(event) {
-        event.preventDefault();
-        const button = event.currentTarget;
-
-        if (!navigator.geolocation) {
-            alert('Geolocation tidak didukung oleh browser Anda.');
-            return;
-        }
-
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mendapatkan Lokasi...';
-
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                document.getElementById('latitude').value = position.coords.latitude;
-                document.getElementById('longitude').value = position.coords.longitude;
-                document.getElementById('formAction').value = button.value;
-                journalForm.submit();
-            },
-            function(error) {
-                let errorMessage = 'Gagal mendapatkan lokasi. ';
-                switch (error.code) {
-                    case error.PERMISSION_DENIED: errorMessage += 'Anda menolak permintaan izin lokasi.'; break;
-                    case error.POSITION_UNAVAILABLE: errorMessage += 'Informasi lokasi tidak tersedia.'; break;
-                    case error.TIMEOUT: errorMessage += 'Waktu permintaan lokasi habis.'; break;
-                    default: errorMessage += 'Terjadi kesalahan yang tidak diketahui.'; break;
-                }
-                alert(errorMessage);
-                button.disabled = false;
-                 if(button.id === 'checkInBtn') {
-                    button.innerHTML = '<i class="fas fa-play-circle me-2"></i>Check-in';
-                } else {
-                    button.innerHTML = '<i class="fas fa-stop-circle me-2"></i>Check-out';
-                }
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-    }
-
-    if (checkInBtn) {
-        checkInBtn.addEventListener('click', requestLocationAndSubmit);
-    }
-    if (checkOutBtn) {
-        checkOutBtn.addEventListener('click', requestLocationAndSubmit);
-    }
+    viewJournalModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const activities = button.dataset.activities;
+        const modalBody = viewJournalModal.querySelector('#journal_activities_content');
+        modalBody.textContent = activities;
+    });
 });
 </script>
 

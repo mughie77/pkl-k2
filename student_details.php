@@ -18,21 +18,19 @@ try {
     // Ambil semua data terkait siswa
     $stmt = $pdo->prepare("
         SELECT
-            s.student_name, s.nis, s.nisn, s.birth_place, s.birth_date, s.address, s.phone, s.parent_phone,
-            k.kelas_name, kk.konsentrasi_name, pk.program_name,
+            s.*,
+            d.department_name,
             ay.year_name,
-            t.teacher_name, t.teacher_phone,
-            i.instructor_name,
-            c.company_name
+            t.name as teacher_name, t.phone as teacher_phone,
+            i.name as instructor_name,
+            c.name as company_name
         FROM students s
-        LEFT JOIN kelas k ON s.kelas_id = k.id
-        LEFT JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
-        LEFT JOIN program_keahlian pk ON kk.program_id = pk.id
+        LEFT JOIN departments d ON s.department_id = d.id
         LEFT JOIN academic_years ay ON s.academic_year_id = ay.id
         LEFT JOIN internship_mappings m ON s.id = m.student_id
         LEFT JOIN teachers t ON m.teacher_id = t.id
         LEFT JOIN instructors i ON m.instructor_id = i.id
-        LEFT JOIN companies c ON m.company_id = c.company_id
+        LEFT JOIN companies c ON i.company_id = c.id
         WHERE s.id = :id
     ");
     $stmt->execute([':id' => $student_id]);
@@ -65,7 +63,7 @@ function create_whatsapp_link($phone) {
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">
                 <i class="fas fa-user-graduate me-2"></i>
-                <?php echo htmlspecialchars($student['student_name']); ?>
+                <?php echo htmlspecialchars($student['name']); ?>
             </h6>
             <a href="javascript:history.back()" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left me-2"></i>Kembali</a>
         </div>
@@ -78,9 +76,7 @@ function create_whatsapp_link($phone) {
                         <tr><th>NISN</th><td>: <?php echo htmlspecialchars($student['nisn'] ?? '-'); ?></td></tr>
                         <tr><th>TTL</th><td>: <?php echo htmlspecialchars($student['birth_place'] ?? '-'); ?>, <?php echo $student['birth_date'] ? date('d M Y', strtotime($student['birth_date'])) : '-'; ?></td></tr>
                         <tr><th>Alamat</th><td>: <?php echo htmlspecialchars($student['address'] ?? '-'); ?></td></tr>
-                        <tr><th>Program Keahlian</th><td>: <?php echo htmlspecialchars($student['program_name'] ?? '-'); ?></td></tr>
-                        <tr><th>Konsentrasi</th><td>: <?php echo htmlspecialchars($student['konsentrasi_name'] ?? '-'); ?></td></tr>
-                        <tr><th>Kelas</th><td>: <?php echo htmlspecialchars($student['kelas_name'] ?? '-'); ?></td></tr>
+                        <tr><th>Jurusan</th><td>: <?php echo htmlspecialchars($student['department_name'] ?? '-'); ?></td></tr>
                         <tr><th>Thn. Pelajaran</th><td>: <?php echo htmlspecialchars($student['year_name'] ?? '-'); ?></td></tr>
                         <tr><th>No. HP</th><td>: <?php echo htmlspecialchars($student['phone'] ?? '-'); ?>
                             <?php if(!empty($student['phone'])): ?>

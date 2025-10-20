@@ -3,14 +3,12 @@ require_once __DIR__ . '/templates/header.php';
 require_once __DIR__ . '/templates/sidebar.php';
 
 // Proteksi halaman
-$allowed_roles = ['teacher', 'instructor'];
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], $allowed_roles)) {
+if ($_SESSION['user_role'] !== 'teacher') {
     header("Location: login.php");
     exit;
 }
 
-$user_id = $_SESSION['user_id'];
-$user_role = $_SESSION['user_role'];
+$teacher_id = $_SESSION['user_id'];
 
 // Filter
 $filter_student_id = $_GET['student_id'] ?? 'all';
@@ -18,63 +16,42 @@ $filter_start_date = $_GET['start_date'] ?? '';
 $filter_end_date = $_GET['end_date'] ?? '';
 
 try {
-    // Kueri untuk mengambil siswa yang relevan dengan peran pengguna
-    $student_query = "SELECT s.id, s.student_name FROM students s ";
-    $student_params = [];
-    if ($user_role === 'teacher') {
-        $student_query .= "JOIN internship_mappings m ON s.id = m.student_id WHERE m.teacher_id = :user_id";
-        $student_params[':user_id'] = $user_id;
-    } elseif ($user_role === 'instructor') {
-        $student_query .= "JOIN internship_mappings m ON s.id = m.student_id WHERE m.instructor_id = :user_id";
-        $student_params[':user_id'] = $user_id;
-    }
-    $student_query .= " ORDER BY s.student_name ASC";
-    $stmt_students = $pdo->prepare($student_query);
-    $stmt_students->execute($student_params);
+    // Ambil daftar siswa bimbingan untuk filter dropdown
+    $stmt_students = $pdo->prepare("
+        SELECT s.id, s.name FROM students s
+        JOIN internship_mappings m ON s.id = m.student_id
+        WHERE m.teacher_id = :teacher_id ORDER BY s.name ASC
+    ");
+    $stmt_students->execute([':teacher_id' => $teacher_id]);
     $students_for_filter = $stmt_students->fetchAll(PDO::FETCH_ASSOC);
 
     // Bangun query utama
     $query = "
         SELECT
             j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
-            j.check_in_latitude, j.check_in_longitude, j.check_out_latitude, j.check_out_longitude,
-            s.student_name, s.work_start_time, s.work_end_time,
-            c.company_name, c.latitude as company_latitude, c.longitude as company_longitude
+            s.name as student_name, s.work_start_time, s.work_end_time
         FROM internship_journals j
         JOIN students s ON j.student_id = s.id
         JOIN internship_mappings m ON j.student_id = m.student_id
-        LEFT JOIN companies c ON m.company_id = c.company_id
+        WHERE m.teacher_id = :teacher_id
     ";
 
-    $params = [];
-    $where_clauses = [];
-
-    if ($user_role === 'teacher') {
-        $where_clauses[] = "m.teacher_id = :user_id";
-        $params[':user_id'] = $user_id;
-    } elseif ($user_role === 'instructor') {
-        $where_clauses[] = "m.instructor_id = :user_id";
-        $params[':user_id'] = $user_id;
-    }
+    $params = [':teacher_id' => $teacher_id];
 
     if ($filter_student_id !== 'all' && !empty($filter_student_id)) {
-        $where_clauses[] = "j.student_id = :student_id";
+        $query .= " AND j.student_id = :student_id";
         $params[':student_id'] = $filter_student_id;
     }
     if (!empty($filter_start_date)) {
-        $where_clauses[] = "j.journal_date >= :start_date";
+        $query .= " AND j.journal_date >= :start_date";
         $params[':start_date'] = $filter_start_date;
     }
     if (!empty($filter_end_date)) {
-        $where_clauses[] = "j.journal_date <= :end_date";
+        $query .= " AND j.journal_date <= :end_date";
         $params[':end_date'] = $filter_end_date;
     }
 
-    if (!empty($where_clauses)) {
-        $query .= " WHERE " . implode(" AND ", $where_clauses);
-    }
-
-    $query .= " ORDER BY j.journal_date DESC, s.student_name ASC";
+    $query .= " ORDER BY j.journal_date DESC, s.name ASC";
 
     $stmt_journals = $pdo->prepare($query);
     $stmt_journals->execute($params);
@@ -94,38 +71,8 @@ function get_status_badge($status) {
 }
 ?>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-<style>
-    #map-view { height: 450px; }
-    .map-legend {
-        padding: 6px 8px;
-        font: 14px/16px Arial, Helvetica, sans-serif;
-        background: white;
-        background: rgba(255,255,255,0.8);
-        box-shadow: 0 0 15px rgba(0,0,0,0.2);
-        border-radius: 5px;
-    }
-    .map-legend .legend-item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 5px;
-    }
-    .map-legend .legend-color {
-        width: 18px;
-        height: 18px;
-        margin-right: 8px;
-        border-radius: 50%;
-        border: 2px solid rgba(0,0,0,0.2);
-    }
-</style>
-
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Monitoring Jurnal dan Absensi Siswa</h1>
-        <a href="#" id="exportBtn" class="btn btn-success">
-            <i class="fas fa-file-excel me-2"></i>Ekspor ke Excel
-        </a>
-    </div>
+    <h1 class="h3 mb-4 text-gray-800">Monitoring Jurnal dan Absensi Siswa</h1>
 
     <!-- Filter Form -->
     <div class="card shadow mb-4">
@@ -140,7 +87,7 @@ function get_status_badge($status) {
                         <option value="all">Semua Siswa Bimbingan</option>
                         <?php foreach ($students_for_filter as $student): ?>
                             <option value="<?php echo $student['id']; ?>" <?php echo ($filter_student_id == $student['id']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($student['student_name']); ?>
+                                <?php echo htmlspecialchars($student['name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -172,8 +119,8 @@ function get_status_badge($status) {
                         <tr>
                             <th>Tanggal</th>
                             <th>Nama Siswa</th>
+                            <th>Jam Kerja</th>
                             <th>Absensi (Check-in)</th>
-                            <th>Lokasi Absen</th>
                             <th>Status Jurnal</th>
                             <th>Aksi</th>
                         </tr>
@@ -184,25 +131,8 @@ function get_status_badge($status) {
                                 <tr>
                                     <td><?php echo date('d M Y', strtotime($journal['journal_date'])); ?></td>
                                     <td><?php echo htmlspecialchars($journal['student_name']); ?></td>
+                                    <td><?php echo date('H:i', strtotime($journal['work_start_time'])) . ' - ' . date('H:i', strtotime($journal['work_end_time'])); ?></td>
                                     <td><?php echo $journal['check_in_time'] ? date('H:i', strtotime($journal['check_in_time'])) : '<span class="badge bg-secondary">N/A</span>'; ?></td>
-                                    <td>
-                                        <?php if (!empty($journal['check_in_latitude'])): ?>
-                                            <button class="btn btn-primary btn-sm view-location-btn"
-                                                    data-bs-toggle="modal" data-bs-target="#locationViewModal"
-                                                    data-checkin-lat="<?php echo $journal['check_in_latitude']; ?>"
-                                                    data-checkin-lon="<?php echo $journal['check_in_longitude']; ?>"
-                                                    data-checkout-lat="<?php echo $journal['check_out_latitude']; ?>"
-                                                    data-checkout-lon="<?php echo $journal['check_out_longitude']; ?>"
-                                                    data-company-lat="<?php echo $journal['company_latitude']; ?>"
-                                                    data-company-lon="<?php echo $journal['company_longitude']; ?>"
-                                                    data-student-name="<?php echo htmlspecialchars($journal['student_name']); ?>"
-                                                    data-company-name="<?php echo htmlspecialchars($journal['company_name']); ?>">
-                                                <i class="fas fa-map-marked-alt"></i> Lihat
-                                            </button>
-                                        <?php else: ?>
-                                            <span class="badge bg-secondary">N/A</span>
-                                        <?php endif; ?>
-                                    </td>
                                     <td>
                                         <span class="badge <?php echo get_status_badge($journal['status']); ?>">
                                             <?php echo htmlspecialchars($journal['status']); ?>
@@ -251,35 +181,8 @@ function get_status_badge($status) {
     </div>
 </div>
 
-<!-- Modal untuk Melihat Lokasi -->
-<div class="modal fade" id="locationViewModal" tabindex="-1" aria-labelledby="locationViewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="locationViewModalLabel">Verifikasi Lokasi Absensi</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="map-view"></div>
-                <div id="map-legend" class="mt-2"></div>
-                <div class="alert alert-info mt-3" id="distance-info"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 $(document).ready(function() {
-    function updateExportLink() {
-        const params = new URLSearchParams(window.location.search);
-        params.set('type', 'rekap_absen');
-        $('#exportBtn').attr('href', 'core/export_handler.php?' + params.toString());
-    }
-
-    updateExportLink();
-    $('select, input[type=date]').on('change', updateExportLink);
-
     // Initialize Select2
     $('#student_id').select2({
         theme: 'bootstrap-5'
@@ -295,104 +198,6 @@ $(document).ready(function() {
         viewJournalModal.querySelector('#modal_student_name').textContent = studentName;
         viewJournalModal.querySelector('#modal_journal_date').textContent = journalDate;
         viewJournalModal.querySelector('#journal_activities_content').textContent = activities;
-    });
-
-    // --- Logic for Location View Modal ---
-    const locationViewModal = document.getElementById('locationViewModal');
-    let mapView = null;
-
-    locationViewModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        const checkinLat = parseFloat(button.dataset.checkinLat);
-        const checkinLon = parseFloat(button.dataset.checkinLon);
-        const checkoutLat = parseFloat(button.dataset.checkoutLat);
-        const checkoutLon = parseFloat(button.dataset.checkoutLon);
-        const companyLat = parseFloat(button.dataset.companyLat);
-        const companyLon = parseFloat(button.dataset.companyLon);
-        const studentName = button.dataset.studentName;
-        const companyName = button.dataset.companyName;
-
-        const initialLocation = [checkinLat, checkinLon];
-
-        if (!mapView) {
-            mapView = L.map('map-view').setView(initialLocation, 16);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(mapView);
-        } else {
-             mapView.setView(initialLocation, 16);
-        }
-
-        // Clear previous layers
-        mapView.eachLayer(layer => {
-            if (layer instanceof L.Marker || layer instanceof L.Polyline) {
-                mapView.removeLayer(layer);
-            }
-        });
-
-        const bounds = [];
-        let distanceInfoHTML = '';
-
-        // Check-in marker
-        const checkinLocation = [checkinLat, checkinLon];
-        L.marker(checkinLocation, {
-            icon: L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-            })
-        }).addTo(mapView).bindPopup(`<b>Check-in:</b> ${studentName}`);
-        bounds.push(checkinLocation);
-
-        // Check-out marker
-        if (!isNaN(checkoutLat) && !isNaN(checkoutLon)) {
-            const checkoutLocation = [checkoutLat, checkoutLon];
-             L.marker(checkoutLocation, {
-                icon: L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-                })
-            }).addTo(mapView).bindPopup(`<b>Check-out:</b> ${studentName}`);
-            bounds.push(checkoutLocation);
-        }
-
-        // Company marker and distance calculation
-        if (!isNaN(companyLat) && !isNaN(companyLon)) {
-            const companyLocation = [companyLat, companyLon];
-            L.marker(companyLocation, {
-                icon: L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-                })
-            }).addTo(mapView).bindPopup(`<b>Lokasi DUDIKA:</b><br>${companyName}`);
-            bounds.push(companyLocation);
-
-            const distCheckin = mapView.distance(checkinLocation, companyLocation);
-            distanceInfoHTML += `<li>Jarak Check-in dari DUDIKA: <strong>${distCheckin.toFixed(0)} meter</strong></li>`;
-
-            if (!isNaN(checkoutLat) && !isNaN(checkoutLon)) {
-                const distCheckout = mapView.distance([checkoutLat, checkoutLon], companyLocation);
-                distanceInfoHTML += `<li>Jarak Check-out dari DUDIKA: <strong>${distCheckout.toFixed(0)} meter</strong></li>`;
-            }
-        } else {
-            distanceInfoHTML = '<li>Lokasi DUDIKA belum di-set, jarak tidak dapat dihitung.</li>';
-        }
-
-        document.getElementById('distance-info').innerHTML = `<ul class="list-unstyled mb-0">${distanceInfoHTML}</ul>`;
-
-        if(bounds.length > 1) {
-            mapView.fitBounds(bounds, { padding: [70, 70] });
-        }
-    });
-
-    locationViewModal.addEventListener('shown.bs.modal', function () {
-        setTimeout(function() {
-            if (mapView) {
-                mapView.invalidateSize();
-            }
-        }, 10); // A small delay to allow the modal to fully render
     });
 });
 </script>

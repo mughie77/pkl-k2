@@ -13,12 +13,12 @@ $instructor_id = $_SESSION['user_id'];
 try {
     // Ambil daftar siswa bimbingan yang BELUM dinilai
     $stmt = $pdo->prepare("
-        SELECT s.id, s.student_name
+        SELECT s.id, s.name
         FROM students s
         JOIN internship_mappings m ON s.id = m.student_id
         LEFT JOIN internship_assessments a ON s.id = a.student_id AND a.instructor_id = :instructor_id
         WHERE m.instructor_id = :instructor_id_map AND a.id IS NULL
-        ORDER BY s.student_name ASC
+        ORDER BY s.name ASC
     ");
     $stmt->execute([':instructor_id' => $instructor_id, ':instructor_id_map' => $instructor_id]);
     $unassessed_students = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -53,7 +53,7 @@ try {
                         <select class="form-select" id="student_id" name="student_id" required>
                             <option value="" disabled selected>-- Daftar Siswa Belum Dinilai --</option>
                             <?php foreach ($unassessed_students as $student): ?>
-                                <option value="<?php echo $student['id']; ?>"><?php echo htmlspecialchars($student['student_name']); ?></option>
+                                <option value="<?php echo $student['id']; ?>"><?php echo htmlspecialchars($student['name']); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -61,27 +61,34 @@ try {
                     <hr class="my-4">
 
                     <div class="row">
+                        <!-- Penilaian Disiplin -->
                         <div class="col-md-6 mb-4">
-                            <label for="score_1" class="form-label">1. Memahami alur bisnis dunia kerja tempat PKL dan wawasan wirausaha (Skor: <span id="score_1_value">75</span>)</label>
-                            <input type="range" class="form-range" id="score_1" name="score_1" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'score_1_value')">
+                            <label for="discipline_score" class="form-label">1. Kedisiplinan (Skor: <span id="discipline_value">75</span>)</label>
+                            <input type="range" class="form-range" id="discipline_score" name="discipline_score" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'discipline_value')">
                         </div>
+
+                        <!-- Penilaian Keahlian -->
                         <div class="col-md-6 mb-4">
-                            <label for="score_2" class="form-label">2. Menerapkan soft skill yang dibutuhkan dalam dunia kerja (Skor: <span id="score_2_value">75</span>)</label>
-                            <input type="range" class="form-range" id="score_2" name="score_2" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'score_2_value')">
+                            <label for="skill_score" class="form-label">2. Keahlian/Skill (Skor: <span id="skill_value">75</span>)</label>
+                            <input type="range" class="form-range" id="skill_score" name="skill_score" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'skill_value')">
                         </div>
+
+                        <!-- Penilaian Kerja Tim -->
                         <div class="col-md-6 mb-4">
-                            <label for="score_3" class="form-label">3. Menerapkan norma, SOP dan K3LH yang ada pada dunia kerja (Skor: <span id="score_3_value">75</span>)</label>
-                            <input type="range" class="form-range" id="score_3" name="score_3" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'score_3_value')">
+                            <label for="teamwork_score" class="form-label">3. Kerja Tim (Skor: <span id="teamwork_value">75</span>)</label>
+                            <input type="range" class="form-range" id="teamwork_score" name="teamwork_score" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'teamwork_value')">
                         </div>
+
+                        <!-- Penilaian Kerajinan -->
                         <div class="col-md-6 mb-4">
-                            <label for="score_4" class="form-label">4. Menerapkan kompetensi teknis yang sudah dipelajari di sekolah dan/ atau baru dipelajari pada dunia kerja (Skor: <span id="score_4_value">75</span>)</label>
-                            <input type="range" class="form-range" id="score_4" name="score_4" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'score_4_value')">
+                            <label for="diligence_score" class="form-label">4. Kerajinan/Ketekunan (Skor: <span id="diligence_value">75</span>)</label>
+                            <input type="range" class="form-range" id="diligence_score" name="diligence_score" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'diligence_value')">
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="notes" class="form-label">Catatan Tambahan</label>
-                        <textarea class="form-control" id="notes" name="notes" rows="4" placeholder="Berikan deskripsi atau masukan mengenai kinerja siswa..."></textarea>
+                        <label for="feedback" class="form-label">Catatan dan Feedback Tambahan</label>
+                        <textarea class="form-control" id="feedback" name="feedback" rows="4" placeholder="Berikan deskripsi atau masukan mengenai kinerja siswa..."></textarea>
                     </div>
 
                     <div class="d-grid">

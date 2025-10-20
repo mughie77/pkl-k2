@@ -21,15 +21,14 @@ if ($hour >= 18) $greeting = 'Selamat Malam';
 try {
     // Ambil daftar siswa bimbingan
     $stmt_students = $pdo->prepare("
-        SELECT s.id, s.student_name, pk.program_name, c.company_name
+        SELECT s.id, s.name, d.department_name, c.name as company_name
         FROM students s
-        JOIN kelas k ON s.kelas_id = k.id
-        JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
-        JOIN program_keahlian pk ON kk.program_id = pk.id
+        JOIN departments d ON s.department_id = d.id
         JOIN internship_mappings m ON s.id = m.student_id
-        JOIN companies c ON m.company_id = c.company_id
+        JOIN instructors i ON m.instructor_id = i.id
+        JOIN companies c ON i.company_id = c.id
         WHERE m.teacher_id = :teacher_id
-        ORDER BY s.student_name ASC
+        ORDER BY s.name ASC
     ");
     $stmt_students->execute([':teacher_id' => $teacher_id]);
     $assigned_students = $stmt_students->fetchAll(PDO::FETCH_ASSOC);
@@ -76,15 +75,9 @@ try {
             </a>
         </div>
         <div class="col">
-            <a href="teacher_problem_report.php" class="icon-menu-item">
+            <a href="student_problems.php" class="icon-menu-item">
                 <div class="icon-circle bg-danger text-white"><i class="fas fa-exclamation-triangle"></i></div>
-                <span class="icon-label">Laporan Masalah</span>
-            </a>
-        </div>
-         <div class="col">
-            <a href="teacher_set_locations.php" class="icon-menu-item">
-                <div class="icon-circle bg-secondary text-white"><i class="fas fa-map-marked-alt"></i></div>
-                <span class="icon-label">Lokasi DUDIKA</span>
+                <span class="icon-label">Catatan Masalah</span>
             </a>
         </div>
     </div>
@@ -100,7 +93,7 @@ try {
                     <thead>
                         <tr>
                             <th>Nama Siswa</th>
-                            <th>Program Keahlian</th>
+                            <th>Jurusan</th>
                             <th>Ditempatkan di</th>
                         </tr>
                     </thead>
@@ -108,8 +101,8 @@ try {
                         <?php if (count($assigned_students) > 0): ?>
                             <?php foreach ($assigned_students as $student): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($student['student_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($student['program_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($student['name']); ?></td>
+                                    <td><?php echo htmlspecialchars($student['department_name']); ?></td>
                                     <td><?php echo htmlspecialchars($student['company_name']); ?></td>
                                 </tr>
                             <?php endforeach; ?>

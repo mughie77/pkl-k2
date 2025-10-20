@@ -46,45 +46,17 @@ INSERT INTO `academic_years` (`id`, `year_name`, `status`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `program_keahlian`
+-- Table structure for table `departments`
 --
 
-CREATE TABLE `program_keahlian` (
+CREATE TABLE `departments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `program_name` varchar(100) NOT NULL,
+  `department_name` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `program_name` (`program_name`)
+  UNIQUE KEY `department_name` (`department_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
-
---
--- Table structure for table `konsentrasi_keahlian`
---
-
-CREATE TABLE `konsentrasi_keahlian` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `program_id` int(11) NOT NULL,
-  `konsentrasi_name` varchar(100) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `program_id` (`program_id`),
-  CONSTRAINT `fk_konsentrasi_program` FOREIGN KEY (`program_id`) REFERENCES `program_keahlian` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `kelas`
---
-
-CREATE TABLE `kelas` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `konsentrasi_id` int(11) NOT NULL,
-  `kelas_name` varchar(50) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `konsentrasi_id` (`konsentrasi_id`),
-  CONSTRAINT `fk_kelas_konsentrasi` FOREIGN KEY (`konsentrasi_id`) REFERENCES `konsentrasi_keahlian` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Table structure for table `admins`
@@ -108,27 +80,6 @@ INSERT INTO `admins` (`name`, `username`, `password`) VALUES
 ('Admin Sekolah', 'admin', '$2y$10$9.M4B3Y.X2a5c.dE6f.gH8i.jK0l.mN1o.pQ2r.sT3u.vW4x.yZ5'); -- password: admin
 
 -- --------------------------------------------------------
-
---
--- Table structure for table `waka_humas`
---
-
-CREATE TABLE `waka_humas` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `username` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `waka_humas`
---
-
-INSERT INTO `waka_humas` (`name`, `username`, `password`) VALUES
-('Waka Humas', 'waka', '$2y$10$9.M4B3Y.X2a5c.dE6f.gH8i.jK0l.mN1o.pQ2r.sT3u.vW4x.yZ5'); -- password: waka
 
 --
 -- Table structure for table `teachers`
@@ -156,8 +107,6 @@ CREATE TABLE `companies` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `address` text DEFAULT NULL,
-  `latitude` decimal(10,8) DEFAULT NULL,
-  `longitude` decimal(11,8) DEFAULT NULL,
   `contact_person` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
@@ -201,16 +150,16 @@ CREATE TABLE `students` (
   `address` text DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `parent_phone` varchar(20) DEFAULT NULL,
-  `kelas_id` int(11) NOT NULL,
+  `department_id` int(11) NOT NULL,
   `academic_year_id` int(11) NOT NULL,
   `work_start_time` time DEFAULT '08:00:00',
   `work_end_time` time DEFAULT '16:00:00',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `nisn` (`nisn`),
-  KEY `kelas_id` (`kelas_id`),
+  KEY `department_id` (`department_id`),
   KEY `academic_year_id` (`academic_year_id`),
-  CONSTRAINT `fk_student_kelas` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_student_department` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_student_academicyear` FOREIGN KEY (`academic_year_id`) REFERENCES `academic_years` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -252,10 +201,6 @@ CREATE TABLE `internship_journals` (
   `journal_date` date NOT NULL,
   `check_in_time` time DEFAULT NULL,
   `check_out_time` time DEFAULT NULL,
-  `check_in_latitude` decimal(10,8) DEFAULT NULL,
-  `check_in_longitude` decimal(11,8) DEFAULT NULL,
-  `check_out_latitude` decimal(10,8) DEFAULT NULL,
-  `check_out_longitude` decimal(11,8) DEFAULT NULL,
   `activities` text NOT NULL,
   `status` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -274,11 +219,11 @@ CREATE TABLE `internship_assessments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `student_id` int(11) NOT NULL,
   `instructor_id` int(11) NOT NULL,
-  `score_1` tinyint(3) unsigned DEFAULT NULL COMMENT 'Memahami alur bisnis',
-  `score_2` tinyint(3) unsigned DEFAULT NULL COMMENT 'Menerapkan soft skill',
-  `score_3` tinyint(3) unsigned DEFAULT NULL COMMENT 'Menerapkan norma, SOP, K3LH',
-  `score_4` tinyint(3) unsigned DEFAULT NULL COMMENT 'Menerapkan kompetensi teknis',
-  `notes` text DEFAULT NULL,
+  `discipline_score` tinyint(3) unsigned DEFAULT NULL,
+  `skill_score` tinyint(3) unsigned DEFAULT NULL,
+  `teamwork_score` tinyint(3) unsigned DEFAULT NULL,
+  `diligence_score` tinyint(3) unsigned DEFAULT NULL,
+  `feedback` text DEFAULT NULL,
   `assessment_date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `student_id` (`student_id`),
@@ -317,7 +262,7 @@ CREATE TABLE `leave_requests` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `student_id` int(11) NOT NULL,
   `instructor_id` int(11) NOT NULL,
-  `leave_type` enum('Sakit','Izin','Tanpa Keterangan') NOT NULL,
+  `leave_type` enum('Izin','Cuti') NOT NULL,
   `start_date` date NOT NULL,
   `end_date` date NOT NULL,
   `reason` text NOT NULL,
