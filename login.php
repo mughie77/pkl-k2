@@ -19,11 +19,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // Daftar peran dan konfigurasi tabelnya
         $roles_config = [
-            'admin' => ['table' => 'admins', 'user_col' => 'username', 'pass_col' => 'password', 'name_col' => 'name'],
-            'waka_humas' => ['table' => 'waka_humas', 'user_col' => 'username', 'pass_col' => 'password', 'name_col' => 'name'],
-            'teacher' => ['table' => 'teachers', 'user_col' => 'teacher_nip', 'pass_col' => 'teacher_password', 'name_col' => 'teacher_name'],
-            'instructor' => ['table' => 'instructors', 'user_col' => 'instructor_serial_number', 'pass_col' => 'instructor_password', 'name_col' => 'instructor_name'],
-            'student' => ['table' => 'students', 'user_col' => 'nisn', 'pass_col' => 'password', 'name_col' => 'student_name']
+            'admin' => ['table' => 'admins', 'user_col' => 'username'],
+            'teacher' => ['table' => 'teachers', 'user_col' => 'nip'],
+            'instructor' => ['table' => 'instructors', 'user_col' => 'serial_number'],
+            'student' => ['table' => 'students', 'user_col' => 'nisn']
         ];
 
         $user_found = false;
@@ -33,19 +32,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($roles_config as $role => $config) {
                 $table_name = $config['table'];
                 $user_col = $config['user_col'];
-                $pass_col = $config['pass_col'];
-                $name_col = $config['name_col'];
 
                 $stmt = $pdo->prepare("SELECT * FROM {$table_name} WHERE {$user_col} = :username");
                 $stmt->execute([':username' => $username]);
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                if ($user && password_verify($password, $user[$pass_col])) {
+                if ($user && password_verify($password, $user['password'])) {
                     // Jika pengguna ditemukan dan password cocok
                     session_regenerate_id(true);
 
                     $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['user_name'] = $user[$name_col];
+                    $_SESSION['user_name'] = $user['name'];
                     $_SESSION['user_role'] = $role;
 
                     // Simpan email jika ada (untuk siswa)
@@ -54,9 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     $user_found = true;
-                    // Redirect ke dashboard yang sesuai, waka_humas punya dashboard sendiri
-                    $dashboard_file = ($role === 'waka_humas') ? 'waka_humas_dashboard.php' : "{$role}_dashboard.php";
-                    header("Location: $dashboard_file");
+                    header("Location: {$role}_dashboard.php");
                     exit;
                 }
             }
