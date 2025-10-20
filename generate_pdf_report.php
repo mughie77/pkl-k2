@@ -1,22 +1,28 @@
 <?php
 session_start();
 require_once 'config/config.php';
-// This will not work until `composer install` is run, but the code is ready.
-if (file_exists('vendor/autoload.php')) {
-    require_once 'vendor/autoload.php';
-} else {
-    // Provide a graceful failure message if TCPDF is missing.
+
+// Pustaka TCPDF harus dimuat melalui autoloader Composer
+if (!file_exists('vendor/autoload.php')) {
     die("Pustaka TCPDF belum diinstal. Silakan jalankan 'composer install' dari terminal.");
 }
+require_once 'vendor/autoload.php';
 
-
+// Validasi Sesi dan Peran
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['waka_humas', 'teacher'])) {
-    header("Location: login.php");
-    exit();
+    // Jangan redirect, cukup hentikan eksekusi jika diakses secara tidak sah
+    http_response_code(403);
+    die("Akses ditolak. Anda harus login sebagai Waka Humas atau Guru.");
 }
 
+// Validasi Parameter GET
 if (!isset($_GET['student_id'])) {
     die("ID Siswa tidak ditemukan.");
+}
+
+// Validasi Sesi Tahun Ajaran (INI KUNCINYA)
+if (!isset($_SESSION['selected_academic_year_id'])) {
+    die("Error: Tahun ajaran belum dipilih. Silakan kembali ke dasbor dan pilih tahun ajaran terlebih dahulu.");
 }
 
 $student_id = $_GET['student_id'];
@@ -53,7 +59,7 @@ $stmt_student->execute(['student_id' => $student_id, 'academic_year_id' => $acad
 $data = $stmt_student->fetch(PDO::FETCH_ASSOC);
 
 if (!$data) {
-    die("Data siswa atau pemetaan tidak ditemukan.");
+    die("Data siswa atau pemetaan untuk tahun ajaran ini tidak ditemukan.");
 }
 
 // Assessment Scores
@@ -65,6 +71,10 @@ $stmt_assessment = $pdo->prepare("
 ");
 $stmt_assessment->execute([':student_id' => $student_id, ':academic_year_id' => $academic_year_id]);
 $assessment = $stmt_assessment->fetch(PDO::FETCH_ASSOC);
+
+if (!$assessment) {
+    die("Data penilaian untuk siswa ini pada tahun ajaran ini tidak ditemukan.");
+}
 
 // Attendance Summary
 $stmt_leave = $pdo->prepare("SELECT leave_type, COUNT(*) as total FROM leave_requests WHERE student_id = ? AND academic_year_id = ? GROUP BY leave_type");
