@@ -31,13 +31,11 @@ $academic_year_id = $_SESSION['selected_academic_year_id'];
 // 1. Fetch all required data
 // =============================
 
-// School Info
-$stmt_school = $pdo->prepare("SELECT name FROM school_settings LIMIT 1");
-$stmt_school->execute();
-$school = $stmt_school->fetch(PDO::FETCH_ASSOC);
-$school_name = $school ? strtoupper($school['name']) : 'NAMA SEKOLAH';
+// School Info and Academic Year are already loaded from config.php
+$school_name = isset($app_settings['school_name']) ? strtoupper($app_settings['school_name']) : 'NAMA SEKOLAH';
+$year_name = $_SESSION['selected_academic_year_name'] ?? 'TAHUN AJARAN';
 
-// Academic Year
+// Academic Year (re-fetch for safety, though it's in session)
 $stmt_year = $pdo->prepare("SELECT year_name FROM academic_years WHERE id = ?");
 $stmt_year->execute([$academic_year_id]);
 $academic_year = $stmt_year->fetch(PDO::FETCH_ASSOC);
