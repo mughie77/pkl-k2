@@ -33,8 +33,6 @@ if (!$academic_year_id) {
 }
 
 function set_headers($filename) {
-    // This function will be called right before writing the file
-    // We clean the buffer *before* setting the headers to remove any unwanted output.
     if (ob_get_level()) {
         ob_end_clean();
     }
@@ -47,12 +45,10 @@ function set_headers($filename) {
 $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 
-// Main logic based on export type
 try {
     switch ($export_type) {
         case 'rekap_absen':
             $sheet->setTitle('Rekap Absensi');
-
             $filter_program = $_GET['program_id'] ?? '';
             $filter_teacher = $_GET['teacher_id'] ?? '';
             $filter_company = $_GET['company_id'] ?? '';
@@ -60,7 +56,7 @@ try {
             $filter_start_date = $_GET['start_date'] ?? '';
             $filter_end_date = $_GET['end_date'] ?? '';
 
-            $query = "SELECT j.journal_date, s.name as student_name, pk.program_name, c.name as company_name, t.name as teacher_name, j.check_in_time, j.check_out_time, j.status FROM internship_journals j JOIN students s ON j.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id JOIN kelas k ON s.kelas_id = k.id JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id LEFT JOIN companies c ON m.company_id = c.id LEFT JOIN teachers t ON m.teacher_id = t.id";
+            $query = "SELECT j.journal_date, s.name as student_name, pk.program_name, c.name as company_name, t.name as teacher_name, j.check_in_time, j.check_out_time, j.status FROM internship_journals j JOIN students s ON j.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id JOIN kelas kls ON s.kelas_id = kls.id JOIN konsentrasi_keahlian kk ON kls.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id LEFT JOIN companies c ON m.company_id = c.id LEFT JOIN teachers t ON m.teacher_id = t.id";
 
             $where_clauses = ["m.academic_year_id = :academic_year_id"];
             $params = [':academic_year_id' => $academic_year_id];
@@ -84,14 +80,8 @@ try {
             $data_to_write = [];
             foreach($results as $row) {
                 $data_to_write[] = [
-                    $row['journal_date'],
-                    $row['student_name'],
-                    $row['program_name'],
-                    $row['company_name'],
-                    $row['teacher_name'],
-                    $row['check_in_time'],
-                    $row['check_out_time'],
-                    $row['status']
+                    $row['journal_date'], $row['student_name'], $row['program_name'], $row['company_name'],
+                    $row['teacher_name'], $row['check_in_time'], $row['check_out_time'], $row['status']
                 ];
             }
 
@@ -103,23 +93,46 @@ try {
             break;
 
         case 'rekap_nilai':
-            // ... (logika ini sudah benar)
+            $sheet->setTitle('Rekap Skor Global');
+            if (!in_array($user_role, ['admin', 'waka_humas'])) { die('Akses ditolak.'); }
+
+            $query = "SELECT s.name as student_name, pk.program_name, i.name as instructor_name, a.score_1, a.score_2, a.score_3, a.score_4, ((a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4) as average_score, a.notes FROM internship_assessments a JOIN students s ON a.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id JOIN kelas kls ON s.kelas_id = kls.id JOIN konsentrasi_keahlian kk ON kls.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id JOIN instructors i ON a.instructor_id = i.id WHERE m.academic_year_id = :academic_year_id ORDER BY s.name ASC";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute([':academic_year_id' => $academic_year_id]);
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $header = ['Nama Siswa', 'Program Keahlian', 'Dinilai oleh', 'Skor 1: Memahami alur bisnis', 'Skor 2: Menerapkan soft skill', 'Skor 3: Menerapkan norma, SOP, K3LH', 'Skor 4: Menerapkan kompetensi teknis', 'Rata-rata', 'Catatan'];
+            $sheet->fromArray($header, NULL, 'A1');
+            $sheet->fromArray($data, NULL, 'A2');
+
+            set_headers('Rekap_Skor_Siswa_Global.xlsx');
             break;
 
         case 'rekap_nilai_guru':
-            // ... (logika ini sudah benar)
+            $sheet->setTitle('Rekap Skor Bimbingan');
+            if ($user_role !== 'teacher') { die('Akses ditolak.'); }
+
+            $query = "SELECT s.name as student_name, pk.program_name, i.name as instructor_name, a.score_1, a.score_2, a.score_3, a.score_4, ((a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4) as average_score, a.notes FROM internship_assessments a JOIN students s ON a.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id JOIN kelas kls ON s.kelas_id = kls.id JOIN konsentrasi_keahlian kk ON kls.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id JOIN instructors i ON a.instructor_id = i.id WHERE m.teacher_id = :teacher_id AND m.academic_year_id = :academic_year_id ORDER BY s.name ASC";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute([':teacher_id' => $user_id, ':academic_year_id' => $academic_year_id]);
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $header = ['Nama Siswa', 'Program Keahlian', 'Dinilai oleh', 'Skor 1', 'Skor 2', 'Skor 3', 'Skor 4', 'Rata-rata', 'Catatan'];
+            $sheet->fromArray($header, NULL, 'A1');
+            $sheet->fromArray($data, NULL, 'A2');
+
+            set_headers('Rekap_Skor_Siswa_Bimbingan.xlsx');
             break;
 
         case 'rekap_masalah':
             $sheet->setTitle('Rekap Masalah');
-
             $filter_program = $_GET['program_id'] ?? '';
             $filter_teacher = $_GET['teacher_id'] ?? '';
             $filter_company = $_GET['company_id'] ?? '';
             $filter_start_date = $_GET['start_date'] ?? '';
             $filter_end_date = $_GET['end_date'] ?? '';
 
-            $query = "SELECT n.created_at, s.name as student_name, pk.program_name, c.name as company_name, n.note, n.creator_role, t.name as teacher_name, i.name as instructor_name FROM student_notes n JOIN students s ON n.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id LEFT JOIN instructors i ON m.instructor_id = i.id JOIN kelas k ON s.kelas_id = k.id JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id LEFT JOIN companies c ON m.company_id = c.id LEFT JOIN teachers t ON m.teacher_id = t.id";
+            $query = "SELECT n.created_at, s.name as student_name, pk.program_name, c.name as company_name, n.note, n.creator_role, t.name as teacher_name, i.name as instructor_name FROM student_notes n JOIN students s ON n.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id JOIN kelas kls ON s.kelas_id = kls.id JOIN konsentrasi_keahlian kk ON kls.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id LEFT JOIN companies c ON m.company_id = c.id LEFT JOIN teachers t ON m.teacher_id = t.id LEFT JOIN instructors i ON m.instructor_id = i.id";
 
             $where_clauses = ["m.academic_year_id = :academic_year_id"];
             $params = [':academic_year_id' => $academic_year_id];
@@ -164,28 +177,19 @@ try {
     foreach (range('A', $sheet->getHighestDataColumn()) as $col) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
     }
-    // Style header
     $sheet->getStyle('A1:' . $sheet->getHighestDataColumn() . '1')->getFont()->setBold(true);
     $sheet->getStyle('A1:' . $sheet->getHighestDataColumn() . '1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-    // Write spreadsheet to output
     $writer = new Xlsx($spreadsheet);
     $writer->save('php://output');
-
     exit;
 
 } catch (PDOException $e) {
-    // If any error occurs, log it and show a user-friendly message
-    if (ob_get_level()) {
-        ob_end_clean(); // Clean the buffer to prevent corrupted output from the error message
-    }
-    error_log("Excel Export Error: " . $e->getMessage());
-    // Tampilkan error teknis untuk debugging
+    if (ob_get_level()) { ob_end_clean(); }
+    error_log("Excel Export PDO Error: " . $e->getMessage());
     die("Terjadi kesalahan database saat membuat file Excel: " . $e->getMessage());
 } catch (Exception $e) {
-    if (ob_get_level()) {
-        ob_end_clean();
-    }
+    if (ob_get_level()) { ob_end_clean(); }
     error_log("General Export Error: " . $e->getMessage());
     die("Terjadi kesalahan umum saat membuat file Excel. Silakan coba lagi.");
 }

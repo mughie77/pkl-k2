@@ -42,14 +42,14 @@ $academic_year = $stmt_year->fetch(PDO::FETCH_ASSOC);
 $year_name = $academic_year ? $academic_year['year_name'] : 'TAHUN AJARAN';
 
 // Student, Mapping, and Related Info
-$sql_student = "SELECT s.name AS student_name, s.nisn, k.name AS kelas_name, kk.name AS konsentrasi_name, pk.name AS program_name, c.name AS company_name, m.start_date, m.end_date, i.name AS instructor_name, t.name AS teacher_name, i.nip AS instructor_nip, t.nip AS teacher_nip
+$sql_student = "SELECT s.name AS student_name, s.nisn, kls.name AS kelas_name, kk.name AS konsentrasi_name, pk.program_name, c.name AS company_name, m.start_date, m.end_date, i.name AS instructor_name, t.name AS teacher_name, i.nip AS instructor_nip, t.nip AS teacher_nip
                 FROM students s
                 LEFT JOIN internship_mappings m ON s.id = m.student_id
                 LEFT JOIN companies c ON m.company_id = c.id
                 LEFT JOIN instructors i ON m.instructor_id = i.id
                 LEFT JOIN teachers t ON m.teacher_id = t.id
-                LEFT JOIN kelas k ON s.kelas_id = k.id
-                LEFT JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+                LEFT JOIN kelas kls ON s.kelas_id = kls.id
+                LEFT JOIN konsentrasi_keahlian kk ON kls.konsentrasi_id = kk.id
                 LEFT JOIN program_keahlian pk ON kk.program_id = pk.id
                 WHERE s.id = :student_id AND m.academic_year_id = :academic_year_id";
 $stmt_student = $pdo->prepare($sql_student);
