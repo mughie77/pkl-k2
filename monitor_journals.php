@@ -210,71 +210,77 @@ function get_status_badge($status) {
 </div>
 
 <script>
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // Initialize Select2
     $('#student_id').select2({
         theme: 'bootstrap-5'
     });
 
     const viewJournalModal = document.getElementById('viewJournalModal');
-    viewJournalModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        const activities = button.dataset.activities;
-        const studentName = button.dataset.studentName;
-        const journalDate = button.dataset.journalDate;
+    if (viewJournalModal) {
+        viewJournalModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const activities = button.dataset.activities;
+            const studentName = button.dataset.studentName;
+            const journalDate = button.dataset.journalDate;
 
-        viewJournalModal.querySelector('#modal_student_name').textContent = studentName;
-        viewJournalModal.querySelector('#modal_journal_date').textContent = journalDate;
-        viewJournalModal.querySelector('#journal_activities_content').textContent = activities;
-    });
+            viewJournalModal.querySelector('#modal_student_name').textContent = studentName;
+            viewJournalModal.querySelector('#modal_journal_date').textContent = journalDate;
+            viewJournalModal.querySelector('#journal_activities_content').textContent = activities;
+        });
+    }
 
     let map;
     let markers = [];
     const viewLocationModal = document.getElementById('viewLocationModal');
-    viewLocationModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        const latIn = parseFloat(button.dataset.latIn);
-        const lngIn = parseFloat(button.dataset.lngIn);
-        const latOut = button.dataset.latOut ? parseFloat(button.dataset.latOut) : null;
-        const lngOut = button.dataset.lngOut ? parseFloat(button.dataset.lngOut) : null;
-        const studentName = button.dataset.studentName;
+    if (viewLocationModal) {
+        viewLocationModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            if (!button) return;
 
-        viewLocationModal.querySelector('#location_student_name').textContent = studentName;
+            const latIn = parseFloat(button.dataset.latIn);
+            const lngIn = parseFloat(button.dataset.lngIn);
+            const latOut = button.dataset.latOut ? parseFloat(button.dataset.latOut) : null;
+            const lngOut = button.dataset.lngOut ? parseFloat(button.dataset.lngOut) : null;
+            const studentName = button.dataset.studentName;
 
-        setTimeout(() => {
-            if (!map) {
-                map = L.map('map').setView([latIn, lngIn], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo(map);
-            }
+            viewLocationModal.querySelector('#location_student_name').textContent = studentName;
 
-            // Hapus marker sebelumnya
-            markers.forEach(marker => map.removeLayer(marker));
-            markers = [];
+            setTimeout(() => {
+                if (!map) {
+                    map = L.map('map').setView([latIn, lngIn], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                }
 
-            // Tambah marker check-in
-            const checkinMarker = L.marker([latIn, lngIn]).addTo(map)
-                .bindPopup(`Lokasi Check-in: ${studentName}`);
-            markers.push(checkinMarker);
+                markers.forEach(marker => map.removeLayer(marker));
+                markers = [];
 
-            // Tambah marker check-out jika ada
-            if (latOut && lngOut) {
-                const checkoutMarker = L.marker([latOut, lngOut], { icon: L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png' }) }).addTo(map)
-                    .bindPopup(`Lokasi Check-out: ${studentName}`);
-                markers.push(checkoutMarker);
+                const checkinMarker = L.marker([latIn, lngIn]).addTo(map)
+                    .bindPopup(`Lokasi Check-in: ${studentName}`);
+                markers.push(checkinMarker);
 
-                // Fit map to both markers
-                const group = new L.featureGroup(markers);
-                map.fitBounds(group.getBounds().pad(0.5));
-            } else {
-                map.setView([latIn, lngIn], 15);
-                checkinMarker.openPopup();
-            }
+                if (latOut && lngOut) {
+                    const checkoutMarker = L.marker([latOut, lngOut], {
+                        icon: L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png'
+                        })
+                    }).addTo(map).bindPopup(`Lokasi Check-out: ${studentName}`);
+                    markers.push(checkoutMarker);
 
-            map.invalidateSize();
-        }, 500);
-    });
+                    const group = new L.featureGroup(markers);
+                    map.fitBounds(group.getBounds().pad(0.5));
+                } else {
+                    map.setView([latIn, lngIn], 15);
+                    checkinMarker.openPopup();
+                }
+
+                map.invalidateSize();
+            }, 500);
+        });
+    }
 });
 </script>
 
