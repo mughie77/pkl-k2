@@ -14,10 +14,10 @@ try {
     // Ambil data penilaian dari siswa bimbingan guru ini
     $stmt = $pdo->prepare("
         SELECT
-            s.student_name, pk.program_name,
+            s.name as student_name, pk.program_name,
             a.score_1, a.score_2, a.score_3, a.score_4,
             (a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4 as average_score,
-            i.instructor_name
+            i.name as instructor_name
         FROM internship_assessments a
         JOIN students s ON a.student_id = s.id
         JOIN kelas k ON s.kelas_id = k.id
@@ -26,7 +26,7 @@ try {
         JOIN instructors i ON a.instructor_id = i.id
         JOIN internship_mappings m ON a.student_id = m.student_id
         WHERE m.teacher_id = :teacher_id
-        ORDER BY s.student_name ASC
+        ORDER BY s.name ASC
     ");
     $stmt->execute([':teacher_id' => $teacher_id]);
     $assessments = $stmt->fetchAll(PDO::FETCH_ASSOC);
