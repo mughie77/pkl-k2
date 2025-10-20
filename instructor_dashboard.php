@@ -24,7 +24,7 @@ try {
     $stmt_pending_journals->execute([':id' => $instructor_id]);
     $pending_journals_count = $stmt_pending_journals->fetchColumn();
 
-    $stmt_pending_leave = $pdo->prepare("SELECT COUNT(id) FROM leave_requests WHERE instructor_id = :id AND leave_status = 'Pending'");
+    $stmt_pending_leave = $pdo->prepare("SELECT COUNT(id) FROM leave_requests WHERE instructor_id = :id AND status = 'Pending'");
     $stmt_pending_leave->execute([':id' => $instructor_id]);
     $pending_leave_count = $stmt_pending_leave->fetchColumn();
 
