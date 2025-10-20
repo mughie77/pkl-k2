@@ -9,7 +9,7 @@ if (!file_exists('vendor/autoload.php')) {
 require_once 'vendor/autoload.php';
 
 // Validasi Sesi dan Peran
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['waka_humas', 'teacher'])) {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], ['waka_humas', 'teacher'])) {
     // Jangan redirect, cukup hentikan eksekusi jika diakses secara tidak sah
     http_response_code(403);
     die("Akses ditolak. Anda harus login sebagai Waka Humas atau Guru.");
