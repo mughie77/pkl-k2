@@ -100,6 +100,7 @@ try {
                         <label for="longitude" class="form-label">Longitude</label>
                         <input type="text" class="form-control" id="longitude" name="longitude" required>
                     </div>
+                    <div id="map-picker" style="height: 300px; width: 100%; margin-bottom: 15px;"></div>
                     <button type="button" class="btn btn-sm btn-outline-info" id="get-current-location"><i class="fas fa-map-marker-alt"></i> Gunakan Lokasi Saya</button>
                 </div>
                 <div class="modal-footer">
@@ -113,26 +114,53 @@ try {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    let map, marker;
+    const latInput = document.getElementById('latitude');
+    const lngInput = document.getElementById('longitude');
+
     const locationModal = document.getElementById('locationModal');
     locationModal.addEventListener('show.bs.modal', function(event) {
         const button = event.relatedTarget;
         const companyId = button.dataset.id;
         const companyName = button.dataset.name;
-        const lat = button.dataset.lat;
-        const lng = button.dataset.lng;
+        const lat = button.dataset.lat || -7.797068; // Default to a central Indonesian location
+        const lng = button.dataset.lng || 110.370529; // Default to Yogyakarta
 
         document.getElementById('company_id').value = companyId;
         document.getElementById('company_name').textContent = companyName;
-        document.getElementById('latitude').value = lat;
-        document.getElementById('longitude').value = lng;
+        latInput.value = button.dataset.lat;
+        lngInput.value = button.dataset.lng;
+
+        setTimeout(() => {
+            if (!map) {
+                map = L.map('map-picker').setView([lat, lng], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+
+                // Update inputs on marker drag
+                marker.on('dragend', function(e) {
+                    const newLatLng = e.target.getLatLng();
+                    latInput.value = newLatLng.lat.toFixed(8);
+                    lngInput.value = newLatLng.lng.toFixed(8);
+                });
+            } else {
+                map.setView([lat, lng], 13);
+                marker.setLatLng([lat, lng]);
+            }
+            map.invalidateSize();
+        }, 400); // Delay to ensure modal is visible
     });
 
     document.getElementById('get-current-location').addEventListener('click', function() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
-                document.getElementById('latitude').value = position.coords.latitude;
-                document.getElementById('longitude').value = position.coords.longitude;
-            });
+                const newLat = position.coords.latitude;
+                const newLng = position.coords.longitude;
+                latInput.value = newLat.toFixed(8);
+                lngInput.value = newLng.toFixed(8);
+                map.setView([newLat, newLng], 15);
+                marker.setLatLng([newLat, newLng]);
+            }, () => alert("Could not get your location."));
         } else {
             alert("Geolocation is not supported by this browser.");
         }

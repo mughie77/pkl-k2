@@ -53,7 +53,9 @@ function get_status_badge($status) {
             <h6 class="m-0 font-weight-bold"><i class="fas fa-calendar-day me-2"></i>Jurnal untuk Tanggal: <?php echo date('d M Y'); ?></h6>
         </div>
         <div class="card-body">
-            <form action="core/journal_actions.php" method="POST">
+            <form id="journal-form" action="core/journal_actions.php" method="POST">
+                <input type="hidden" name="latitude" id="latitude">
+                <input type="hidden" name="longitude" id="longitude">
                 <div class="row align-items-center mb-3">
                     <div class="col-md-auto">
                         <strong>Absensi:</strong>
@@ -165,6 +167,42 @@ document.addEventListener('DOMContentLoaded', function() {
         const activities = button.dataset.activities;
         const modalBody = viewJournalModal.querySelector('#journal_activities_content');
         modalBody.textContent = activities;
+    });
+
+    const journalForm = document.getElementById('journal-form');
+    const latitudeInput = document.getElementById('latitude');
+    const longitudeInput = document.getElementById('longitude');
+
+    journalForm.addEventListener('submit', function(event) {
+        const action = document.activeElement.value;
+        if (action === 'check_in' || action === 'check_out') {
+            event.preventDefault();
+            if ("geolocation" in navigator) {
+                document.activeElement.disabled = true;
+                document.activeElement.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mendapatkan Lokasi...';
+
+                navigator.geolocation.getCurrentPosition(position => {
+                    latitudeInput.value = position.coords.latitude;
+                    longitudeInput.value = position.coords.longitude;
+
+                    // Create an input to hold the action and submit
+                    const actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'action';
+                    actionInput.value = action;
+                    journalForm.appendChild(actionInput);
+                    journalForm.submit();
+
+                }, error => {
+                    alert('Gagal mendapatkan lokasi. Pastikan Anda memberikan izin akses lokasi dan coba lagi.');
+                    console.error("Geolocation error: ", error);
+                    document.activeElement.disabled = false;
+                    document.activeElement.innerHTML = action === 'check_in' ? '<i class="fas fa-play-circle me-2"></i>Check-in' : '<i class="fas fa-stop-circle me-2"></i>Check-out';
+                });
+            } else {
+                alert("Browser Anda tidak mendukung Geolocation. Check-in/out tidak dapat dilanjutkan.");
+            }
+        }
     });
 });
 </script>

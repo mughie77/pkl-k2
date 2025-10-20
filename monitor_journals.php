@@ -29,7 +29,7 @@ try {
     $query = "
         SELECT
             j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
-            j.check_in_latitude, j.check_in_longitude,
+            j.check_in_latitude, j.check_in_longitude, j.check_out_latitude, j.check_out_longitude,
             s.name as student_name, s.work_start_time, s.work_end_time
         FROM internship_journals j
         JOIN students s ON j.student_id = s.id
@@ -149,8 +149,10 @@ function get_status_badge($status) {
                                         </button>
                                         <?php if ($journal['check_in_latitude'] && $journal['check_in_longitude']): ?>
                                             <button class="btn btn-secondary btn-sm view-location-btn"
-                                                    data-lat="<?php echo $journal['check_in_latitude']; ?>"
-                                                    data-lng="<?php echo $journal['check_in_longitude']; ?>"
+                                                    data-lat-in="<?php echo $journal['check_in_latitude']; ?>"
+                                                    data-lng-in="<?php echo $journal['check_in_longitude']; ?>"
+                                                    data-lat-out="<?php echo $journal['check_out_latitude']; ?>"
+                                                    data-lng-out="<?php echo $journal['check_out_longitude']; ?>"
                                                     data-student-name="<?php echo htmlspecialchars($journal['student_name']); ?>"
                                                     data-bs-toggle="modal" data-bs-target="#viewLocationModal">
                                                 <i class="fas fa-map-marker-alt"></i> Lihat Lokasi
@@ -227,38 +229,51 @@ $(document).ready(function() {
     });
 
     let map;
+    let markers = [];
     const viewLocationModal = document.getElementById('viewLocationModal');
     viewLocationModal.addEventListener('show.bs.modal', function(event) {
         const button = event.relatedTarget;
-        const lat = parseFloat(button.dataset.lat);
-        const lng = parseFloat(button.dataset.lng);
+        const latIn = parseFloat(button.dataset.latIn);
+        const lngIn = parseFloat(button.dataset.lngIn);
+        const latOut = button.dataset.latOut ? parseFloat(button.dataset.latOut) : null;
+        const lngOut = button.dataset.lngOut ? parseFloat(button.dataset.lngOut) : null;
         const studentName = button.dataset.studentName;
 
         viewLocationModal.querySelector('#location_student_name').textContent = studentName;
 
         setTimeout(() => {
             if (!map) {
-                map = L.map('map').setView([lat, lng], 15);
+                map = L.map('map').setView([latIn, lngIn], 15);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 }).addTo(map);
-            } else {
-                map.setView([lat, lng], 15);
             }
 
-            // Hapus marker sebelumnya jika ada
-            map.eachLayer((layer) => {
-                if (layer instanceof L.Marker) {
-                    map.removeLayer(layer);
-                }
-            });
+            // Hapus marker sebelumnya
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
 
-            L.marker([lat, lng]).addTo(map)
-                .bindPopup(`Lokasi check-in ${studentName}`)
-                .openPopup();
+            // Tambah marker check-in
+            const checkinMarker = L.marker([latIn, lngIn]).addTo(map)
+                .bindPopup(`Lokasi Check-in: ${studentName}`);
+            markers.push(checkinMarker);
+
+            // Tambah marker check-out jika ada
+            if (latOut && lngOut) {
+                const checkoutMarker = L.marker([latOut, lngOut], { icon: L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png' }) }).addTo(map)
+                    .bindPopup(`Lokasi Check-out: ${studentName}`);
+                markers.push(checkoutMarker);
+
+                // Fit map to both markers
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.5));
+            } else {
+                map.setView([latIn, lngIn], 15);
+                checkinMarker.openPopup();
+            }
 
             map.invalidateSize();
-        }, 500); // Penundaan untuk memastikan modal dan DOM siap
+        }, 500);
     });
 });
 </script>

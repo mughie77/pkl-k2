@@ -84,19 +84,32 @@ if ($user_role === 'student') {
             $journal = $journal_stmt->fetch(PDO::FETCH_ASSOC);
 
             $current_time = date('H:i:s');
+            $latitude = !empty($_POST['latitude']) ? $_POST['latitude'] : null;
+            $longitude = !empty($_POST['longitude']) ? $_POST['longitude'] : null;
 
             if ($action === 'check_in') {
                 if (!$journal) {
-                    $stmt = $pdo->prepare("INSERT INTO internship_journals (student_id, journal_date, check_in_time, activities) VALUES (:student_id, :journal_date, :check_in_time, '')");
-                    $stmt->execute([':student_id' => $user_id, ':journal_date' => $today, ':check_in_time' => $current_time]);
+                    $stmt = $pdo->prepare("INSERT INTO internship_journals (student_id, journal_date, check_in_time, check_in_latitude, check_in_longitude, activities) VALUES (:student_id, :journal_date, :check_in_time, :lat, :lng, '')");
+                    $stmt->execute([
+                        ':student_id' => $user_id,
+                        ':journal_date' => $today,
+                        ':check_in_time' => $current_time,
+                        ':lat' => $latitude,
+                        ':lng' => $longitude
+                    ]);
                     set_flash_message('success', 'Check-in berhasil dicatat.');
                 } else {
                     set_flash_message('warning', 'Anda sudah melakukan check-in hari ini.');
                 }
             } elseif ($action === 'check_out') {
                 if ($journal && !$journal['check_out_time']) {
-                    $stmt = $pdo->prepare("UPDATE internship_journals SET check_out_time = :check_out_time WHERE id = :id");
-                    $stmt->execute([':check_out_time' => $current_time, ':id' => $journal['id']]);
+                    $stmt = $pdo->prepare("UPDATE internship_journals SET check_out_time = :check_out_time, check_out_latitude = :lat, check_out_longitude = :lng WHERE id = :id");
+                    $stmt->execute([
+                        ':check_out_time' => $current_time,
+                        ':lat' => $latitude,
+                        ':lng' => $longitude,
+                        ':id' => $journal['id']
+                    ]);
                     set_flash_message('success', 'Check-out berhasil dicatat.');
                 } else {
                     set_flash_message('warning', 'Anda belum check-in atau sudah check-out hari ini.');
