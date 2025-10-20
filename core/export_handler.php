@@ -121,6 +121,97 @@ if ($report_type === 'journal_recap') {
     }
 }
 
+} elseif ($report_type === 'student_problems') {
+    // --- Logika Ekspor Masalah Siswa ---
+
+    $user_id = $_SESSION['user_id'];
+    $user_role = $_SESSION['user_role'];
+    $student_id = $_GET['student_id'] ?? null;
+
+    if (!$student_id) {
+        die("ID Siswa tidak ditemukan.");
+    }
+
+    try {
+        // Ambil nama siswa untuk nama file
+        $stmt_student = $pdo->prepare("SELECT name FROM students WHERE id = :id");
+        $stmt_student->execute([':id' => $student_id]);
+        $student = $stmt_student->fetch(PDO::FETCH_ASSOC);
+        $student_name = $student ? $student['name'] : 'Unknown';
+
+        // Rekonstruksi query dari student_problems.php
+        $query = "
+            SELECT s.name as student_name, n.note, n.created_at, n.creator_role,
+                   CASE
+                       WHEN n.creator_role = 'teacher' THEN t.name
+                       WHEN n.creator_role = 'instructor' THEN i.name
+                   END as creator_name
+            FROM student_notes n
+            JOIN students s ON n.student_id = s.id
+            LEFT JOIN teachers t ON n.creator_id = t.id AND n.creator_role = 'teacher'
+            LEFT JOIN instructors i ON n.creator_id = i.id AND n.creator_role = 'instructor'
+            WHERE n.student_id = :student_id
+        ";
+
+        $params = [':student_id' => $student_id];
+
+        // Terapkan aturan visibilitas yang sama
+        if ($user_role === 'instructor') {
+            $query .= " AND (n.creator_role = 'instructor' AND n.creator_id = :user_id)";
+            $params[':user_id'] = $user_id;
+        }
+
+        $query .= " ORDER BY n.created_at DESC";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($params);
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Buat file Excel
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Laporan Masalah Siswa');
+
+        // Header
+        $headers = ['Tanggal', 'Siswa', 'Pelapor', 'Peran', 'Catatan Masalah'];
+        $sheet->fromArray($headers, NULL, 'A1');
+        $sheet->getStyle('A1:E1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D9534F']]
+        ]);
+
+        // Isi Data
+        $rowNum = 2;
+        foreach ($data as $row) {
+            $sheet->setCellValue('A' . $rowNum, date('d M Y, H:i', strtotime($row['created_at'])));
+            $sheet->setCellValue('B' . $rowNum, $row['student_name']);
+            $sheet->setCellValue('C' . $rowNum, $row['creator_name']);
+            $sheet->setCellValue('D' . $rowNum, ucwords($row['creator_role']));
+            $sheet->setCellValue('E' . $rowNum, $row['note']);
+            $rowNum++;
+        }
+
+        foreach (range('A', 'E') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Output ke browser
+        $safe_student_name = preg_replace('/[^A-Za-z0-9\-]/', '_', $student_name);
+        $filename = 'laporan_masalah_' . $safe_student_name . '_' . date('Ymd') . '.xlsx';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new Xlsx($spreadsheet);
+        ob_end_clean();
+        $writer->save('php://output');
+        exit;
+
+    } catch (PDOException $e) {
+        die("Error saat mengambil data untuk ekspor: " . $e->getMessage());
+    }
+}
+
+
 // Fallback jika report_type tidak dikenal
 die("Jenis laporan tidak valid.");
 ?>
