@@ -23,27 +23,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Aksi: Tambah Guru (Create)
     if ($action === 'create') {
-        $name = trim($_POST['name']);
-        $nip = trim($_POST['nip']);
-        $department = trim($_POST['department']);
-        $phone = trim($_POST['phone']);
+        $teacher_name = trim($_POST['teacher_name']);
+        $teacher_nip = trim($_POST['teacher_nip']);
+        $teacher_phone = trim($_POST['teacher_phone']);
 
-        if (empty($name) || empty($nip) || empty($department)) {
-            set_flash_message('danger', 'Nama, NIP, dan Jurusan wajib diisi.');
+        if (empty($teacher_name) || empty($teacher_nip)) {
+            set_flash_message('danger', 'Nama dan NIP wajib diisi.');
             redirect_to_manage_teachers();
         }
 
         // Password di-hash dari NIP
-        $hashed_password = password_hash($nip, PASSWORD_DEFAULT);
+        $hashed_password = password_hash($teacher_nip, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $pdo->prepare("INSERT INTO teachers (name, nip, department, phone, password) VALUES (:name, :nip, :department, :phone, :password)");
+            $stmt = $pdo->prepare("INSERT INTO teachers (teacher_name, teacher_nip, teacher_phone, teacher_password) VALUES (:teacher_name, :teacher_nip, :teacher_phone, :teacher_password)");
             $stmt->execute([
-                ':name' => $name,
-                ':nip' => $nip,
-                ':department' => $department,
-                ':phone' => $phone,
-                ':password' => $hashed_password
+                ':teacher_name' => $teacher_name,
+                ':teacher_nip' => $teacher_nip,
+                ':teacher_phone' => $teacher_phone,
+                ':teacher_password' => $hashed_password
             ]);
             set_flash_message('success', 'Data guru berhasil ditambahkan. Username & Password default adalah NIP.');
         } catch (PDOException $e) {
@@ -59,27 +57,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Aksi: Perbarui Guru (Update)
     if ($action === 'update') {
         $teacher_id = $_POST['teacher_id'];
-        $name = trim($_POST['name']);
-        $nip = trim($_POST['nip']);
-        $department = trim($_POST['department']);
-        $phone = trim($_POST['phone']);
+        $teacher_name = trim($_POST['teacher_name']);
+        $teacher_nip = trim($_POST['teacher_nip']);
+        $teacher_phone = trim($_POST['teacher_phone']);
 
-        if (empty($teacher_id) || empty($name) || empty($nip) || empty($department)) {
-            set_flash_message('danger', 'Nama, NIP, dan Jurusan wajib diisi.');
+        if (empty($teacher_id) || empty($teacher_name) || empty($teacher_nip)) {
+            set_flash_message('danger', 'Nama dan NIP wajib diisi.');
             redirect_to_manage_teachers();
         }
 
         // Password di-hash ulang dari NIP yang baru
-        $hashed_password = password_hash($nip, PASSWORD_DEFAULT);
+        $hashed_password = password_hash($teacher_nip, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $pdo->prepare("UPDATE teachers SET name = :name, nip = :nip, department = :department, phone = :phone, password = :password WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE teachers SET teacher_name = :teacher_name, teacher_nip = :teacher_nip, teacher_phone = :teacher_phone, teacher_password = :teacher_password WHERE id = :id");
             $stmt->execute([
-                ':name' => $name,
-                ':nip' => $nip,
-                ':department' => $department,
-                ':phone' => $phone,
-                ':password' => $hashed_password,
+                ':teacher_name' => $teacher_name,
+                ':teacher_nip' => $teacher_nip,
+                ':teacher_phone' => $teacher_phone,
+                ':teacher_password' => $hashed_password,
                 ':id' => $teacher_id
             ]);
             set_flash_message('success', 'Data guru berhasil diperbarui. Username & Password direset sesuai NIP.');

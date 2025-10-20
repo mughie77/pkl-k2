@@ -19,7 +19,7 @@ $filter_end_date = $_GET['end_date'] ?? '';
 
 try {
     // Kueri untuk mengambil siswa yang relevan dengan peran pengguna
-    $student_query = "SELECT s.id, s.name FROM students s ";
+    $student_query = "SELECT s.id, s.student_name FROM students s ";
     $student_params = [];
     if ($user_role === 'teacher') {
         $student_query .= "JOIN internship_mappings m ON s.id = m.student_id WHERE m.teacher_id = :user_id";
@@ -28,7 +28,7 @@ try {
         $student_query .= "JOIN internship_mappings m ON s.id = m.student_id WHERE m.instructor_id = :user_id";
         $student_params[':user_id'] = $user_id;
     }
-    $student_query .= " ORDER BY s.name ASC";
+    $student_query .= " ORDER BY s.student_name ASC";
     $stmt_students = $pdo->prepare($student_query);
     $stmt_students->execute($student_params);
     $students_for_filter = $stmt_students->fetchAll(PDO::FETCH_ASSOC);
@@ -38,13 +38,12 @@ try {
         SELECT
             j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
             j.check_in_latitude, j.check_in_longitude, j.check_out_latitude, j.check_out_longitude,
-            s.name as student_name, s.work_start_time, s.work_end_time,
-            c.name as company_name, c.latitude as company_latitude, c.longitude as company_longitude
+            s.student_name, s.work_start_time, s.work_end_time,
+            c.company_name, c.latitude as company_latitude, c.longitude as company_longitude
         FROM internship_journals j
         JOIN students s ON j.student_id = s.id
-        LEFT JOIN internship_mappings m ON j.student_id = m.student_id
-        LEFT JOIN instructors i ON m.instructor_id = i.id
-        LEFT JOIN companies c ON i.company_id = c.id
+        JOIN internship_mappings m ON j.student_id = m.student_id
+        LEFT JOIN companies c ON m.company_id = c.company_id
     ";
 
     $params = [];
@@ -59,11 +58,11 @@ try {
     }
 
     if ($filter_student_id !== 'all' && !empty($filter_student_id)) {
-        $query .= " AND j.student_id = :student_id";
+        $where_clauses[] = "j.student_id = :student_id";
         $params[':student_id'] = $filter_student_id;
     }
     if (!empty($filter_start_date)) {
-        $query .= " AND j.journal_date >= :start_date";
+        $where_clauses[] = "j.journal_date >= :start_date";
         $params[':start_date'] = $filter_start_date;
     }
     if (!empty($filter_end_date)) {
@@ -75,7 +74,7 @@ try {
         $query .= " WHERE " . implode(" AND ", $where_clauses);
     }
 
-    $query .= " ORDER BY j.journal_date DESC, s.name ASC";
+    $query .= " ORDER BY j.journal_date DESC, s.student_name ASC";
 
     $stmt_journals = $pdo->prepare($query);
     $stmt_journals->execute($params);
@@ -141,7 +140,7 @@ function get_status_badge($status) {
                         <option value="all">Semua Siswa Bimbingan</option>
                         <?php foreach ($students_for_filter as $student): ?>
                             <option value="<?php echo $student['id']; ?>" <?php echo ($filter_student_id == $student['id']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($student['name']); ?>
+                                <?php echo htmlspecialchars($student['student_name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

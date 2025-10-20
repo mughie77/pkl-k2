@@ -11,15 +11,15 @@ if ($_SESSION['user_role'] !== 'admin') {
 // Ambil data instruktur beserta nama perusahaannya
 try {
     $stmt = $pdo->query("
-        SELECT i.*, c.name as company_name
+        SELECT i.id, i.instructor_name, i.instructor_serial_number, i.instructor_position, i.company_id, c.company_name
         FROM instructors i
-        JOIN companies c ON i.company_id = c.id
-        ORDER BY i.name ASC
+        JOIN companies c ON i.company_id = c.company_id
+        ORDER BY i.instructor_name ASC
     ");
     $instructors = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Ambil data perusahaan untuk dropdown
-    $company_stmt = $pdo->query("SELECT id, name FROM companies ORDER BY name ASC");
+    $company_stmt = $pdo->query("SELECT company_id, company_name FROM companies ORDER BY company_name ASC");
     $companies = $company_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
@@ -68,15 +68,15 @@ try {
                             <?php foreach ($instructors as $index => $instructor): ?>
                                 <tr>
                                     <td><?php echo $index + 1; ?></td>
-                                    <td><?php echo htmlspecialchars($instructor['name']); ?></td>
-                                    <td><?php echo htmlspecialchars($instructor['serial_number']); ?></td>
-                                    <td><?php echo htmlspecialchars($instructor['position']); ?></td>
+                                    <td><?php echo htmlspecialchars($instructor['instructor_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($instructor['instructor_serial_number']); ?></td>
+                                    <td><?php echo htmlspecialchars($instructor['instructor_position']); ?></td>
                                     <td><?php echo htmlspecialchars($instructor['company_name']); ?></td>
                                     <td>
                                         <button class="btn btn-warning btn-sm edit-btn"
                                                 data-id="<?php echo $instructor['id']; ?>"
-                                                data-name="<?php echo htmlspecialchars($instructor['name']); ?>"
-                                                data-position="<?php echo htmlspecialchars($instructor['position']); ?>"
+                                                data-name="<?php echo htmlspecialchars($instructor['instructor_name']); ?>"
+                                                data-position="<?php echo htmlspecialchars($instructor['instructor_position']); ?>"
                                                 data-company_id="<?php echo $instructor['company_id']; ?>"
                                                 data-bs-toggle="modal" data-bs-target="#instructorModal">
                                             <i class="fas fa-edit"></i>
@@ -115,21 +115,21 @@ try {
                     <input type="hidden" name="action" id="form_action" value="create">
 
                     <div class="mb-3">
-                        <label for="name" class="form-label">Nama Lengkap</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
+                        <label for="instructor_name" class="form-label">Nama Lengkap</label>
+                        <input type="text" class="form-control" id="instructor_name" name="instructor_name" required>
                     </div>
                     <div class="mb-3">
                         <label for="company_id" class="form-label">Asal DUDIKA</label>
                         <select class="form-select" id="company_id" name="company_id" required>
                             <option value="" disabled selected>-- Pilih DUDIKA --</option>
                             <?php foreach ($companies as $company): ?>
-                                <option value="<?php echo $company['id']; ?>"><?php echo htmlspecialchars($company['name']); ?></option>
+                                <option value="<?php echo $company['company_id']; ?>"><?php echo htmlspecialchars($company['company_name']); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="position" class="form-label">Jabatan</label>
-                        <input type="text" class="form-control" id="position" name="position">
+                        <label for="instructor_position" class="form-label">Jabatan</label>
+                        <input type="text" class="form-control" id="instructor_position" name="instructor_position">
                     </div>
                     <div class="alert alert-info">
                         Username (Nomor Seri) dan Password akan dibuat secara otomatis oleh sistem.
@@ -170,8 +170,8 @@ $(document).ready(function() {
             actionInput.value = 'update'; // Aksi update hanya akan mengubah nama, posisi, dan perusahaan
             instructorIdInput.value = button.dataset.id;
 
-            $('#name').val(button.dataset.name);
-            $('#position').val(button.dataset.position);
+            $('#instructor_name').val(button.dataset.name);
+            $('#instructor_position').val(button.dataset.position);
             $('#company_id').val(button.dataset.company_id).trigger('change');
         } else {
             modalTitle.textContent = 'Tambah Instruktur Baru';

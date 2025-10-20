@@ -20,9 +20,9 @@ if ($user_role === 'student') {
         $leave_type = $_POST['leave_type'];
         $start_date = $_POST['start_date'];
         $end_date = $_POST['end_date'];
-        $reason = trim($_POST['reason']);
+        $leave_reason = trim($_POST['leave_reason']);
 
-        if (empty($leave_type) || empty($start_date) || empty($end_date) || empty($reason)) {
+        if (empty($leave_type) || empty($start_date) || empty($end_date) || empty($leave_reason)) {
             set_flash_message('danger', 'Semua kolom wajib diisi.');
             header("Location: ../request_leave.php");
             exit;
@@ -47,14 +47,14 @@ if ($user_role === 'student') {
             }
             $instructor_id = $mapping['instructor_id'];
 
-            $stmt = $pdo->prepare("INSERT INTO leave_requests (student_id, instructor_id, leave_type, start_date, end_date, reason) VALUES (:student_id, :instructor_id, :leave_type, :start_date, :end_date, :reason)");
+            $stmt = $pdo->prepare("INSERT INTO leave_requests (student_id, instructor_id, leave_type, start_date, end_date, leave_reason) VALUES (:student_id, :instructor_id, :leave_type, :start_date, :end_date, :leave_reason)");
             $stmt->execute([
                 ':student_id' => $user_id,
                 ':instructor_id' => $instructor_id,
                 ':leave_type' => $leave_type,
                 ':start_date' => $start_date,
                 ':end_date' => $end_date,
-                ':reason' => $reason
+                ':leave_reason' => $leave_reason
             ]);
             set_flash_message('success', 'Pengajuan berhasil dikirim.');
         } catch (PDOException $e) {
@@ -88,7 +88,7 @@ if ($user_role === 'instructor') {
             $verify_stmt->execute([':request_id' => $request_id, ':instructor_id' => $user_id]);
 
             if ($verify_stmt->fetchColumn() > 0) {
-                $update_stmt = $pdo->prepare("UPDATE leave_requests SET status = :status WHERE id = :id");
+                $update_stmt = $pdo->prepare("UPDATE leave_requests SET leave_status = :status WHERE id = :id");
                 $update_stmt->execute([':status' => $new_status, ':id' => $request_id]);
                 set_flash_message('success', "Pengajuan berhasil di-{$new_status}.");
             } else {

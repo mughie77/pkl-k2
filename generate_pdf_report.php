@@ -42,10 +42,10 @@ $academic_year = $stmt_year->fetch(PDO::FETCH_ASSOC);
 $year_name = $academic_year ? $academic_year['year_name'] : 'TAHUN AJARAN';
 
 // Student, Mapping, and Related Info
-$sql_student = "SELECT s.name AS student_name, s.nisn, kls.name AS kelas_name, kk.name AS konsentrasi_name, pk.program_name, c.name AS company_name, m.start_date, m.end_date, i.name AS instructor_name, t.name AS teacher_name, i.nip AS instructor_nip, t.nip AS teacher_nip
+$sql_student = "SELECT s.student_name, s.nisn, kls.kelas_name, kk.konsentrasi_name, pk.program_name, c.company_name, m.start_date, m.end_date, i.instructor_name, t.teacher_name, i.instructor_serial_number, t.teacher_nip
                 FROM students s
                 LEFT JOIN internship_mappings m ON s.id = m.student_id
-                LEFT JOIN companies c ON m.company_id = c.id
+                LEFT JOIN companies c ON m.company_id = c.company_id
                 LEFT JOIN instructors i ON m.instructor_id = i.id
                 LEFT JOIN teachers t ON m.teacher_id = t.id
                 LEFT JOIN kelas kls ON s.kelas_id = kls.id
@@ -70,13 +70,13 @@ $stmt_assessment = $pdo->prepare("
 $stmt_assessment->execute([':student_id' => $student_id, ':academic_year_id' => $academic_year_id]);
 $assessment = $stmt_assessment->fetch(PDO::FETCH_ASSOC);
 
-if (!$assessment) {
-    die("Data penilaian untuk siswa ini pada tahun ajaran ini tidak ditemukan.");
-}
+// Note: assessment can be null if not yet graded, so we don't die.
 
 // Attendance Summary
-$stmt_leave = $pdo->prepare("SELECT leave_type, COUNT(*) as total FROM leave_requests WHERE student_id = ? AND academic_year_id = ? GROUP BY leave_type");
-$stmt_leave->execute([$student_id, $academic_year_id]);
+// Note: leave_requests table does not have academic_year_id. This logic might need review if leave can span years.
+// For now, we assume requests are within the student's active mapping year.
+$stmt_leave = $pdo->prepare("SELECT leave_type, COUNT(*) as total FROM leave_requests WHERE student_id = ? GROUP BY leave_type");
+$stmt_leave->execute([$student_id]);
 $leave_data = $stmt_leave->fetchAll(PDO::FETCH_KEY_PAIR);
 
 $sakit = $leave_data['Sakit'] ?? 0;
@@ -214,7 +214,7 @@ $pdf->Cell(90, 6, $data['instructor_name'] ?? 'Nama Instruktur', 0, 1, 'C');
 
 $pdf->SetFont('times', '', 11);
 $pdf->Cell(90, 6, 'NIP. ' . ($data['teacher_nip'] ?? '-'), 0, 0, 'C');
-$pdf->Cell(90, 6, 'NIP. ' . ($data['instructor_nip'] ?? '-'), 0, 1, 'C');
+$pdf->Cell(90, 6, 'No. Seri: ' . ($data['instructor_serial_number'] ?? '-'), 0, 1, 'C');
 
 // Close and output PDF document
 $pdf->Output('Rapor_PKL_' . str_replace(' ', '_', $data['student_name']) . '.pdf', 'I');

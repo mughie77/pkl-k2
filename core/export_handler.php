@@ -56,7 +56,7 @@ try {
             $filter_start_date = $_GET['start_date'] ?? '';
             $filter_end_date = $_GET['end_date'] ?? '';
 
-            $query = "SELECT j.journal_date, s.name as student_name, pk.program_name, c.name as company_name, t.name as teacher_name, j.check_in_time, j.check_out_time, j.status FROM internship_journals j JOIN students s ON j.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id JOIN kelas kls ON s.kelas_id = kls.id JOIN konsentrasi_keahlian kk ON kls.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id LEFT JOIN companies c ON m.company_id = c.id LEFT JOIN teachers t ON m.teacher_id = t.id";
+            $query = "SELECT j.journal_date, s.student_name, pk.program_name, c.company_name, t.teacher_name, j.check_in_time, j.check_out_time, j.status FROM internship_journals j JOIN students s ON j.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id JOIN kelas kls ON s.kelas_id = kls.id JOIN konsentrasi_keahlian kk ON kls.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id LEFT JOIN companies c ON m.company_id = c.company_id LEFT JOIN teachers t ON m.teacher_id = t.id";
 
             $where_clauses = ["m.academic_year_id = :academic_year_id"];
             $params = [':academic_year_id' => $academic_year_id];
@@ -71,7 +71,7 @@ try {
             if (!empty($filter_end_date)) { $where_clauses[] = "j.journal_date <= :end_date"; $params[':end_date'] = $filter_end_date; }
 
             $query .= " WHERE " . implode(" AND ", $where_clauses);
-            $query .= " ORDER BY j.journal_date DESC, s.name ASC";
+            $query .= " ORDER BY j.journal_date DESC, s.student_name ASC";
 
             $stmt = $pdo->prepare($query);
             $stmt->execute($params);
@@ -96,7 +96,7 @@ try {
             $sheet->setTitle('Rekap Skor Global');
             if (!in_array($user_role, ['admin', 'waka_humas'])) { die('Akses ditolak.'); }
 
-            $query = "SELECT s.name as student_name, pk.program_name, i.name as instructor_name, a.score_1, a.score_2, a.score_3, a.score_4, ((a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4) as average_score, a.notes FROM internship_assessments a JOIN students s ON a.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id JOIN kelas kls ON s.kelas_id = kls.id JOIN konsentrasi_keahlian kk ON kls.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id JOIN instructors i ON a.instructor_id = i.id WHERE m.academic_year_id = :academic_year_id ORDER BY s.name ASC";
+            $query = "SELECT s.student_name, pk.program_name, i.instructor_name, a.score_1, a.score_2, a.score_3, a.score_4, ((a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4) as average_score, a.notes FROM internship_assessments a JOIN students s ON a.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id JOIN kelas kls ON s.kelas_id = kls.id JOIN konsentrasi_keahlian kk ON kls.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id JOIN instructors i ON a.instructor_id = i.id WHERE m.academic_year_id = :academic_year_id ORDER BY s.student_name ASC";
             $stmt = $pdo->prepare($query);
             $stmt->execute([':academic_year_id' => $academic_year_id]);
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -112,7 +112,7 @@ try {
             $sheet->setTitle('Rekap Skor Bimbingan');
             if ($user_role !== 'teacher') { die('Akses ditolak.'); }
 
-            $query = "SELECT s.name as student_name, pk.program_name, i.name as instructor_name, a.score_1, a.score_2, a.score_3, a.score_4, ((a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4) as average_score, a.notes FROM internship_assessments a JOIN students s ON a.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id JOIN kelas kls ON s.kelas_id = kls.id JOIN konsentrasi_keahlian kk ON kls.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id JOIN instructors i ON a.instructor_id = i.id WHERE m.teacher_id = :teacher_id AND m.academic_year_id = :academic_year_id ORDER BY s.name ASC";
+            $query = "SELECT s.student_name, pk.program_name, i.instructor_name, a.score_1, a.score_2, a.score_3, a.score_4, ((a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4) as average_score, a.notes FROM internship_assessments a JOIN students s ON a.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id JOIN kelas kls ON s.kelas_id = kls.id JOIN konsentrasi_keahlian kk ON kls.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id JOIN instructors i ON a.instructor_id = i.id WHERE m.teacher_id = :teacher_id AND m.academic_year_id = :academic_year_id ORDER BY s.student_name ASC";
             $stmt = $pdo->prepare($query);
             $stmt->execute([':teacher_id' => $user_id, ':academic_year_id' => $academic_year_id]);
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -132,7 +132,7 @@ try {
             $filter_start_date = $_GET['start_date'] ?? '';
             $filter_end_date = $_GET['end_date'] ?? '';
 
-            $query = "SELECT n.created_at, s.name as student_name, pk.program_name, c.name as company_name, n.note, n.creator_role, t.name as teacher_name, i.name as instructor_name FROM student_notes n JOIN students s ON n.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id JOIN kelas kls ON s.kelas_id = kls.id JOIN konsentrasi_keahlian kk ON kls.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id LEFT JOIN companies c ON m.company_id = c.id LEFT JOIN teachers t ON m.teacher_id = t.id LEFT JOIN instructors i ON m.instructor_id = i.id";
+            $query = "SELECT n.created_at, s.student_name, pk.program_name, c.company_name, n.note, n.creator_role, t.teacher_name, i.instructor_name FROM student_notes n JOIN students s ON n.student_id = s.id JOIN internship_mappings m ON s.id = m.student_id JOIN kelas kls ON s.kelas_id = kls.id JOIN konsentrasi_keahlian kk ON kls.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id LEFT JOIN companies c ON m.company_id = c.company_id LEFT JOIN teachers t ON m.teacher_id = t.id LEFT JOIN instructors i ON m.instructor_id = i.id";
 
             $where_clauses = ["m.academic_year_id = :academic_year_id"];
             $params = [':academic_year_id' => $academic_year_id];

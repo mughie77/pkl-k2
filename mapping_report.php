@@ -10,9 +10,9 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_role'], $allowed_r
 
 // Ambil data untuk filter
 try {
-    $depts = $pdo->query("SELECT id, program_name as department_name FROM program_keahlian ORDER BY program_name ASC")->fetchAll(PDO::FETCH_ASSOC);
-    $teachers = $pdo->query("SELECT id, name FROM teachers ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
-    $companies = $pdo->query("SELECT id, name FROM companies ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $depts = $pdo->query("SELECT id, program_name FROM program_keahlian ORDER BY program_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $teachers = $pdo->query("SELECT id, teacher_name FROM teachers ORDER BY teacher_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $companies = $pdo->query("SELECT company_id, company_name FROM companies ORDER BY company_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Error fetching filter data: " . $e->getMessage());
 }
@@ -26,19 +26,19 @@ $filter_end_date = $_GET['end_date'] ?? '';
 
 $query = "
     SELECT
-        m.start_date, m.end_date, m.status,
-        s.name as student_name,
+        m.start_date, m.end_date,
+        s.student_name,
         pk.program_name,
-        c.name as company_name,
-        t.name as teacher_name,
-        i.name as instructor_name
+        c.company_name,
+        t.teacher_name,
+        i.instructor_name
     FROM internship_mappings m
     JOIN students s ON m.student_id = s.id
     JOIN kelas k ON s.kelas_id = k.id
     JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
     JOIN program_keahlian pk ON kk.program_id = pk.id
     JOIN instructors i ON m.instructor_id = i.id
-    JOIN companies c ON i.company_id = c.id
+    JOIN companies c ON i.company_id = c.company_id
     JOIN teachers t ON m.teacher_id = t.id
 ";
 $params = [];
@@ -46,7 +46,7 @@ $where_clauses = [];
 
 if ($filter_program !== 'all') { $where_clauses[] = "pk.id = :program_id"; $params[':program_id'] = $filter_program; }
 if ($filter_teacher !== 'all') { $where_clauses[] = "m.teacher_id = :teacher_id"; $params[':teacher_id'] = $filter_teacher; }
-if ($filter_company !== 'all') { $where_clauses[] = "i.company_id = :company_id"; $params[':company_id'] = $filter_company; }
+if ($filter_company !== 'all') { $where_clauses[] = "m.company_id = :company_id"; $params[':company_id'] = $filter_company; }
 if (!empty($filter_start_date)) { $where_clauses[] = "m.start_date >= :start_date"; $params[':start_date'] = $filter_start_date; }
 if (!empty($filter_end_date)) { $where_clauses[] = "m.end_date <= :end_date"; $params[':end_date'] = $filter_end_date; }
 
@@ -54,7 +54,7 @@ if (!empty($where_clauses)) {
     $query .= " WHERE " . implode(" AND ", $where_clauses);
 }
 
-$query .= " ORDER BY c.name, s.name ASC";
+$query .= " ORDER BY c.company_name, s.student_name ASC";
 
 try {
     $stmt = $pdo->prepare($query);
@@ -76,21 +76,21 @@ try {
                     <label class="form-label">DUDIKA</label>
                     <select name="company_id" class="form-select select2">
                         <option value="all">Semua DUDIKA</option>
-                        <?php foreach ($companies as $c): ?><option value="<?php echo $c['id']; ?>" <?php echo ($filter_company == $c['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($c['name']); ?></option><?php endforeach; ?>
+                        <?php foreach ($companies as $c): ?><option value="<?php echo $c['company_id']; ?>" <?php echo ($filter_company == $c['company_id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($c['company_name']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Guru</label>
                     <select name="teacher_id" class="form-select select2">
                         <option value="all">Semua Guru</option>
-                        <?php foreach ($teachers as $t): ?><option value="<?php echo $t['id']; ?>" <?php echo ($filter_teacher == $t['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($t['name']); ?></option><?php endforeach; ?>
+                        <?php foreach ($teachers as $t): ?><option value="<?php echo $t['id']; ?>" <?php echo ($filter_teacher == $t['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($t['teacher_name']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
                  <div class="col-md-2">
                     <label class="form-label">Program Keahlian</label>
                     <select name="program_id" class="form-select select2">
                         <option value="all">Semua Program</option>
-                        <?php foreach ($depts as $d): ?><option value="<?php echo $d['id']; ?>" <?php echo ($filter_program == $d['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($d['department_name']); ?></option><?php endforeach; ?>
+                        <?php foreach ($depts as $d): ?><option value="<?php echo $d['id']; ?>" <?php echo ($filter_program == $d['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($d['program_name']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-2">

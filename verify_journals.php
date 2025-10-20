@@ -15,7 +15,7 @@ try {
     $stmt = $pdo->prepare("
         SELECT
             j.id, j.journal_date, j.check_in_time, j.check_out_time, j.activities,
-            s.name as student_name
+            s.student_name
         FROM internship_journals j
         JOIN internship_mappings m ON j.student_id = m.student_id
         JOIN students s ON j.student_id = s.id

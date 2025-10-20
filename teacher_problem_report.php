@@ -16,14 +16,14 @@ $filter_end_date = $_GET['end_date'] ?? '';
 $query = "
     SELECT
         n.note, n.created_at, n.creator_role,
-        s.name as student_name,
-        c.name as company_name,
-        i.name as instructor_name
+        s.student_name,
+        c.company_name,
+        i.instructor_name
     FROM student_notes n
     JOIN students s ON n.student_id = s.id
     JOIN internship_mappings m ON n.student_id = m.student_id
     LEFT JOIN instructors i ON m.instructor_id = i.id
-    LEFT JOIN companies c ON i.company_id = c.id
+    LEFT JOIN companies c ON m.company_id = c.company_id
     WHERE m.teacher_id = :teacher_id
 ";
 $params = [':teacher_id' => $teacher_id];

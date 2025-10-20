@@ -13,12 +13,12 @@ $instructor_id = $_SESSION['user_id'];
 try {
     // Ambil daftar siswa bimbingan yang BELUM dinilai
     $stmt = $pdo->prepare("
-        SELECT s.id, s.name
+        SELECT s.id, s.student_name
         FROM students s
         JOIN internship_mappings m ON s.id = m.student_id
         LEFT JOIN internship_assessments a ON s.id = a.student_id AND a.instructor_id = :instructor_id
         WHERE m.instructor_id = :instructor_id_map AND a.id IS NULL
-        ORDER BY s.name ASC
+        ORDER BY s.student_name ASC
     ");
     $stmt->execute([':instructor_id' => $instructor_id, ':instructor_id_map' => $instructor_id]);
     $unassessed_students = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -53,7 +53,7 @@ try {
                         <select class="form-select" id="student_id" name="student_id" required>
                             <option value="" disabled selected>-- Daftar Siswa Belum Dinilai --</option>
                             <?php foreach ($unassessed_students as $student): ?>
-                                <option value="<?php echo $student['id']; ?>"><?php echo htmlspecialchars($student['name']); ?></option>
+                                <option value="<?php echo $student['id']; ?>"><?php echo htmlspecialchars($student['student_name']); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>

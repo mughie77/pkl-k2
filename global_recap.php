@@ -13,17 +13,17 @@ $user_role = $_SESSION['user_role'];
 
 // Ambil data untuk filter
 try {
-    $depts = $pdo->query("SELECT id, program_name as department_name FROM program_keahlian ORDER BY program_name ASC")->fetchAll(PDO::FETCH_ASSOC);
-    $teachers = $pdo->query("SELECT id, name FROM teachers ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
-    $companies = $pdo->query("SELECT id, name FROM companies ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $depts = $pdo->query("SELECT id, program_name FROM program_keahlian ORDER BY program_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $teachers = $pdo->query("SELECT id, teacher_name FROM teachers ORDER BY teacher_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $companies = $pdo->query("SELECT company_id, company_name FROM companies ORDER BY company_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-    $student_query = "SELECT s.id, s.name, k.id as kelas_id, kk.id as konsentrasi_id, pk.id as program_id FROM students s JOIN kelas k ON s.kelas_id = k.id JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id";
+    $student_query = "SELECT s.id, s.student_name, k.id as kelas_id, kk.id as konsentrasi_id, pk.id as program_id FROM students s JOIN kelas k ON s.kelas_id = k.id JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id JOIN program_keahlian pk ON kk.program_id = pk.id";
     $student_params = [];
     if ($user_role === 'instructor') {
         $student_query .= " JOIN internship_mappings m ON s.id = m.student_id WHERE m.instructor_id = :user_id";
         $student_params[':user_id'] = $user_id;
     }
-    $student_query .= " ORDER BY s.name ASC";
+    $student_query .= " ORDER BY s.student_name ASC";
     $stmt_students = $pdo->prepare($student_query);
     $stmt_students->execute($student_params);
     $students_for_filter = $stmt_students->fetchAll(PDO::FETCH_ASSOC);
@@ -44,17 +44,17 @@ $query = "
     SELECT
         j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
         j.check_in_latitude, j.check_in_longitude, j.check_out_latitude, j.check_out_longitude,
-        s.name as student_name,
+        s.student_name,
         pk.program_name,
-        c.name as company_name, c.latitude as company_latitude, c.longitude as company_longitude,
-        t.name as teacher_name
+        c.company_name, c.latitude as company_latitude, c.longitude as company_longitude,
+        t.teacher_name
     FROM internship_journals j
     JOIN students s ON j.student_id = s.id
     JOIN internship_mappings m ON s.id = m.student_id AND m.academic_year_id = :academic_year_id
     JOIN kelas k ON s.kelas_id = k.id
     JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
     JOIN program_keahlian pk ON kk.program_id = pk.id
-    LEFT JOIN companies c ON m.company_id = c.id
+    LEFT JOIN companies c ON m.company_id = c.company_id
     LEFT JOIN teachers t ON m.teacher_id = t.id
 ";
 $params = [':academic_year_id' => $_SESSION['selected_academic_year_id']];
@@ -67,7 +67,7 @@ if ($user_role === 'instructor') {
 
 if ($filter_program !== 'all') { $where_clauses[] = "pk.id = :program_id"; $params[':program_id'] = $filter_program; }
 if ($filter_teacher !== 'all') { $where_clauses[] = "m.teacher_id = :teacher_id"; $params[':teacher_id'] = $filter_teacher; }
-if ($filter_company !== 'all') { $where_clauses[] = "i.company_id = :company_id"; $params[':company_id'] = $filter_company; }
+if ($filter_company !== 'all') { $where_clauses[] = "m.company_id = :company_id"; $params[':company_id'] = $filter_company; }
 if ($filter_student !== 'all') { $where_clauses[] = "j.student_id = :student_id"; $params[':student_id'] = $filter_student; }
 if (!empty($filter_start_date)) { $where_clauses[] = "j.journal_date >= :start_date"; $params[':start_date'] = $filter_start_date; }
 if (!empty($filter_end_date)) { $where_clauses[] = "j.journal_date <= :end_date"; $params[':end_date'] = $filter_end_date; }
@@ -76,7 +76,7 @@ if (!empty($where_clauses)) {
     $query .= " WHERE " . implode(" AND ", $where_clauses);
 }
 
-$query .= " ORDER BY j.journal_date DESC, s.name ASC";
+$query .= " ORDER BY j.journal_date DESC, s.student_name ASC";
 
 try {
     $stmt = $pdo->prepare($query);
@@ -116,21 +116,21 @@ function get_status_badge($status) {
                     <label class="form-label">DUDIKA</label>
                     <select name="company_id" id="company_id" class="form-select">
                         <option value="all">Semua DUDIKA</option>
-                        <?php foreach ($companies as $c): ?><option value="<?php echo $c['id']; ?>" <?php echo ($filter_company == $c['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($c['name']); ?></option><?php endforeach; ?>
+                        <?php foreach ($companies as $c): ?><option value="<?php echo $c['company_id']; ?>" <?php echo ($filter_company == $c['company_id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($c['company_name']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Guru</label>
                     <select name="teacher_id" id="teacher_id" class="form-select">
                         <option value="all">Semua Guru</option>
-                        <?php foreach ($teachers as $t): ?><option value="<?php echo $t['id']; ?>" <?php echo ($filter_teacher == $t['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($t['name']); ?></option><?php endforeach; ?>
+                        <?php foreach ($teachers as $t): ?><option value="<?php echo $t['id']; ?>" <?php echo ($filter_teacher == $t['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($t['teacher_name']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
                  <div class="col-md-3">
                     <label class="form-label">Program Keahlian</label>
                     <select name="program_id" id="program_id" class="form-select">
                         <option value="all">Semua Program</option>
-                        <?php foreach ($programs as $p): ?><option value="<?php echo $p['id']; ?>" <?php echo ($filter_program == $p['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($p['program_name']); ?></option><?php endforeach; ?>
+                        <?php foreach ($depts as $p): ?><option value="<?php echo $p['id']; ?>" <?php echo ($filter_program == $p['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($p['program_name']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
                 <?php endif; ?>
@@ -138,7 +138,7 @@ function get_status_badge($status) {
                     <label class="form-label">Siswa</label>
                     <select name="student_id" id="student_id" class="form-select">
                         <option value="all">Semua Siswa</option>
-                        <?php foreach ($students_for_filter as $s): ?><option value="<?php echo $s['id']; ?>" <?php echo ($filter_student == $s['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($s['name']); ?></option><?php endforeach; ?>
+                        <?php foreach ($students_for_filter as $s): ?><option value="<?php echo $s['id']; ?>" <?php echo ($filter_student == $s['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($s['student_name']); ?></option><?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-2">

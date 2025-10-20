@@ -15,40 +15,40 @@ try {
     $stmt_mappings = $pdo->prepare("
         SELECT
             im.id, im.start_date, im.end_date,
-            s.id as student_id, s.name as student_name,
-            t.id as teacher_id, t.name as teacher_name,
-            i.id as instructor_id, i.name as instructor_name, c.name as company_name
+            s.id as student_id, s.student_name,
+            t.id as teacher_id, t.teacher_name,
+            i.id as instructor_id, i.instructor_name, c.company_name
         FROM internship_mappings im
         JOIN students s ON im.student_id = s.id
         JOIN teachers t ON im.teacher_id = t.id
         JOIN instructors i ON im.instructor_id = i.id
-        JOIN companies c ON i.company_id = c.id
+        JOIN companies c ON i.company_id = c.company_id
         WHERE im.academic_year_id = :year_id
-        ORDER BY s.name ASC
+        ORDER BY s.student_name ASC
     ");
     $stmt_mappings->execute([':year_id' => $active_year_id]);
     $mappings = $stmt_mappings->fetchAll(PDO::FETCH_ASSOC);
 
     // 2. Ambil data siswa dari tahun ajaran aktif yang BELUM di-mapping
     $stmt_unmapped_students = $pdo->prepare("
-        SELECT id, name FROM students
+        SELECT id, student_name FROM students
         WHERE academic_year_id = :year_id
         AND id NOT IN (SELECT student_id FROM internship_mappings WHERE academic_year_id = :year_id_in)
-        ORDER BY name ASC
+        ORDER BY student_name ASC
     ");
     $stmt_unmapped_students->execute([':year_id' => $active_year_id, ':year_id_in' => $active_year_id]);
     $unmapped_students = $stmt_unmapped_students->fetchAll(PDO::FETCH_ASSOC);
 
     // 3. Ambil semua data guru
-    $stmt_teachers = $pdo->query("SELECT id, name FROM teachers ORDER BY name ASC");
+    $stmt_teachers = $pdo->query("SELECT id, teacher_name FROM teachers ORDER BY teacher_name ASC");
     $teachers = $stmt_teachers->fetchAll(PDO::FETCH_ASSOC);
 
     // 4. Ambil semua data instruktur
     $stmt_instructors = $pdo->query("
-        SELECT i.id, i.name, c.name as company_name
+        SELECT i.id, i.instructor_name, c.company_name
         FROM instructors i
-        JOIN companies c ON i.company_id = c.id
-        ORDER BY i.name ASC
+        JOIN companies c ON i.company_id = c.company_id
+        ORDER BY i.instructor_name ASC
     ");
     $instructors = $stmt_instructors->fetchAll(PDO::FETCH_ASSOC);
 
@@ -140,7 +140,7 @@ try {
                         <select class="form-select select2-mapping" id="student_id_mapping" name="student_id" required>
                             <option value="" disabled selected>-- Pilih Siswa --</option>
                             <?php foreach ($unmapped_students as $student): ?>
-                                <option value="<?php echo $student['id']; ?>"><?php echo htmlspecialchars($student['name']); ?></option>
+                                <option value="<?php echo $student['id']; ?>"><?php echo htmlspecialchars($student['student_name']); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -149,7 +149,7 @@ try {
                         <select class="form-select select2-mapping" id="teacher_id_mapping" name="teacher_id" required>
                             <option value="" disabled selected>-- Pilih Guru --</option>
                             <?php foreach ($teachers as $teacher): ?>
-                                <option value="<?php echo $teacher['id']; ?>"><?php echo htmlspecialchars($teacher['name']); ?></option>
+                                <option value="<?php echo $teacher['id']; ?>"><?php echo htmlspecialchars($teacher['teacher_name']); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -158,7 +158,7 @@ try {
                         <select class="form-select select2-mapping" id="instructor_id_mapping" name="instructor_id" required>
                             <option value="" disabled selected>-- Pilih Instruktur --</option>
                             <?php foreach ($instructors as $instructor): ?>
-                                <option value="<?php echo $instructor['id']; ?>"><?php echo htmlspecialchars($instructor['name'] . ' (' . $instructor['company_name'] . ')'); ?></option>
+                                <option value="<?php echo $instructor['id']; ?>"><?php echo htmlspecialchars($instructor['instructor_name'] . ' (' . $instructor['company_name'] . ')'); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>

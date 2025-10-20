@@ -18,12 +18,12 @@ try {
     // Ambil semua data terkait siswa
     $stmt = $pdo->prepare("
         SELECT
-            s.*,
+            s.student_name, s.nis, s.nisn, s.birth_place, s.birth_date, s.address, s.phone, s.parent_phone,
             k.kelas_name, kk.konsentrasi_name, pk.program_name,
             ay.year_name,
-            t.name as teacher_name, t.phone as teacher_phone,
-            i.name as instructor_name,
-            c.name as company_name
+            t.teacher_name, t.teacher_phone,
+            i.instructor_name,
+            c.company_name
         FROM students s
         LEFT JOIN kelas k ON s.kelas_id = k.id
         LEFT JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
@@ -32,7 +32,7 @@ try {
         LEFT JOIN internship_mappings m ON s.id = m.student_id
         LEFT JOIN teachers t ON m.teacher_id = t.id
         LEFT JOIN instructors i ON m.instructor_id = i.id
-        LEFT JOIN companies c ON i.company_id = c.id
+        LEFT JOIN companies c ON m.company_id = c.company_id
         WHERE s.id = :id
     ");
     $stmt->execute([':id' => $student_id]);
@@ -65,7 +65,7 @@ function create_whatsapp_link($phone) {
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">
                 <i class="fas fa-user-graduate me-2"></i>
-                <?php echo htmlspecialchars($student['name']); ?>
+                <?php echo htmlspecialchars($student['student_name']); ?>
             </h6>
             <a href="javascript:history.back()" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left me-2"></i>Kembali</a>
         </div>

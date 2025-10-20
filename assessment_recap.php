@@ -21,10 +21,10 @@ try {
     // Query yang diperbaiki: JOIN dengan internship_mappings dan filter academic_year_id dari sana
     $stmt = $pdo->prepare("
         SELECT
-            s.id as student_id, s.name as student_name, pk.program_name,
+            s.id as student_id, s.student_name, pk.program_name,
             a.score_1, a.score_2, a.score_3, a.score_4, a.notes,
             (a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4 as average_score,
-            i.name as instructor_name
+            i.instructor_name
         FROM internship_assessments a
         JOIN students s ON a.student_id = s.id
         JOIN internship_mappings m ON s.id = m.student_id
@@ -33,7 +33,7 @@ try {
         JOIN program_keahlian pk ON kk.program_id = pk.id
         JOIN instructors i ON a.instructor_id = i.id
         WHERE m.academic_year_id = :academic_year_id
-        ORDER BY s.name ASC
+        ORDER BY s.student_name ASC
     ");
     $stmt->execute([':academic_year_id' => $academic_year_id]);
     $assessments = $stmt->fetchAll(PDO::FETCH_ASSOC);

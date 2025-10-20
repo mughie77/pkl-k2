@@ -14,24 +14,25 @@ $user_info = [];
 
 // Tentukan tabel dan kolom username berdasarkan peran
 $auth_config = [
-    'admin' => ['table' => 'admins', 'user_col' => 'username'],
-    'waka_humas' => ['table' => 'waka_humas', 'user_col' => 'username'],
-    'teacher' => ['table' => 'teachers', 'user_col' => 'nip'],
-    'instructor' => ['table' => 'instructors', 'user_col' => 'serial_number'],
-    'student' => ['table' => 'students', 'user_col' => 'nisn']
+    'admin' => ['table' => 'admins', 'user_col' => 'username', 'name_col' => 'name'],
+    'waka_humas' => ['table' => 'waka_humas', 'user_col' => 'username', 'name_col' => 'name'],
+    'teacher' => ['table' => 'teachers', 'user_col' => 'teacher_nip', 'name_col' => 'teacher_name'],
+    'instructor' => ['table' => 'instructors', 'user_col' => 'instructor_serial_number', 'name_col' => 'instructor_name'],
+    'student' => ['table' => 'students', 'user_col' => 'nisn', 'name_col' => 'student_name']
 ];
 
 $table = $auth_config[$user_role]['table'];
 $user_col = $auth_config[$user_role]['user_col'];
+$name_col = $auth_config[$user_role]['name_col'];
 
 try {
     if ($user_role === 'student') {
         $stmt = $pdo->prepare("
             SELECT s.*, k.kelas_name, kk.konsentrasi_name, pk.program_name
             FROM students s
-            JOIN kelas k ON s.kelas_id = k.id
-            JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
-            JOIN program_keahlian pk ON kk.program_id = pk.id
+            LEFT JOIN kelas k ON s.kelas_id = k.id
+            LEFT JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+            LEFT JOIN program_keahlian pk ON kk.program_id = pk.id
             WHERE s.id = :id
         ");
     } else {
@@ -64,13 +65,13 @@ try {
                     <h6 class="m-0 font-weight-bold text-primary">Informasi Personal</h6>
                 </div>
                 <div class="card-body">
-                    <p><strong>Nama:</strong> <?php echo htmlspecialchars($user_info['name']); ?></p>
-                    <p><strong>Peran:</strong> <?php echo ucwords($user_role); ?></p>
+                    <p><strong>Nama:</strong> <?php echo htmlspecialchars($user_info[$name_col]); ?></p>
+                    <p><strong>Peran:</strong> <?php echo ucwords(str_replace('_', ' ', $user_role)); ?></p>
                     <p><strong>Username:</strong> <?php echo htmlspecialchars($user_info[$user_col]); ?></p>
                     <?php if ($user_role === 'student'): ?>
-                        <p><strong>Program Keahlian:</strong> <?php echo htmlspecialchars($user_info['program_name']); ?></p>
-                        <p><strong>Konsentrasi Keahlian:</strong> <?php echo htmlspecialchars($user_info['konsentrasi_name']); ?></p>
-                        <p><strong>Kelas:</strong> <?php echo htmlspecialchars($user_info['kelas_name']); ?></p>
+                        <p><strong>Program Keahlian:</strong> <?php echo htmlspecialchars($user_info['program_name'] ?? '-'); ?></p>
+                        <p><strong>Konsentrasi Keahlian:</strong> <?php echo htmlspecialchars($user_info['konsentrasi_name'] ?? '-'); ?></p>
+                        <p><strong>Kelas:</strong> <?php echo htmlspecialchars($user_info['kelas_name'] ?? '-'); ?></p>
                         <p><strong>Email:</strong> <?php echo htmlspecialchars($user_info['email'] ?? '-'); ?></p>
                         <hr>
                         <form action="core/profile_actions.php" method="POST">
@@ -78,19 +79,17 @@ try {
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="work_start_time" class="form-label">Jam Mulai Kerja</label>
-                                    <input type="time" class="form-control" name="work_start_time" id="work_start_time" value="<?php echo htmlspecialchars($user_info['work_start_time']); ?>">
+                                    <input type="time" class="form-control" name="work_start_time" id="work_start_time" value="<?php echo htmlspecialchars($user_info['work_start_time'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="work_end_time" class="form-label">Jam Selesai Kerja</label>
-                                    <input type="time" class="form-control" name="work_end_time" id="work_end_time" value="<?php echo htmlspecialchars($user_info['work_end_time']); ?>">
+                                    <input type="time" class="form-control" name="work_end_time" id="work_end_time" value="<?php echo htmlspecialchars($user_info['work_end_time'] ?? ''); ?>">
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-info btn-sm"><i class="fas fa-save me-2"></i>Simpan Jam Kerja</button>
                         </form>
-                    <?php elseif ($user_role === 'teacher'): ?>
-                        <p><strong>Bidang:</strong> <?php echo htmlspecialchars($user_info['department']); ?></p>
                     <?php elseif ($user_role === 'instructor'): ?>
-                        <p><strong>Jabatan:</strong> <?php echo htmlspecialchars($user_info['position']); ?></p>
+                        <p><strong>Jabatan:</strong> <?php echo htmlspecialchars($user_info['instructor_position'] ?? '-'); ?></p>
                     <?php endif; ?>
                 </div>
             </div>

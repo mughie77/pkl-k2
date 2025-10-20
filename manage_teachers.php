@@ -10,7 +10,7 @@ if ($_SESSION['user_role'] !== 'admin') {
 
 // Ambil data guru dari database
 try {
-    $stmt = $pdo->query("SELECT * FROM teachers ORDER BY name ASC");
+    $stmt = $pdo->query("SELECT id, teacher_name, teacher_nip, teacher_phone FROM teachers ORDER BY teacher_name ASC");
     $teachers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Error: Could not fetch teachers data. " . $e->getMessage());
@@ -46,7 +46,6 @@ try {
                             <th>Nama Lengkap</th>
                             <th>NIP (Username)</th>
                             <th>No. HP</th>
-                            <th>Jurusan/Bidang</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -55,17 +54,15 @@ try {
                             <?php foreach ($teachers as $index => $teacher): ?>
                                 <tr>
                                     <td><?php echo $index + 1; ?></td>
-                                    <td><?php echo htmlspecialchars($teacher['name']); ?></td>
-                                    <td><?php echo htmlspecialchars($teacher['nip']); ?></td>
-                                    <td><?php echo htmlspecialchars($teacher['phone']); ?></td>
-                                    <td><?php echo htmlspecialchars($teacher['department']); ?></td>
+                                    <td><?php echo htmlspecialchars($teacher['teacher_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($teacher['teacher_nip']); ?></td>
+                                    <td><?php echo htmlspecialchars($teacher['teacher_phone']); ?></td>
                                     <td>
                                         <button class="btn btn-warning btn-sm edit-btn"
                                                 data-id="<?php echo $teacher['id']; ?>"
-                                                data-name="<?php echo htmlspecialchars($teacher['name']); ?>"
-                                                data-nip="<?php echo htmlspecialchars($teacher['nip']); ?>"
-                                                data-phone="<?php echo htmlspecialchars($teacher['phone']); ?>"
-                                                data-department="<?php echo htmlspecialchars($teacher['department']); ?>"
+                                                data-name="<?php echo htmlspecialchars($teacher['teacher_name']); ?>"
+                                                data-nip="<?php echo htmlspecialchars($teacher['teacher_nip']); ?>"
+                                                data-phone="<?php echo htmlspecialchars($teacher['teacher_phone']); ?>"
                                                 data-bs-toggle="modal" data-bs-target="#teacherModal">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -79,7 +76,7 @@ try {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6" class="text-center">Belum ada data guru.</td>
+                                <td colspan="5" class="text-center">Belum ada data guru.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -103,21 +100,17 @@ try {
                     <input type="hidden" name="action" id="form_action" value="create">
 
                     <div class="mb-3">
-                        <label for="name" class="form-label">Nama Lengkap</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
+                        <label for="teacher_name" class="form-label">Nama Lengkap</label>
+                        <input type="text" class="form-control" id="teacher_name" name="teacher_name" required>
                     </div>
                     <div class="mb-3">
-                        <label for="nip" class="form-label">NIP (Nomor Induk Pegawai)</label>
-                        <input type="text" class="form-control" id="nip" name="nip" required>
+                        <label for="teacher_nip" class="form-label">NIP (Nomor Induk Pegawai)</label>
+                        <input type="text" class="form-control" id="teacher_nip" name="teacher_nip" required>
                         <small class="form-text text-muted">NIP akan digunakan sebagai username dan password default.</small>
                     </div>
                     <div class="mb-3">
-                        <label for="phone" class="form-label">No. HP</label>
-                        <input type="tel" class="form-control" id="phone" name="phone">
-                    </div>
-                    <div class="mb-3">
-                        <label for="department" class="form-label">Jurusan/Bidang Keahlian</label>
-                        <input type="text" class="form-control" id="department" name="department" required>
+                        <label for="teacher_phone" class="form-label">No. HP</label>
+                        <input type="tel" class="form-control" id="teacher_phone" name="teacher_phone">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -144,10 +137,9 @@ document.addEventListener('DOMContentLoaded', function() {
             actionInput.value = 'update';
             teacherIdInput.value = button.dataset.id;
 
-            document.getElementById('name').value = button.dataset.name;
-            document.getElementById('nip').value = button.dataset.nip;
-            document.getElementById('phone').value = button.dataset.phone;
-            document.getElementById('department').value = button.dataset.department;
+            document.getElementById('teacher_name').value = button.dataset.name;
+            document.getElementById('teacher_nip').value = button.dataset.nip;
+            document.getElementById('teacher_phone').value = button.dataset.phone;
         } else {
             modalTitle.textContent = 'Tambah Guru Baru';
             actionInput.value = 'create';

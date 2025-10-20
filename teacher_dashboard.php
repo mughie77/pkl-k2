@@ -21,16 +21,15 @@ if ($hour >= 18) $greeting = 'Selamat Malam';
 try {
     // Ambil daftar siswa bimbingan
     $stmt_students = $pdo->prepare("
-        SELECT s.id, s.name, pk.program_name, c.name as company_name
+        SELECT s.id, s.student_name, pk.program_name, c.company_name
         FROM students s
         JOIN kelas k ON s.kelas_id = k.id
         JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
         JOIN program_keahlian pk ON kk.program_id = pk.id
         JOIN internship_mappings m ON s.id = m.student_id
-        JOIN instructors i ON m.instructor_id = i.id
-        JOIN companies c ON i.company_id = c.id
+        JOIN companies c ON m.company_id = c.company_id
         WHERE m.teacher_id = :teacher_id
-        ORDER BY s.name ASC
+        ORDER BY s.student_name ASC
     ");
     $stmt_students->execute([':teacher_id' => $teacher_id]);
     $assigned_students = $stmt_students->fetchAll(PDO::FETCH_ASSOC);
@@ -109,7 +108,7 @@ try {
                         <?php if (count($assigned_students) > 0): ?>
                             <?php foreach ($assigned_students as $student): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($student['name']); ?></td>
+                                    <td><?php echo htmlspecialchars($student['student_name']); ?></td>
                                     <td><?php echo htmlspecialchars($student['program_name']); ?></td>
                                     <td><?php echo htmlspecialchars($student['company_name']); ?></td>
                                 </tr>

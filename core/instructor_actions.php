@@ -25,7 +25,7 @@ function generate_serial_number($pdo) {
     do {
         // Format: DDK- seguito da 8 caratteri alfanumerici casuali
         $serial = 'DDK-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM instructors WHERE serial_number = :serial");
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM instructors WHERE instructor_serial_number = :serial");
         $stmt->execute([':serial' => $serial]);
     } while ($stmt->fetchColumn() > 0);
     return $serial;
@@ -38,11 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Aksi: Tambah Instruktur (Create)
     if ($action === 'create') {
-        $name = trim($_POST['name']);
+        $instructor_name = trim($_POST['instructor_name']);
         $company_id = $_POST['company_id'];
-        $position = trim($_POST['position']);
+        $instructor_position = trim($_POST['instructor_position']);
 
-        if (empty($name) || empty($company_id)) {
+        if (empty($instructor_name) || empty($company_id)) {
             set_flash_message('danger', 'Nama dan DUDIKA wajib diisi.');
             redirect_to_manage_instructors();
         }
@@ -51,13 +51,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $hashed_password = password_hash($serial_number, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $pdo->prepare("INSERT INTO instructors (name, company_id, position, serial_number, password) VALUES (:name, :company_id, :position, :serial_number, :password)");
+            $stmt = $pdo->prepare("INSERT INTO instructors (instructor_name, company_id, instructor_position, instructor_serial_number, instructor_password) VALUES (:instructor_name, :company_id, :instructor_position, :instructor_serial_number, :instructor_password)");
             $stmt->execute([
-                ':name' => $name,
+                ':instructor_name' => $instructor_name,
                 ':company_id' => $company_id,
-                ':position' => $position,
-                ':serial_number' => $serial_number,
-                ':password' => $hashed_password
+                ':instructor_position' => $instructor_position,
+                ':instructor_serial_number' => $serial_number,
+                ':instructor_password' => $hashed_password
             ]);
             set_flash_message('success', 'Data instruktur berhasil ditambahkan.', $serial_number);
         } catch (PDOException $e) {
@@ -70,21 +70,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Tidak mengubah nomor seri atau password, hanya data lainnya.
     if ($action === 'update') {
         $instructor_id = $_POST['instructor_id'];
-        $name = trim($_POST['name']);
+        $instructor_name = trim($_POST['instructor_name']);
         $company_id = $_POST['company_id'];
-        $position = trim($_POST['position']);
+        $instructor_position = trim($_POST['instructor_position']);
 
-        if (empty($instructor_id) || empty($name) || empty($company_id)) {
+        if (empty($instructor_id) || empty($instructor_name) || empty($company_id)) {
             set_flash_message('danger', 'Nama dan DUDIKA wajib diisi.');
             redirect_to_manage_instructors();
         }
 
         try {
-            $stmt = $pdo->prepare("UPDATE instructors SET name = :name, company_id = :company_id, position = :position WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE instructors SET instructor_name = :instructor_name, company_id = :company_id, instructor_position = :instructor_position WHERE id = :id");
             $stmt->execute([
-                ':name' => $name,
+                ':instructor_name' => $instructor_name,
                 ':company_id' => $company_id,
-                ':position' => $position,
+                ':instructor_position' => $instructor_position,
                 ':id' => $instructor_id
             ]);
             set_flash_message('success', 'Data instruktur berhasil diperbarui.');
