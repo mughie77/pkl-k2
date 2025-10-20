@@ -29,6 +29,7 @@ try {
     $query = "
         SELECT
             j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
+            j.check_in_latitude, j.check_in_longitude,
             s.name as student_name, s.work_start_time, s.work_end_time
         FROM internship_journals j
         JOIN students s ON j.student_id = s.id
@@ -146,6 +147,15 @@ function get_status_badge($status) {
                                                 data-bs-toggle="modal" data-bs-target="#viewJournalModal">
                                             <i class="fas fa-eye"></i> Lihat Jurnal
                                         </button>
+                                        <?php if ($journal['check_in_latitude'] && $journal['check_in_longitude']): ?>
+                                            <button class="btn btn-secondary btn-sm view-location-btn"
+                                                    data-lat="<?php echo $journal['check_in_latitude']; ?>"
+                                                    data-lng="<?php echo $journal['check_in_longitude']; ?>"
+                                                    data-student-name="<?php echo htmlspecialchars($journal['student_name']); ?>"
+                                                    data-bs-toggle="modal" data-bs-target="#viewLocationModal">
+                                                <i class="fas fa-map-marker-alt"></i> Lihat Lokasi
+                                            </button>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -181,6 +191,22 @@ function get_status_badge($status) {
     </div>
 </div>
 
+<!-- Modal untuk Peta Lokasi -->
+<div class="modal fade" id="viewLocationModal" tabindex="-1" aria-labelledby="viewLocationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewLocationModalLabel">Lokasi Absensi Siswa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Lokasi <strong id="location_student_name"></strong> saat melakukan check-in.</p>
+                <div id="map" style="height: 400px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 $(document).ready(function() {
     // Initialize Select2
@@ -198,6 +224,41 @@ $(document).ready(function() {
         viewJournalModal.querySelector('#modal_student_name').textContent = studentName;
         viewJournalModal.querySelector('#modal_journal_date').textContent = journalDate;
         viewJournalModal.querySelector('#journal_activities_content').textContent = activities;
+    });
+
+    let map;
+    const viewLocationModal = document.getElementById('viewLocationModal');
+    viewLocationModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const lat = parseFloat(button.dataset.lat);
+        const lng = parseFloat(button.dataset.lng);
+        const studentName = button.dataset.studentName;
+
+        viewLocationModal.querySelector('#location_student_name').textContent = studentName;
+
+        setTimeout(() => {
+            if (!map) {
+                map = L.map('map').setView([lat, lng], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+            } else {
+                map.setView([lat, lng], 15);
+            }
+
+            // Hapus marker sebelumnya jika ada
+            map.eachLayer((layer) => {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup(`Lokasi check-in ${studentName}`)
+                .openPopup();
+
+            map.invalidateSize();
+        }, 500); // Penundaan untuk memastikan modal dan DOM siap
     });
 });
 </script>
