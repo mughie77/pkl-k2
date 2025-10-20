@@ -110,8 +110,11 @@ function get_status_badge($status) {
 
     <!-- Data Table -->
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Data Jurnal dan Kehadiran</h6>
+            <a href="core/export_handler.php?report_type=journal_recap&student_id=<?php echo urlencode($filter_student_id); ?>&start_date=<?php echo urlencode($filter_start_date); ?>&end_date=<?php echo urlencode($filter_end_date); ?>" class="btn btn-sm btn-success">
+                <i class="fas fa-file-excel me-2"></i>Export to Excel
+            </a>
         </div>
         <div class="card-body">
             <div class="table-responsive">
