@@ -27,7 +27,8 @@ try {
         LEFT JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
         LEFT JOIN program_keahlian pk ON kk.program_id = pk.id
         LEFT JOIN internship_mappings m ON s.id = m.student_id
-        LEFT JOIN companies c ON m.company_id = c.id
+        LEFT JOIN instructors i ON m.instructor_id = i.id
+        LEFT JOIN companies c ON i.company_id = c.id
         WHERE m.teacher_id = :teacher_id
         ORDER BY s.name ASC
     ");
