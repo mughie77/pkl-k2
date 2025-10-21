@@ -10,8 +10,15 @@ if ($_SESSION['user_role'] !== 'admin') {
 
 // Ambil data untuk dropdowns
 try {
-    $stmt_depts = $pdo->query("SELECT id, department_name FROM departments ORDER BY department_name ASC");
-    $departments = $stmt_depts->fetchAll(PDO::FETCH_ASSOC);
+    // Mengambil data kelas dengan nama program dan konsentrasi keahlian
+    $stmt_kelas = $pdo->query("
+        SELECT k.id, CONCAT(pk.program_name, ' - ', kk.konsentrasi_name, ' - ', k.kelas_name) as full_kelas_name
+        FROM kelas k
+        JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+        JOIN program_keahlian pk ON kk.program_id = pk.id
+        ORDER BY full_kelas_name ASC
+    ");
+    $classes = $stmt_kelas->fetchAll(PDO::FETCH_ASSOC);
 
     $stmt_years = $pdo->query("SELECT id, year_name FROM academic_years ORDER BY year_name DESC");
     $academic_years = $stmt_years->fetchAll(PDO::FETCH_ASSOC);
@@ -133,7 +140,7 @@ try {
                         <div class="col-md-6 mb-3"><label for="parent_phone" class="form-label">No. HP Orang Tua</label><input type="tel" class="form-control" id="parent_phone" name="parent_phone"></div>
                     </div>
                      <div class="row">
-                        <div class="col-md-6 mb-3"><label for="department_id" class="form-label">Jurusan</label><select class="form-select" id="department_id" name="department_id" required><option value="">-- Pilih Jurusan --</option><?php foreach ($departments as $dept): ?><option value="<?php echo $dept['id']; ?>"><?php echo htmlspecialchars($dept['department_name']); ?></option><?php endforeach; ?></select></div>
+                        <div class="col-md-6 mb-3"><label for="kelas_id" class="form-label">Kelas</label><select class="form-select" id="kelas_id" name="kelas_id" required><option value="">-- Pilih Kelas --</option><?php foreach ($classes as $class): ?><option value="<?php echo $class['id']; ?>"><?php echo htmlspecialchars($class['full_kelas_name']); ?></option><?php endforeach; ?></select></div>
                         <div class="col-md-6 mb-3"><label for="academic_year_id" class="form-label">Tahun Pelajaran</label><select class="form-select" id="academic_year_id" name="academic_year_id" required><option value="">-- Pilih Tahun Pelajaran --</option><?php foreach ($academic_years as $year): ?><option value="<?php echo $year['id']; ?>"><?php echo htmlspecialchars($year['year_name']); ?></option><?php endforeach; ?></select></div>
                     </div>
                 </div>
@@ -149,7 +156,7 @@ try {
 <script>
 $(document).ready(function() {
     const initStudentSelect2 = () => {
-        $('#department_id, #academic_year_id').select2({ theme: 'bootstrap-5', dropdownParent: $('#studentModal') });
+        $('#kelas_id, #academic_year_id').select2({ theme: 'bootstrap-5', dropdownParent: $('#studentModal') });
     };
 
     const studentModal = document.getElementById('studentModal');
@@ -173,13 +180,13 @@ $(document).ready(function() {
             $('#address').val(studentData.address);
             $('#phone').val(studentData.phone);
             $('#parent_phone').val(studentData.parent_phone);
-            $('#department_id').val(studentData.department_id).trigger('change');
+            $('#kelas_id').val(studentData.kelas_id).trigger('change');
             $('#academic_year_id').val(studentData.academic_year_id).trigger('change');
         } else {
             form.querySelector('.modal-title').textContent = 'Tambah Siswa Baru';
             form.querySelector('#form_action').value = 'create';
             form.reset();
-            $('#department_id, #academic_year_id').val(null).trigger('change');
+            $('#kelas_id, #academic_year_id').val(null).trigger('change');
             $('#academic_year_id').val('<?php echo $active_year_id; ?>').trigger('change');
         }
     });
