@@ -119,8 +119,6 @@ if ($report_type === 'journal_recap') {
     } catch (PDOException $e) {
         die("Error saat mengambil data untuk ekspor: " . $e->getMessage());
     }
-}
-
 } elseif ($report_type === 'student_problems') {
     // --- Logika Ekspor Masalah Siswa ---
 
