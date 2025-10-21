@@ -82,6 +82,12 @@ try {
                 <span class="icon-label">Catatan Masalah</span>
             </a>
         </div>
+        <div class="col">
+            <a href="teacher_set_locations.php" class="icon-menu-item">
+                <div class="icon-circle bg-warning text-white"><i class="fas fa-map-marked-alt"></i></div>
+                <span class="icon-label">Set Lokasi DUDIKA</span>
+            </a>
+        </div>
     </div>
 
     <!-- Daftar Siswa Bimbingan -->
