@@ -52,26 +52,42 @@ try {
 // Values from $db_settings will overwrite values from $default_settings.
 $app_settings = array_merge($default_settings, $db_settings);
 
-// Load Active Academic Year
-$active_year = null;
+// Load and manage Academic Year in Session
 try {
-    $stmt_year = $pdo->prepare("SELECT * FROM academic_years WHERE status = 'active' LIMIT 1");
-    $stmt_year->execute();
-    $result = $stmt_year->fetch(PDO::FETCH_ASSOC);
-    if ($result) {
-        $active_year = $result;
-    } else {
-        // Fallback jika tidak ada yang aktif, ambil yang terakhir dibuat
-        $stmt_last_year = $pdo->query("SELECT * FROM academic_years ORDER BY id DESC LIMIT 1");
-        $active_year = $stmt_last_year->fetch(PDO::FETCH_ASSOC) ?: null;
+    if (isset($_SESSION['selected_academic_year_id'])) {
+        // If a year is already selected in the session, ensure its name is also loaded.
+        if (!isset($_SESSION['active_academic_year_name'])) {
+            $stmt = $pdo->prepare("SELECT year_name FROM academic_years WHERE id = :id");
+            $stmt->execute([':id' => $_SESSION['selected_academic_year_id']]);
+            $year = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($year) {
+                $_SESSION['active_academic_year_name'] = $year['year_name'];
+            } else {
+                // The selected ID is invalid, so unset it.
+                unset($_SESSION['selected_academic_year_id']);
+            }
+        }
+    }
+
+    // If, after the above check, no year is set, find the default active one.
+    if (!isset($_SESSION['selected_academic_year_id'])) {
+        $stmt_active = $pdo->prepare("SELECT id, year_name FROM academic_years WHERE status = 'active' LIMIT 1");
+        $stmt_active->execute();
+        $active_year = $stmt_active->fetch(PDO::FETCH_ASSOC);
+
+        if (!$active_year) {
+            // Fallback: if no 'active' year, get the most recent one.
+            $stmt_latest = $pdo->query("SELECT id, year_name FROM academic_years ORDER BY id DESC LIMIT 1");
+            $active_year = $stmt_latest->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if ($active_year) {
+            $_SESSION['selected_academic_year_id'] = $active_year['id'];
+            $_SESSION['active_academic_year_name'] = $active_year['year_name'];
+        }
     }
 } catch (PDOException $e) {
-    // Biarkan $active_year null jika ada error
-}
-
-// Set academic year in session if not already set and an active year was found
-if (!isset($_SESSION['selected_academic_year_id']) && $active_year) {
-    $_SESSION['selected_academic_year_id'] = $active_year['id'];
-    $_SESSION['active_academic_year_name'] = $active_year['year_name'];
+    // If there's a DB error, we can't set the academic year.
+    // This might cause issues, but we'll let the specific pages handle the missing session variables.
 }
 ?>
