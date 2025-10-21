@@ -85,12 +85,9 @@ try {
                                 <td><?php echo htmlspecialchars($student['program_name']); ?></td>
                                 <td><?php echo htmlspecialchars($student['kelas_name']); ?></td>
                                 <td>
-                                    <button class="btn btn-warning btn-sm edit-btn"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#studentModal"
-                                            data-student='<?php echo htmlspecialchars(json_encode($student), ENT_QUOTES, 'UTF-8'); ?>'>
+                                    <a href="edit_student.php?id=<?php echo $student['id']; ?>" class="btn btn-warning btn-sm">
                                         <i class="fas fa-edit"></i>
-                                    </button>
+                                    </a>
                                     <a href="student_details.php?id=<?php echo $student['id']; ?>" class="btn btn-info btn-sm">
                                         <i class="fas fa-eye"></i>
                                     </a>
@@ -160,37 +157,18 @@ $(document).ready(function() {
     };
 
     const studentModal = document.getElementById('studentModal');
-    studentModal.addEventListener('shown.bs.modal', function(event) {
+    studentModal.addEventListener('show.bs.modal', function(event) {
         initStudentSelect2();
-        const button = event.relatedTarget;
         const form = document.getElementById('studentForm');
 
-        if (button.classList.contains('edit-btn')) {
-            form.querySelector('.modal-title').textContent = 'Edit Data Siswa';
-            form.querySelector('#form_action').value = 'update';
-            const studentData = JSON.parse(button.dataset.student);
+        // Atur ulang form dan judul untuk 'Tambah Siswa Baru' setiap kali modal ditampilkan
+        form.reset();
+        form.querySelector('.modal-title').textContent = 'Tambah Siswa Baru';
+        form.querySelector('#form_action').value = 'create';
+        $('#kelas_id, #academic_year_id').val(null).trigger('change');
 
-            document.getElementById('student_id').value = studentData.id;
-            document.getElementById('name').value = studentData.name;
-            document.getElementById('email').value = studentData.email || '';
-            document.getElementById('nis').value = studentData.nis || '';
-            document.getElementById('nisn').value = studentData.nisn || '';
-            document.getElementById('birth_place').value = studentData.birth_place || '';
-            document.getElementById('birth_date').value = studentData.birth_date || '';
-            document.getElementById('address').value = studentData.address || '';
-            document.getElementById('phone').value = studentData.phone || '';
-            document.getElementById('parent_phone').value = studentData.parent_phone || '';
-
-            // Tetap gunakan jQuery untuk Select2 karena memerlukan trigger
-            $('#kelas_id').val(studentData.kelas_id).trigger('change');
-            $('#academic_year_id').val(studentData.academic_year_id).trigger('change');
-        } else {
-            form.querySelector('.modal-title').textContent = 'Tambah Siswa Baru';
-            form.querySelector('#form_action').value = 'create';
-            form.reset();
-            $('#kelas_id, #academic_year_id').val(null).trigger('change');
-            $('#academic_year_id').val('<?php echo $active_year_id; ?>').trigger('change');
-        }
+        // Atur tahun ajaran aktif secara default
+        $('#academic_year_id').val('<?php echo $active_year_id; ?>').trigger('change');
     });
 });
 </script>
