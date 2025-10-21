@@ -160,7 +160,7 @@ $(document).ready(function() {
     };
 
     const studentModal = document.getElementById('studentModal');
-    studentModal.addEventListener('show.bs.modal', function(event) {
+    studentModal.addEventListener('shown.bs.modal', function(event) {
         initStudentSelect2();
         const button = event.relatedTarget;
         const form = document.getElementById('studentForm');
