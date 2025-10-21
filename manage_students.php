@@ -123,7 +123,7 @@ try {
                     <input type="hidden" name="action" id="form_action" value="create">
 
                     <div class="row">
-                        <div class="col-md-6 mb-3"><label for="student_name" class="form-label">Nama Lengkap</label><input type="text" class="form-control" id="student_name" name="student_name" required></div>
+                        <div class="col-md-6 mb-3"><label for="name" class="form-label">Nama Lengkap</label><input type="text" class="form-control" id="name" name="name" required></div>
                         <div class="col-md-6 mb-3"><label for="email" class="form-label">Email (Opsional)</label><input type="email" class="form-control" id="email" name="email"></div>
                     </div>
                     <div class="row">
@@ -171,7 +171,7 @@ $(document).ready(function() {
             const studentData = JSON.parse(button.dataset.student);
 
             $('#student_id').val(studentData.id);
-            $('#student_name').val(studentData.name);
+            $('#name').val(studentData.name);
             $('#email').val(studentData.email);
             $('#nis').val(studentData.nis);
             $('#nisn').val(studentData.nisn);

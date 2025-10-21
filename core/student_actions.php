@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     // Data dari form
-    $name = trim($_POST['student_name']);
+    $name = trim($_POST['name']);
     $nis = trim($_POST['nis']);
     $nisn = trim($_POST['nisn']);
     $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL) ?: null;
