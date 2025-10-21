@@ -16,9 +16,9 @@ $user_info = [];
 $auth_config = [
     'admin' => ['table' => 'admins', 'user_col' => 'username', 'name_col' => 'name'],
     'waka_humas' => ['table' => 'waka_humas', 'user_col' => 'username', 'name_col' => 'name'],
-    'teacher' => ['table' => 'teachers', 'user_col' => 'teacher_nip', 'name_col' => 'teacher_name'],
-    'instructor' => ['table' => 'instructors', 'user_col' => 'instructor_serial_number', 'name_col' => 'instructor_name'],
-    'student' => ['table' => 'students', 'user_col' => 'nisn', 'name_col' => 'student_name']
+    'teacher' => ['table' => 'teachers', 'user_col' => 'nip', 'name_col' => 'name'],
+    'instructor' => ['table' => 'instructors', 'user_col' => 'serial_number', 'name_col' => 'name'],
+    'student' => ['table' => 'students', 'user_col' => 'nisn', 'name_col' => 'name']
 ];
 
 $table = $auth_config[$user_role]['table'];

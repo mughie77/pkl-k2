@@ -14,10 +14,10 @@ try {
     // Ambil data penilaian dari siswa bimbingan guru ini
     $stmt = $pdo->prepare("
         SELECT
-            s.student_name, pk.program_name,
+            s.name as student_name, pk.program_name,
             a.score_1, a.score_2, a.score_3, a.score_4,
             (a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4 as average_score,
-            i.instructor_name
+            i.name as instructor_name
         FROM internship_assessments a
         JOIN students s ON a.student_id = s.id
         JOIN kelas k ON s.kelas_id = k.id
@@ -26,7 +26,7 @@ try {
         JOIN instructors i ON a.instructor_id = i.id
         JOIN internship_mappings m ON a.student_id = m.student_id
         WHERE m.teacher_id = :teacher_id
-        ORDER BY s.student_name ASC
+        ORDER BY s.name ASC
     ");
     $stmt->execute([':teacher_id' => $teacher_id]);
     $assessments = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -40,8 +40,11 @@ try {
     <h1 class="h3 mb-4 text-gray-800">Daftar Nilai Siswa Bimbingan</h1>
 
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Rekapitulasi Nilai Akhir dari Instruktur</h6>
+            <a href="core/export_handler.php?report_type=teacher_assessments" class="btn btn-sm btn-success">
+                <i class="fas fa-file-excel me-2"></i>Export to Excel
+            </a>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -50,10 +53,10 @@ try {
                         <tr>
                             <th>Nama Siswa</th>
                             <th>Program Keahlian</th>
-                            <th>Skor 1</th>
-                            <th>Skor 2</th>
-                            <th>Skor 3</th>
-                            <th>Skor 4</th>
+                            <th>Memahami Alur Bisnis</th>
+                            <th>Menerapkan Soft Skill</th>
+                            <th>Norma, SOP, K3LH</th>
+                            <th>Kompetensi Teknis</th>
                             <th>Rata-rata</th>
                             <th>Dinilai oleh</th>
                         </tr>
