@@ -207,9 +207,6 @@ if ($report_type === 'journal_recap') {
     } catch (PDOException $e) {
         die("Error saat mengambil data untuk ekspor: " . $e->getMessage());
     }
-}
-
-
 } elseif ($report_type === 'teacher_assessments') {
     // --- Logika Ekspor Nilai Siswa (untuk Guru) ---
 
