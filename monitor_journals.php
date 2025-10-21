@@ -30,10 +30,13 @@ try {
         SELECT
             j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
             j.check_in_latitude, j.check_in_longitude, j.check_out_latitude, j.check_out_longitude,
-            s.name as student_name, s.work_start_time, s.work_end_time
+            s.name as student_name, s.work_start_time, s.work_end_time,
+            c.latitude as company_latitude, c.longitude as company_longitude
         FROM internship_journals j
         JOIN students s ON j.student_id = s.id
         JOIN internship_mappings m ON j.student_id = m.student_id
+        LEFT JOIN instructors i ON m.instructor_id = i.id
+        LEFT JOIN companies c ON i.company_id = c.id
         WHERE m.teacher_id = :teacher_id
     ";
 
@@ -156,6 +159,8 @@ function get_status_badge($status) {
                                                     data-lng-in="<?php echo $journal['check_in_longitude']; ?>"
                                                     data-lat-out="<?php echo $journal['check_out_latitude']; ?>"
                                                     data-lng-out="<?php echo $journal['check_out_longitude']; ?>"
+                                                    data-company-lat="<?php echo $journal['company_latitude']; ?>"
+                                                    data-company-lng="<?php echo $journal['company_longitude']; ?>"
                                                     data-student-name="<?php echo htmlspecialchars($journal['student_name']); ?>"
                                                     data-bs-toggle="modal" data-bs-target="#viewLocationModal">
                                                 <i class="fas fa-map-marker-alt"></i> Lihat Lokasi
@@ -207,6 +212,7 @@ function get_status_badge($status) {
             <div class="modal-body">
                 <p>Lokasi <strong id="location_student_name"></strong> saat melakukan check-in.</p>
                 <div id="map" style="height: 400px; width: 100%;"></div>
+                <div id="distance-info" class="mt-3"></div>
             </div>
         </div>
     </div>
@@ -245,6 +251,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const lngIn = parseFloat(button.dataset.lngIn);
             const latOut = button.dataset.latOut ? parseFloat(button.dataset.latOut) : null;
             const lngOut = button.dataset.lngOut ? parseFloat(button.dataset.lngOut) : null;
+            const latCompany = button.dataset.companyLat ? parseFloat(button.dataset.companyLat) : null;
+            const lngCompany = button.dataset.companyLng ? parseFloat(button.dataset.companyLng) : null;
             const studentName = button.dataset.studentName;
 
             viewLocationModal.querySelector('#location_student_name').textContent = studentName;
@@ -272,17 +280,54 @@ document.addEventListener('DOMContentLoaded', function() {
                         })
                     }).addTo(map).bindPopup(`Lokasi Check-out: ${studentName}`);
                     markers.push(checkoutMarker);
+                }
 
+                if (latCompany && lngCompany) {
+                    const companyMarker = L.marker([latCompany, lngCompany], {
+                        icon: L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png'
+                        })
+                    }).addTo(map).bindPopup('Lokasi DUDIKA');
+                    markers.push(companyMarker);
+                }
+
+                if (markers.length > 1) {
                     const group = new L.featureGroup(markers);
                     map.fitBounds(group.getBounds().pad(0.5));
-                } else {
-                    map.setView([latIn, lngIn], 15);
-                    checkinMarker.openPopup();
+                } else if (markers.length === 1) {
+                    map.setView(markers[0].getLatLng(), 15);
+                    markers[0].openPopup();
                 }
+
+                // Calculate and display distances
+                const distanceInfo = document.getElementById('distance-info');
+                let distanceHTML = '';
+                if (latCompany && lngCompany) {
+                    const companyLatLng = L.latLng(latCompany, lngCompany);
+                    const checkinLatLng = L.latLng(latIn, lngIn);
+                    const distanceIn = companyLatLng.distanceTo(checkinLatLng);
+                    distanceHTML += `<p class="mb-1">Jarak dari DUDIKA ke Lokasi Check-in: <strong>${formatDistance(distanceIn)}</strong></p>`;
+
+                    if (latOut && lngOut) {
+                        const checkoutLatLng = L.latLng(latOut, lngOut);
+                        const distanceOut = companyLatLng.distanceTo(checkoutLatLng);
+                        distanceHTML += `<p class="mb-0">Jarak dari DUDIKA ke Lokasi Check-out: <strong>${formatDistance(distanceOut)}</strong></p>`;
+                    }
+                }
+                distanceInfo.innerHTML = distanceHTML;
 
                 map.invalidateSize();
             }, 500);
         });
+
+        function formatDistance(meters) {
+            if (meters < 1000) {
+                return `${Math.round(meters)} meter`;
+            } else {
+                return `${(meters / 1000).toFixed(2)} km`;
+            }
+        }
     }
 });
 </script>
