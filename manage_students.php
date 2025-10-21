@@ -49,9 +49,14 @@ try {
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800">Manajemen Data Siswa <span class="badge bg-info"><?php echo htmlspecialchars($active_year['year_name'] ?? 'Tahun Ajaran Belum Dipilih'); ?></span></h1>
 
-    <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#studentModal">
-        <i class="fas fa-plus-circle me-2"></i> Tambah Siswa Baru
-    </button>
+    <div class="mb-4">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#studentModal">
+            <i class="fas fa-plus-circle me-2"></i> Tambah Siswa Baru
+        </button>
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="fas fa-file-excel me-2"></i> Import dari Excel
+        </button>
+    </div>
 
     <?php if (isset($_SESSION['flash_message'])): ?>
         <div class="alert alert-<?php echo $_SESSION['flash_message']['type']; ?> alert-dismissible fade show" role="alert">
@@ -172,5 +177,39 @@ $(document).ready(function() {
     });
 });
 </script>
+
+<!-- Modal untuk Import Excel -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">Import Data Siswa dari Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="core/import_students.php" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="excelFile" class="form-label">Pilih File Excel</label>
+                        <input class="form-control" type="file" id="excelFile" name="excelFile" accept=".xlsx" required>
+                    </div>
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading"><i class="fas fa-info-circle"></i> Petunjuk</h6>
+                        <p class="mb-1">Pastikan file Excel Anda sesuai dengan format template yang disediakan.</p>
+                        <hr>
+                        <a href="core/download_template.php" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download me-2"></i> Unduh Template
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i> Unggah dan Proses
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <?php require_once __DIR__ . '/templates/footer.php'; ?>
