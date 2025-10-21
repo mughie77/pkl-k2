@@ -77,7 +77,7 @@ CREATE TABLE `admins` (
 --
 
 INSERT INTO `admins` (`name`, `username`, `password`) VALUES
-('Admin Sekolah', 'admin', '$2y$10$9.M4B3Y.X2a5c.dE6f.gH8i.jK0l.mN1o.pQ2r.sT3u.vW4x.yZ5'); -- password: admin
+('Admin Sekolah', 'admin', '$2y$10$2lk8p0nFdGQvTzmVhl7p9eCz0cYH1Q2Pxqt7Ux.pn/EwV4G3db8WO'); -- password: admin
 
 -- --------------------------------------------------------
 

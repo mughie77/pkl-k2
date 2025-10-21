@@ -14,6 +14,7 @@ try {
     // Ambil data penilaian dari siswa bimbingan guru ini
     $stmt = $pdo->prepare("
         SELECT
+            a.id as assessment_id,
             s.name as student_name, pk.program_name,
             a.score_1, a.score_2, a.score_3, a.score_4,
             (a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4 as average_score,
@@ -59,6 +60,7 @@ try {
                             <th>Kompetensi Teknis</th>
                             <th>Rata-rata</th>
                             <th>Dinilai oleh</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -73,11 +75,16 @@ try {
                                 <td><?php echo $data['score_4']; ?></td>
                                 <td><strong><?php echo number_format($data['average_score'], 2); ?></strong></td>
                                 <td><?php echo htmlspecialchars($data['instructor_name']); ?></td>
+                                <td>
+                                    <a href="core/generate_pdf_report.php?assessment_id=<?php echo $data['assessment_id']; ?>" class="btn btn-sm btn-info" target="_blank">
+                                        <i class="fas fa-print me-2"></i>Cetak Raport
+                                    </a>
+                                </td>
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="8" class="text-center">Belum ada siswa bimbingan yang dinilai oleh instruktur.</td>
+                                <td colspan="9" class="text-center">Belum ada siswa bimbingan yang dinilai oleh instruktur.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
