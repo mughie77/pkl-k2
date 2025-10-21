@@ -68,4 +68,10 @@ try {
 } catch (PDOException $e) {
     // Biarkan $active_year null jika ada error
 }
+
+// Set academic year in session if not already set and an active year was found
+if (!isset($_SESSION['selected_academic_year_id']) && $active_year) {
+    $_SESSION['selected_academic_year_id'] = $active_year['id'];
+    $_SESSION['active_academic_year_name'] = $active_year['year_name'];
+}
 ?>
