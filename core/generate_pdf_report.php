@@ -20,14 +20,19 @@ $assessment_id = (int)$_GET['assessment_id'];
 try {
     $stmt = $pdo->prepare("
         SELECT
-            s.name as student_name, s.nisn,
+            s.id as student_id, s.name as student_name, s.nisn,
             k.kelas_name as class_name,
             pk.program_name,
-            c.name as company_name, c.address as company_address,
-            i.name as instructor_name, i.position as instructor_position,
+            kk.konsentrasi_name,
+            c.name as company_name,
+            ip.start_date, ip.end_date,
+            i.name as instructor_name,
+            t.name as teacher_name,
             a.score_1, a.score_2, a.score_3, a.score_4, a.notes
         FROM internship_assessments a
         JOIN students s ON a.student_id = s.id
+        JOIN internship_mappings ip ON s.id = ip.student_id AND a.instructor_id = ip.instructor_id
+        JOIN teachers t ON ip.teacher_id = t.id
         JOIN kelas k ON s.kelas_id = k.id
         JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
         JOIN program_keahlian pk ON kk.program_id = pk.id
@@ -45,6 +50,32 @@ try {
 } catch (PDOException $e) {
     http_response_code(500);
     die("Error fetching data: " . $e->getMessage());
+}
+
+// Fetch attendance data
+$attendance_counts = [
+    'Sakit' => 0,
+    'Izin' => 0,
+    'Tanpa Keterangan' => 0,
+];
+
+try {
+    $stmt_attendance = $pdo->prepare("
+        SELECT leave_type, COUNT(*) as total
+        FROM leave_requests
+        WHERE student_id = :student_id AND status = 'Approved'
+        GROUP BY leave_type
+    ");
+    $stmt_attendance->execute([':student_id' => $data['student_id']]);
+    $attendance_data = $stmt_attendance->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($attendance_data as $row) {
+        if (isset($attendance_counts[$row['leave_type']])) {
+            $attendance_counts[$row['leave_type']] = $row['total'];
+        }
+    }
+} catch (PDOException $e) {
+    // Fail silently if attendance data is not available
 }
 
 // Create new PDF document
@@ -71,23 +102,36 @@ $pdf->SetFont('helvetica', '', 10);
 
 // --- PDF CONTENT ---
 
+// Helper function to format dates
+function format_date($date_string) {
+    if (empty($date_string)) return '-';
+    $date = new DateTime($date_string);
+    $months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    return $date->format('d') . ' ' . $months[(int)$date->format('m') - 1] . ' ' . $date->format('Y');
+}
+
+$start_date_formatted = format_date($data['start_date']);
+$end_date_formatted = format_date($data['end_date']);
+$company_name = htmlspecialchars($data['company_name']);
+
 // Header
 $pdf->SetFont('helvetica', 'B', 14);
 $pdf->Cell(0, 8, 'PENILAIAN PRAKTIK KERJA LAPANGAN (PKL)', 0, 1, 'C');
 $pdf->SetFont('helvetica', 'B', 12);
 $pdf->Cell(0, 7, strtoupper($app_settings['school_name']), 0, 1, 'C');
-$pdf->Line(15, $pdf->GetY() + 2, 195, $pdf->GetY() + 2);
-$pdf->Ln(4);
-
-// Student and Company Info
 $pdf->SetFont('helvetica', '', 10);
+$pdf->Cell(0, 6, 'Tahun Pelajaran ' . $_SESSION['active_academic_year_name'], 0, 1, 'C');
+$pdf->Line(15, $pdf->GetY() + 2, 195, $pdf->GetY() + 2);
+$pdf->Ln(5);
 
-$info_html = <<<EOD
-<table cellpadding="4" cellspacing="0" border="0">
+// Student Identity
+$pdf->SetFont('helvetica', '', 10);
+$identity_html = <<<EOD
+<table cellpadding="2" cellspacing="0" border="0" style="font-size: 10pt;">
     <tr>
-        <td width="25%">Nama Peserta Didik</td>
+        <td width="30%">Nama</td>
         <td width="2%">:</td>
-        <td width="73%"><b>{$data['student_name']}</b></td>
+        <td width="68%"><b>{$data['student_name']}</b></td>
     </tr>
     <tr>
         <td>NISN</td>
@@ -105,118 +149,126 @@ $info_html = <<<EOD
         <td>{$data['program_name']}</td>
     </tr>
     <tr>
-        <td>Nama DU/DI/Instansi</td>
+        <td>Konsentrasi Keahlian</td>
         <td>:</td>
-        <td><b>{$data['company_name']}</b></td>
+        <td>{$data['konsentrasi_name']}</td>
     </tr>
     <tr>
-        <td>Alamat</td>
+        <td>Tempat PKL (Nama Dudika)</td>
         <td>:</td>
-        <td>{$data['company_address']}</td>
+        <td>{$company_name}</td>
+    </tr>
+    <tr>
+        <td>Tanggal PKL</td>
+        <td>:</td>
+        <td>Mulai: {$start_date_formatted} &nbsp;&nbsp; Selesai: {$end_date_formatted}</td>
+    </tr>
+    <tr>
+        <td>Nama Instruktur</td>
+        <td>:</td>
+        <td>{$data['instructor_name']}</td>
+    </tr>
+    <tr>
+        <td>Nama Pembimbing</td>
+        <td>:</td>
+        <td>{$data['teacher_name']}</td>
     </tr>
 </table>
 EOD;
-
-$pdf->writeHTML($info_html, true, false, true, false, '');
+$pdf->writeHTML($identity_html, true, false, true, false, '');
 $pdf->Ln(5);
 
-// Scores Table
-$pdf->SetFont('helvetica', '', 10);
-
-// Data and labels
-$scores = [
-    'Memahami Alur Bisnis Proses di Industri' => $data['score_1'],
-    'Menerapkan Prosedur Kerja dan Menjaga Budaya Kerja Industri' => $data['score_2'],
-    'Menerapkan Norma, Standar, Prosedur, dan Kaidah K3LH' => $data['score_3'],
-    'Melakukan Kompetensi Teknis Sesuai Bidang' => $data['score_4']
+// Assessment Table
+$scores_data = [
+    [
+        'tujuan' => 'Memahami Alur Bisnis Proses di Industri',
+        'skor' => $data['score_1'],
+        'deskripsi' => "Kompeten dalam memahami alur bisnis dunia kerja di {$company_name} dan wawasan wirausaha"
+    ],
+    [
+        'tujuan' => 'Menerapkan Prosedur Kerja dan Menjaga Budaya Kerja Industri',
+        'skor' => $data['score_2'],
+        'deskripsi' => "Kompeten dalam menerapkan kompetensi"
+    ],
+    [
+        'tujuan' => 'Menerapkan Norma, Standar, Prosedur, dan Kaidah K3LH',
+        'skor' => $data['score_3'],
+        'deskripsi' => "Kompeten dalam menerapkan norma, SOP dan K3LH yang ada di {$company_name}"
+    ],
+    [
+        'tujuan' => 'Melakukan Kompetensi Teknis Sesuai Bidang',
+        'skor' => $data['score_4'],
+        'deskripsi' => "Kompeten dalam menerapkan soft skills yang dibutuhkan di {$company_name}"
+    ]
 ];
 
-function getPredicate($score) {
-    if ($score >= 91) return 'Sangat Baik';
-    if ($score >= 81) return 'Baik';
-    if ($score >= 71) return 'Cukup';
-    return 'Kurang';
-}
-
-$total_score = array_sum($scores);
-$average_score = $total_score / count($scores);
-$final_predicate = getPredicate($average_score);
-
-// Table HTML
-$table_html = <<<EOD
-<table cellpadding="6" cellspacing="0" border="1">
+$assessment_table_html = <<<EOD
+<table cellpadding="5" cellspacing="0" border="1" style="font-size: 10pt;">
     <tr style="background-color:#E0E0E0; text-align:center; font-weight:bold;">
-        <th width="5%">No</th>
-        <th width="55%">Komponen Penilaian</th>
-        <th width="15%">Nilai</th>
-        <th width="25%">Predikat</th>
+        <th width="5%">No.</th>
+        <th width="40%">Tujuan Pembelajaran (Komponen Penilaian)</th>
+        <th width="10%">Skor (Nilai)</th>
+        <th width="45%">Deskripsi</th>
     </tr>
 EOD;
-
-$num = 1;
-foreach ($scores as $component => $score) {
-    $predicate = getPredicate($score);
-    $table_html .= <<<EOD
+$no = 1;
+foreach ($scores_data as $item) {
+    $assessment_table_html .= '
     <tr>
-        <td style="text-align:center;">{$num}</td>
-        <td>{$component}</td>
-        <td style="text-align:center;">{$score}</td>
-        <td style="text-align:center;">{$predicate}</td>
-    </tr>
-EOD;
-    $num++;
+        <td style="text-align:center;">' . $no++ . '</td>
+        <td>' . $item['tujuan'] . '</td>
+        <td style="text-align:center;">' . $item['skor'] . '</td>
+        <td>' . $item['deskripsi'] . '</td>
+    </tr>';
 }
+$assessment_table_html .= '</table>';
+$pdf->writeHTML($assessment_table_html, true, false, true, false, '');
+$pdf->Ln(5);
 
-$table_html .= <<<EOD
-    <tr style="font-weight:bold;">
-        <td colspan="2" style="text-align:right;">Jumlah Nilai</td>
-        <td style="text-align:center;">{$total_score}</td>
-        <td></td>
+// Instructor Notes
+$pdf->SetFont('helvetica', '', 10);
+$notes_html = '<b>Catatan dari Instruktur Dudika:</b><br>' . (!empty($data['notes']) ? nl2br(htmlspecialchars($data['notes'])) : 'Tidak ada catatan.');
+$pdf->writeHTMLCell(0, '', '', '', $notes_html, 1, 1, 0, true, 'L', true);
+$pdf->Ln(5);
+
+// Attendance Recap
+$attendance_html = <<<EOD
+<b style="font-size: 10pt;">Rekap Ketidakhadiran Siswa:</b>
+<table cellpadding="5" cellspacing="0" border="1" style="font-size: 10pt;">
+    <tr style="background-color:#E0E0E0; text-align:center; font-weight:bold;">
+        <th width="33.3%">Sakit</th>
+        <th width="33.3%">Izin</th>
+        <th width="33.4%">Tanpa Keterangan/Alpa</th>
     </tr>
-    <tr style="font-weight:bold;">
-        <td colspan="2" style="text-align:right;">Rata-rata Nilai</td>
-        <td style="text-align:center;">{$average_score}</td>
-        <td style="text-align:center;">{$final_predicate}</td>
+    <tr>
+        <td style="text-align:center;">{$attendance_counts['Sakit']} Hari</td>
+        <td style="text-align:center;">{$attendance_counts['Izin']} Hari</td>
+        <td style="text-align:center;">{$attendance_counts['Tanpa Keterangan']} Hari</td>
     </tr>
 </table>
 EOD;
-
-$pdf->writeHTML($table_html, true, false, true, false, '');
-$pdf->Ln(5);
-
-// Notes Section
-$pdf->SetFont('helvetica', 'B', 10);
-$pdf->Cell(0, 8, 'Catatan Instruktur:', 0, 1, 'L');
-$pdf->SetFont('helvetica', '', 10);
-$pdf->MultiCell(0, 10, !empty($data['notes']) ? $data['notes'] : 'Tidak ada catatan.', 1, 'L', 0, 1, '', '', true, 0, false, true, 40, 'T');
+$pdf->writeHTML($attendance_html, true, false, true, false, '');
 $pdf->Ln(10);
 
-// Signature
-$pdf->SetFont('helvetica', '', 10);
-$date = 'Bondowoso, ' . date('d F Y'); // Or use a specific date from the database if available
-
+// Signature Block
+$date = 'Bondowoso, ' . format_date(date('Y-m-d'));
 $signature_html = <<<EOD
-<table cellpadding="4" cellspacing="0" border="0">
+<table cellpadding="2" cellspacing="0" border="0" style="font-size: 10pt;">
     <tr>
-        <td width="50%"></td>
+        <td width="50%" style="text-align:center;">Guru Pembimbing</td>
         <td width="50%" style="text-align:center;">{$date}</td>
     </tr>
     <tr>
         <td></td>
-        <td style="text-align:center;">Pembimbing DU/DI/Instansi,</td>
+        <td style="text-align:center;">Pembimbing Dunia Kerja</td>
     </tr>
     <tr><td colspan="2"><br><br><br><br></td></tr>
     <tr>
-        <td></td>
+        <td style="text-align:center;"><b><u>{$data['teacher_name']}</u></b></td>
         <td style="text-align:center;"><b><u>{$data['instructor_name']}</u></b></td>
-    </tr>
-    <tr>
-        <td></td>
-        <td style="text-align:center;">{$data['instructor_position']}</td>
     </tr>
 </table>
 EOD;
-
 $pdf->writeHTML($signature_html, true, false, true, false, '');
 
 // Close and output PDF document
