@@ -25,8 +25,7 @@ try {
             pk.program_name,
             c.name as company_name, c.address as company_address,
             i.name as instructor_name, i.position as instructor_position,
-            a.score_1, a.score_2, a.score_3, a.score_4, a.notes,
-            ss.school_name, ss.school_address
+            a.score_1, a.score_2, a.score_3, a.score_4, a.notes
         FROM internship_assessments a
         JOIN students s ON a.student_id = s.id
         JOIN kelas k ON s.kelas_id = k.id
@@ -34,7 +33,6 @@ try {
         JOIN program_keahlian pk ON kk.program_id = pk.id
         JOIN instructors i ON a.instructor_id = i.id
         JOIN companies c ON i.company_id = c.id
-        CROSS JOIN school_settings ss
         WHERE a.id = :assessment_id
     ");
     $stmt->execute([':assessment_id' => $assessment_id]);
@@ -54,7 +52,7 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 
 // Set document information
 $pdf->SetCreator(PDF_CREATOR);
-$pdf->SetAuthor($data['school_name']);
+$pdf->SetAuthor($app_settings['school_name']);
 $pdf->SetTitle('Laporan Penilaian PKL - ' . $data['student_name']);
 $pdf->SetSubject('Laporan Penilaian PKL');
 
@@ -77,7 +75,7 @@ $pdf->SetFont('helvetica', '', 10);
 $pdf->SetFont('helvetica', 'B', 14);
 $pdf->Cell(0, 8, 'PENILAIAN PRAKTIK KERJA LAPANGAN (PKL)', 0, 1, 'C');
 $pdf->SetFont('helvetica', 'B', 12);
-$pdf->Cell(0, 7, strtoupper($data['school_name']), 0, 1, 'C');
+$pdf->Cell(0, 7, strtoupper($app_settings['school_name']), 0, 1, 'C');
 $pdf->Line(15, $pdf->GetY() + 2, 195, $pdf->GetY() + 2);
 $pdf->Ln(4);
 
