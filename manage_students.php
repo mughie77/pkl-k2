@@ -170,16 +170,18 @@ $(document).ready(function() {
             form.querySelector('#form_action').value = 'update';
             const studentData = JSON.parse(button.dataset.student);
 
-            $('#student_id').val(studentData.id);
-            $('#name').val(studentData.name);
-            $('#email').val(studentData.email);
-            $('#nis').val(studentData.nis);
-            $('#nisn').val(studentData.nisn);
-            $('#birth_place').val(studentData.birth_place);
-            $('#birth_date').val(studentData.birth_date);
-            $('#address').val(studentData.address);
-            $('#phone').val(studentData.phone);
-            $('#parent_phone').val(studentData.parent_phone);
+            document.getElementById('student_id').value = studentData.id;
+            document.getElementById('name').value = studentData.name;
+            document.getElementById('email').value = studentData.email || '';
+            document.getElementById('nis').value = studentData.nis || '';
+            document.getElementById('nisn').value = studentData.nisn || '';
+            document.getElementById('birth_place').value = studentData.birth_place || '';
+            document.getElementById('birth_date').value = studentData.birth_date || '';
+            document.getElementById('address').value = studentData.address || '';
+            document.getElementById('phone').value = studentData.phone || '';
+            document.getElementById('parent_phone').value = studentData.parent_phone || '';
+
+            // Tetap gunakan jQuery untuk Select2 karena memerlukan trigger
             $('#kelas_id').val(studentData.kelas_id).trigger('change');
             $('#academic_year_id').val(studentData.academic_year_id).trigger('change');
         } else {
