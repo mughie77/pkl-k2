@@ -30,7 +30,7 @@ try {
 $active_year_id = $active_year['id'] ?? 0;
 try {
     $stmt = $pdo->prepare("
-        SELECT s.id, s.name as student_name, s.nisn, s.nis, s.email, s.birth_place, s.birth_date, s.address, s.phone, s.parent_phone, s.academic_year_id, s.kelas_id,
+        SELECT s.id, s.name, s.nisn, s.nis, s.email, s.birth_place, s.birth_date, s.address, s.phone, s.parent_phone, s.academic_year_id, s.kelas_id,
         k.kelas_name, kk.konsentrasi_name, pk.program_name
         FROM students s
         LEFT JOIN kelas k ON s.kelas_id = k.id
@@ -80,7 +80,7 @@ try {
                     <tbody>
                         <?php foreach ($students as $student): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($student['student_name']); ?></td>
+                                <td><?php echo htmlspecialchars($student['name']); ?></td>
                                 <td><?php echo htmlspecialchars($student['nisn']); ?></td>
                                 <td><?php echo htmlspecialchars($student['program_name']); ?></td>
                                 <td><?php echo htmlspecialchars($student['kelas_name']); ?></td>
@@ -171,7 +171,7 @@ $(document).ready(function() {
             const studentData = JSON.parse(button.dataset.student);
 
             $('#student_id').val(studentData.id);
-            $('#student_name').val(studentData.student_name);
+            $('#student_name').val(studentData.name);
             $('#email').val(studentData.email);
             $('#nis').val(studentData.nis);
             $('#nisn').val(studentData.nisn);
