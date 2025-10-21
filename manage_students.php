@@ -30,14 +30,14 @@ try {
 $active_year_id = $active_year['id'] ?? 0;
 try {
     $stmt = $pdo->prepare("
-        SELECT s.id, s.student_name, s.nisn, s.nis, s.email, s.birth_place, s.birth_date, s.address, s.phone, s.parent_phone, s.academic_year_id, s.kelas_id,
+        SELECT s.id, s.name as student_name, s.nisn, s.nis, s.email, s.birth_place, s.birth_date, s.address, s.phone, s.parent_phone, s.academic_year_id, s.kelas_id,
         k.kelas_name, kk.konsentrasi_name, pk.program_name
         FROM students s
         LEFT JOIN kelas k ON s.kelas_id = k.id
         LEFT JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
         LEFT JOIN program_keahlian pk ON kk.program_id = pk.id
         WHERE s.academic_year_id = :year_id
-        ORDER BY s.student_name ASC
+        ORDER BY s.name ASC
     ");
     $stmt->execute([':year_id' => $active_year_id]);
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -171,7 +171,7 @@ $(document).ready(function() {
             const studentData = JSON.parse(button.dataset.student);
 
             $('#student_id').val(studentData.id);
-            $('#name').val(studentData.name);
+            $('#student_name').val(studentData.student_name);
             $('#email').val(studentData.email);
             $('#nis').val(studentData.nis);
             $('#nisn').val(studentData.nisn);
