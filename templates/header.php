@@ -45,6 +45,8 @@ $is_dashboard_page = isset($_SESSION['user_id']);
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/style.css">
 
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 </head>
 <body class="<?php echo $is_dashboard_page ? 'dashboard-body' : ''; ?>">
 
