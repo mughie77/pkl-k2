@@ -21,7 +21,7 @@ try {
     $stmt = $pdo->prepare("
         SELECT
             s.name as student_name, s.nisn,
-            k.class_name,
+            k.kelas_name as class_name,
             pk.program_name,
             c.name as company_name, c.address as company_address,
             i.name as instructor_name, i.position as instructor_position,
@@ -32,9 +32,8 @@ try {
         JOIN kelas k ON s.kelas_id = k.id
         JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
         JOIN program_keahlian pk ON kk.program_id = pk.id
-        JOIN internship_mappings m ON a.student_id = m.student_id
-        JOIN companies c ON m.company_id = c.id
         JOIN instructors i ON a.instructor_id = i.id
+        JOIN companies c ON i.company_id = c.id
         CROSS JOIN school_settings ss
         WHERE a.id = :assessment_id
     ");
