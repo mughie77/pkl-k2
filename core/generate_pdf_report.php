@@ -102,6 +102,21 @@ $pdf->SetFont('helvetica', '', 10);
 
 // --- PDF CONTENT ---
 
+// Fetch academic year name directly to ensure it's always available
+$academic_year_name = 'Tidak Diketahui'; // Default value
+if (isset($_SESSION['selected_academic_year_id'])) {
+    try {
+        $stmt_year = $pdo->prepare("SELECT year_name FROM academic_years WHERE id = :id");
+        $stmt_year->execute([':id' => $_SESSION['selected_academic_year_id']]);
+        $year_data = $stmt_year->fetch(PDO::FETCH_ASSOC);
+        if ($year_data) {
+            $academic_year_name = $year_data['year_name'];
+        }
+    } catch (PDOException $e) {
+        // In case of error, the default value will be used.
+    }
+}
+
 // Helper function to format dates
 function format_date($date_string) {
     if (empty($date_string)) return '-';
@@ -120,7 +135,7 @@ $pdf->Cell(0, 8, 'PENILAIAN PRAKTIK KERJA LAPANGAN (PKL)', 0, 1, 'C');
 $pdf->SetFont('helvetica', 'B', 12);
 $pdf->Cell(0, 7, strtoupper($app_settings['school_name']), 0, 1, 'C');
 $pdf->SetFont('helvetica', '', 10);
-$pdf->Cell(0, 6, 'Tahun Pelajaran ' . $_SESSION['active_academic_year_name'], 0, 1, 'C');
+$pdf->Cell(0, 6, 'Tahun Pelajaran ' . $academic_year_name, 0, 1, 'C');
 $pdf->Line(15, $pdf->GetY() + 2, 195, $pdf->GetY() + 2);
 $pdf->Ln(5);
 
