@@ -92,14 +92,19 @@ try {
     $journal_dates = $stmt_journals->fetchAll(PDO::FETCH_COLUMN, 0);
     $present_dates = array_flip($journal_dates); // Use as a hash set for quick lookups
 
-    // 3. Iterate through the entire internship period to calculate totals
+    // 3. Get all holiday dates
+    $stmt_holidays = $pdo->query("SELECT holiday_date FROM holidays");
+    $holiday_dates = $stmt_holidays->fetchAll(PDO::FETCH_COLUMN, 0);
+    $holidays_set = array_flip($holiday_dates);
+
+    // 4. Iterate through the entire internship period to calculate totals
     $internship_period = new DatePeriod($start_date, new DateInterval('P1D'), $end_date->modify('+1 day'));
     foreach ($internship_period as $date) {
-        // Skip Sundays
-        if ($date->format('w') == 0) {
+        $date_str = $date->format('Y-m-d');
+        // Skip Sundays and official holidays
+        if ($date->format('w') == 0 || isset($holidays_set[$date_str])) {
             continue;
         }
-        $date_str = $date->format('Y-m-d');
 
         if (isset($leave_dates[$date_str])) {
             $leave_type = $leave_dates[$date_str];
