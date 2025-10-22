@@ -36,7 +36,7 @@ try {
         LEFT JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
         LEFT JOIN program_keahlian pk ON kk.program_id = pk.id
         JOIN internship_mappings m ON s.id = m.student_id
-        WHERE m.instructor_id = :id ORDER BY s.student_name ASC
+        WHERE m.instructor_id = :id ORDER BY s.name ASC
     ");
     $stmt_students->execute([':id' => $instructor_id]);
     $assigned_students = $stmt_students->fetchAll(PDO::FETCH_ASSOC);
