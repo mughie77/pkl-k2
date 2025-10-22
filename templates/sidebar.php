@@ -70,6 +70,7 @@ function create_nav_item($link, $icon, $text, $current_page) {
             <?php create_nav_item('manage_leave_requests.php', 'fa-calendar-check', 'Persetujuan Izin/Cuti', $current_page); ?>
             <?php create_nav_item('input_assessment.php', 'fa-edit', 'Input Penilaian', $current_page); ?>
             <?php create_nav_item('student_problems.php', 'fa-exclamation-triangle', 'Catatan Masalah Siswa', $current_page); ?>
+            <?php create_nav_item('global_recap.php', 'fa-chart-bar', 'Rekap Laporan', $current_page); ?>
         <?php endif; ?>
 
         <?php if ($user_role == 'student'): ?>
