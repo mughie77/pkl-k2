@@ -8,7 +8,8 @@ if (!in_array($_SESSION['user_role'], ['admin', 'instructor'])) {
     exit;
 }
 
-$active_year_id = $active_year['id'] ?? 0;
+$active_year_id = $_SESSION['selected_academic_year_id'] ?? 0;
+$active_year_name = $_SESSION['active_academic_year_name'] ?? 'Tahun Ajaran Belum Dipilih';
 
 $selected_month = $_GET['month'] ?? date('Y-m');
 $rekap_type = $_GET['rekap_type'] ?? 'attendance';
@@ -71,7 +72,7 @@ try {
 ?>
 
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Rekapitulasi Global <span class="badge bg-info"><?php echo htmlspecialchars($active_year['year_name'] ?? 'Tahun Ajaran Belum Dipilih'); ?></span></h1>
+    <h1 class="h3 mb-4 text-gray-800">Rekapitulasi Global <span class="badge bg-info"><?php echo htmlspecialchars($active_year_name); ?></span></h1>
 
     <!-- Filter Form -->
     <div class="card shadow mb-4">

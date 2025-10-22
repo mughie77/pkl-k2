@@ -61,6 +61,57 @@ try {
     $stmt_journals->execute($params);
     $journals = $stmt_journals->fetchAll(PDO::FETCH_ASSOC);
 
+    // Ambil data izin (leave) dengan filter yang sama
+    $leave_query = "
+        SELECT lr.start_date, lr.end_date, lr.leave_type, lr.reason, lr.status, s.name as student_name
+        FROM leave_requests lr
+        JOIN students s ON lr.student_id = s.id
+        JOIN internship_mappings m ON lr.student_id = m.student_id
+        WHERE m.teacher_id = :teacher_id AND lr.status = 'Approved'
+    ";
+    $leave_params = [':teacher_id' => $teacher_id];
+    if ($filter_student_id !== 'all' && !empty($filter_student_id)) {
+        $leave_query .= " AND lr.student_id = :student_id";
+        $leave_params[':student_id'] = $filter_student_id;
+    }
+    if (!empty($filter_start_date)) {
+        $leave_query .= " AND lr.end_date >= :start_date";
+        $leave_params[':start_date'] = $filter_start_date;
+    }
+    if (!empty($filter_end_date)) {
+        $leave_query .= " AND lr.start_date <= :end_date";
+        $leave_params[':end_date'] = $filter_end_date;
+    }
+    $stmt_leaves = $pdo->prepare($leave_query);
+    $stmt_leaves->execute($leave_params);
+    $leaves = $stmt_leaves->fetchAll(PDO::FETCH_ASSOC);
+
+    // Gabungkan dan urutkan data
+    $combined_data = [];
+    foreach ($journals as $journal) {
+        $combined_data[$journal['journal_date']] = [
+            'type' => 'Hadir',
+            'date' => $journal['journal_date'],
+            'student_name' => $journal['student_name'],
+            'details' => 'Check-in: ' . ($journal['check_in_time'] ? date('H:i', strtotime($journal['check_in_time'])) : '-'),
+            'journal_data' => $journal // Simpan data asli untuk modal
+        ];
+    }
+    foreach ($leaves as $leave) {
+        $period = new DatePeriod(new DateTime($leave['start_date']), new DateInterval('P1D'), (new DateTime($leave['end_date']))->modify('+1 day'));
+        foreach ($period as $date) {
+            $date_str = $date->format('Y-m-d');
+            $combined_data[$date_str] = [
+                'type' => $leave['leave_type'],
+                'date' => $date_str,
+                'student_name' => $leave['student_name'],
+                'details' => $leave['reason'],
+                'journal_data' => null
+            ];
+        }
+    }
+    krsort($combined_data); // Urutkan berdasarkan tanggal (menurun)
+
 } catch (PDOException $e) {
     die("Error: Could not fetch journals data. " . $e->getMessage());
 }
@@ -126,52 +177,58 @@ function get_status_badge($status) {
                         <tr>
                             <th>Tanggal</th>
                             <th>Nama Siswa</th>
-                            <th>Jam Kerja</th>
-                            <th>Absensi (Check-in)</th>
-                            <th>Status Jurnal</th>
+                            <th>Status Kehadiran</th>
+                            <th>Detail</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (count($journals) > 0): ?>
-                            <?php foreach ($journals as $journal): ?>
+                        <?php if (count($combined_data) > 0): ?>
+                            <?php foreach ($combined_data as $item): ?>
                                 <tr>
-                                    <td><?php echo date('d M Y', strtotime($journal['journal_date'])); ?></td>
-                                    <td><?php echo htmlspecialchars($journal['student_name']); ?></td>
-                                    <td><?php echo date('H:i', strtotime($journal['work_start_time'])) . ' - ' . date('H:i', strtotime($journal['work_end_time'])); ?></td>
-                                    <td><?php echo $journal['check_in_time'] ? date('H:i', strtotime($journal['check_in_time'])) : '<span class="badge bg-secondary">N/A</span>'; ?></td>
+                                    <td><?php echo date('d M Y', strtotime($item['date'])); ?></td>
+                                    <td><?php echo htmlspecialchars($item['student_name']); ?></td>
                                     <td>
-                                        <span class="badge <?php echo get_status_badge($journal['status']); ?>">
-                                            <?php echo htmlspecialchars($journal['status']); ?>
-                                        </span>
+                                        <?php
+                                        $status_badge = 'bg-secondary';
+                                        if ($item['type'] === 'Hadir') $status_badge = 'bg-success';
+                                        if ($item['type'] === 'Izin') $status_badge = 'bg-warning text-dark';
+                                        if ($item['type'] === 'Sakit') $status_badge = 'bg-danger';
+                                        ?>
+                                        <span class="badge <?php echo $status_badge; ?>"><?php echo htmlspecialchars($item['type']); ?></span>
                                     </td>
+                                    <td><?php echo htmlspecialchars($item['details']); ?></td>
                                     <td>
-                                        <button class="btn btn-info btn-sm view-journal-btn"
-                                                data-activities="<?php echo htmlspecialchars($journal['activities']); ?>"
-                                                data-student-name="<?php echo htmlspecialchars($journal['student_name']); ?>"
-                                                data-journal-date="<?php echo date('d M Y', strtotime($journal['journal_date'])); ?>"
-                                                data-bs-toggle="modal" data-bs-target="#viewJournalModal">
-                                            <i class="fas fa-eye"></i> Lihat Jurnal
-                                        </button>
-                                        <?php if ($journal['check_in_latitude'] && $journal['check_in_longitude']): ?>
-                                            <button class="btn btn-secondary btn-sm view-location-btn"
-                                                    data-lat-in="<?php echo $journal['check_in_latitude']; ?>"
-                                                    data-lng-in="<?php echo $journal['check_in_longitude']; ?>"
-                                                    data-lat-out="<?php echo $journal['check_out_latitude']; ?>"
-                                                    data-lng-out="<?php echo $journal['check_out_longitude']; ?>"
-                                                    data-company-lat="<?php echo $journal['company_latitude']; ?>"
-                                                    data-company-lng="<?php echo $journal['company_longitude']; ?>"
-                                                    data-student-name="<?php echo htmlspecialchars($journal['student_name']); ?>"
-                                                    data-bs-toggle="modal" data-bs-target="#viewLocationModal">
-                                                <i class="fas fa-map-marker-alt"></i> Lihat Lokasi
+                                        <?php if ($item['type'] === 'Hadir' && $item['journal_data']): ?>
+                                            <button class="btn btn-info btn-sm view-journal-btn"
+                                                    data-activities="<?php echo htmlspecialchars($item['journal_data']['activities']); ?>"
+                                                    data-student-name="<?php echo htmlspecialchars($item['student_name']); ?>"
+                                                    data-journal-date="<?php echo date('d M Y', strtotime($item['date'])); ?>"
+                                                    data-bs-toggle="modal" data-bs-target="#viewJournalModal">
+                                                <i class="fas fa-eye"></i> Jurnal
                                             </button>
+                                            <?php if ($item['journal_data']['check_in_latitude']): ?>
+                                                <button class="btn btn-secondary btn-sm view-location-btn"
+                                                        data-lat-in="<?php echo $item['journal_data']['check_in_latitude']; ?>"
+                                                        data-lng-in="<?php echo $item['journal_data']['check_in_longitude']; ?>"
+                                                        data-lat-out="<?php echo $item['journal_data']['check_out_latitude']; ?>"
+                                                        data-lng-out="<?php echo $item['journal_data']['check_out_longitude']; ?>"
+                                                        data-company-lat="<?php echo $item['journal_data']['company_latitude']; ?>"
+                                                        data-company-lng="<?php echo $item['journal_data']['company_longitude']; ?>"
+                                                        data-student-name="<?php echo htmlspecialchars($item['student_name']); ?>"
+                                                        data-bs-toggle="modal" data-bs-target="#viewLocationModal">
+                                                    <i class="fas fa-map-marker-alt"></i> Lokasi
+                                                </button>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            -
                                         <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6" class="text-center">Tidak ada data yang cocok dengan filter yang diterapkan.</td>
+                                <td colspan="5" class="text-center">Tidak ada data jurnal atau izin yang cocok dengan filter yang diterapkan.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
