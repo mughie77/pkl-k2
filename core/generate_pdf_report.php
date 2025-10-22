@@ -56,6 +56,7 @@ try {
 $attendance_counts = [
     'Sakit' => 0,
     'Izin' => 0,
+    'Hari Libur' => 0,
     'Tanpa Keterangan' => 0,
 ];
 
@@ -294,13 +295,15 @@ $attendance_html = <<<EOD
 <b style="font-size: 10pt;">Rekap Ketidakhadiran Siswa:</b>
 <table cellpadding="5" cellspacing="0" border="1" style="font-size: 10pt;">
     <tr style="background-color:#E0E0E0; text-align:center; font-weight:bold;">
-        <th width="33.3%">Sakit</th>
-        <th width="33.3%">Izin</th>
-        <th width="33.4%">Tanpa Keterangan/Alpa</th>
+        <th width="25%">Sakit</th>
+        <th width="25%">Izin</th>
+        <th width="25%">Hari Libur</th>
+        <th width="25%">Tanpa Keterangan/Alpa</th>
     </tr>
     <tr>
         <td style="text-align:center;">{$attendance_counts['Sakit']} Hari</td>
         <td style="text-align:center;">{$attendance_counts['Izin']} Hari</td>
+        <td style="text-align:center;">{$attendance_counts['Hari Libur']} Hari</td>
         <td style="text-align:center;">{$attendance_counts['Tanpa Keterangan']} Hari</td>
     </tr>
 </table>

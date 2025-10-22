@@ -92,6 +92,12 @@ try {
             </a>
         </div>
         <div class="col">
+            <a href="request_leave.php?type=Hari Libur" class="icon-menu-item">
+                <div class="icon-circle bg-info text-white"><i class="fas fa-calendar-alt"></i></div>
+                <span class="icon-label">Hari Libur</span>
+            </a>
+        </div>
+        <div class="col">
             <a href="view_assessment.php" class="icon-menu-item">
                 <div class="icon-circle bg-purple text-white"><i class="fas fa-graduation-cap"></i></div>
                 <span class="icon-label">Nilai</span>
