@@ -32,7 +32,7 @@ function get_status_badge($status) {
 ?>
 
 <div class="container-fluid content-wrapper student-view">
-    <h1 class="h3 mb-4 text-gray-800">Pengajuan Izin / Cuti</h1>
+    <h1 class="h3 mb-4 text-gray-800">Pengajuan Izin / Sakit</h1>
 
     <?php if (isset($_SESSION['flash_message'])): ?>
         <div class="alert alert-<?php echo $_SESSION['flash_message']['type']; ?> alert-dismissible fade show" role="alert">
@@ -55,7 +55,7 @@ function get_status_badge($status) {
                         <label for="leave_type" class="form-label">Jenis Pengajuan</label>
                         <select name="leave_type" id="leave_type" class="form-select">
                             <option value="Izin" <?php echo ($leave_type_default === 'Izin') ? 'selected' : ''; ?>>Izin</option>
-                            <option value="Cuti" <?php echo ($leave_type_default === 'Cuti') ? 'selected' : ''; ?>>Cuti</option>
+                            <option value="Sakit" <?php echo ($leave_type_default === 'Sakit') ? 'selected' : ''; ?>>Sakit</option>
                         </select>
                     </div>
                     <div class="col-md-4 mb-3">

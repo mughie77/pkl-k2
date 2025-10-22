@@ -52,7 +52,7 @@ try {
     die("Error fetching data: " . $e->getMessage());
 }
 
-// Fetch attendance data
+// --- ATTENDANCE CALCULATION ---
 $attendance_counts = [
     'Sakit' => 0,
     'Izin' => 0,
@@ -60,22 +60,60 @@ $attendance_counts = [
 ];
 
 try {
-    $stmt_attendance = $pdo->prepare("
-        SELECT leave_type, COUNT(*) as total
-        FROM leave_requests
-        WHERE student_id = :student_id AND status = 'Approved'
-        GROUP BY leave_type
-    ");
-    $stmt_attendance->execute([':student_id' => $data['student_id']]);
-    $attendance_data = $stmt_attendance->fetchAll(PDO::FETCH_ASSOC);
+    $student_id = $data['student_id'];
+    $start_date = new DateTime($data['start_date']);
+    $end_date = new DateTime($data['end_date']);
 
-    foreach ($attendance_data as $row) {
-        if (isset($attendance_counts[$row['leave_type']])) {
-            $attendance_counts[$row['leave_type']] = $row['total'];
+    // 1. Get all approved leave dates
+    $stmt_leaves = $pdo->prepare("
+        SELECT start_date, end_date, leave_type FROM leave_requests
+        WHERE student_id = :student_id AND status = 'Approved'
+    ");
+    $stmt_leaves->execute([':student_id' => $student_id]);
+    $leaves = $stmt_leaves->fetchAll(PDO::FETCH_ASSOC);
+
+    $leave_dates = [];
+    foreach ($leaves as $leave) {
+        $period = new DatePeriod(new DateTime($leave['start_date']), new DateInterval('P1D'), (new DateTime($leave['end_date']))->modify('+1 day'));
+        foreach ($period as $date) {
+            $date_str = $date->format('Y-m-d');
+            if (!isset($leave_dates[$date_str])) {
+                $leave_dates[$date_str] = $leave['leave_type'];
+            }
         }
     }
-} catch (PDOException $e) {
-    // Fail silently if attendance data is not available
+
+    // 2. Get all journal dates (days the student was present)
+    $stmt_journals = $pdo->prepare("
+        SELECT DISTINCT journal_date FROM internship_journals
+        WHERE student_id = :student_id
+    ");
+    $stmt_journals->execute([':student_id' => $student_id]);
+    $journal_dates = $stmt_journals->fetchAll(PDO::FETCH_COLUMN, 0);
+    $present_dates = array_flip($journal_dates); // Use as a hash set for quick lookups
+
+    // 3. Iterate through the entire internship period to calculate totals
+    $internship_period = new DatePeriod($start_date, new DateInterval('P1D'), $end_date->modify('+1 day'));
+    foreach ($internship_period as $date) {
+        // Skip Sundays
+        if ($date->format('w') == 0) {
+            continue;
+        }
+        $date_str = $date->format('Y-m-d');
+
+        if (isset($leave_dates[$date_str])) {
+            $leave_type = $leave_dates[$date_str];
+            if (isset($attendance_counts[$leave_type])) {
+                $attendance_counts[$leave_type]++;
+            }
+        } elseif (!isset($present_dates[$date_str])) {
+            // Not on leave and not present = absent without notice
+            $attendance_counts['Tanpa Keterangan']++;
+        }
+    }
+
+} catch (Exception $e) {
+    // If date processing fails, counts will remain 0.
 }
 
 // Create new PDF document

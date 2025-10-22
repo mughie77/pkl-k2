@@ -80,15 +80,15 @@ try {
             </a>
         </div>
         <div class="col">
-            <a href="request_leave.php" class="icon-menu-item">
+            <a href="request_leave.php?type=Izin" class="icon-menu-item">
                 <div class="icon-circle bg-warning text-white"><i class="fas fa-file-alt"></i></div>
                 <span class="icon-label">Izin</span>
             </a>
         </div>
         <div class="col">
-            <a href="request_leave.php?type=Cuti" class="icon-menu-item">
-                <div class="icon-circle bg-primary text-white"><i class="fas fa-calendar-times"></i></div>
-                <span class="icon-label">Cuti</span>
+            <a href="request_leave.php?type=Sakit" class="icon-menu-item">
+                <div class="icon-circle bg-primary text-white"><i class="fas fa-notes-medical"></i></div>
+                <span class="icon-label">Sakit</span>
             </a>
         </div>
         <div class="col">
