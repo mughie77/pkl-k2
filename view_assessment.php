@@ -73,10 +73,10 @@ try {
                     <h6 class="m-0 font-weight-bold"><i class="fas fa-list-ol me-2"></i>Rincian Nilai</h6>
                 </div>
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between align-items-center">Kedisiplinan <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_1']; ?></span></li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">Keahlian (Skill) <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_2']; ?></span></li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">Kerja Tim <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_3']; ?></span></li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">Kerajinan <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_4']; ?></span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Memahami alur bisnis & wawasan wirausaha <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_1']; ?></span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Menerapkan kompetensi teknis <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_2']; ?></span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Menerapkan norma, SOP & K3LH <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_3']; ?></span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Menerapkan soft skills <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_4']; ?></span></li>
                 </ul>
             </div>
             <?php endif; ?>
@@ -94,10 +94,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const data = {
         labels: [
-            'Kedisiplinan',
-            'Keahlian (Skill)',
-            'Kerja Tim',
-            'Kerajinan'
+            'Alur Bisnis',
+            'Kompetensi Teknis',
+            'Norma & SOP',
+            'Soft Skills'
         ],
         datasets: [{
             label: 'Skor Penilaian',
