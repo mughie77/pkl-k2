@@ -24,13 +24,13 @@ try {
     $stmt_pending_journals->execute([':id' => $instructor_id]);
     $pending_journals_count = $stmt_pending_journals->fetchColumn();
 
-    $stmt_pending_leave = $pdo->prepare("SELECT COUNT(id) FROM leave_requests WHERE instructor_id = :id AND leave_status = 'Pending'");
+    $stmt_pending_leave = $pdo->prepare("SELECT COUNT(id) FROM leave_requests WHERE instructor_id = :id AND status = 'Pending'");
     $stmt_pending_leave->execute([':id' => $instructor_id]);
     $pending_leave_count = $stmt_pending_leave->fetchColumn();
 
     // Ambil daftar siswa bimbingan
     $stmt_students = $pdo->prepare("
-        SELECT s.id, s.student_name, pk.program_name
+        SELECT s.id, s.name as student_name, pk.program_name
         FROM students s
         LEFT JOIN kelas k ON s.kelas_id = k.id
         LEFT JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
