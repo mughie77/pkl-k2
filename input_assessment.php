@@ -27,6 +27,7 @@ try {
     // Ambil data penilaian yang SUDAH diinput oleh instruktur yang login
     $stmt_assessed = $pdo->prepare("
         SELECT
+            a.id,
             s.name AS student_name,
             a.score_1, a.score_2, a.score_3, a.score_4,
             a.notes, a.assessment_date
@@ -127,6 +128,7 @@ try {
                                 <th>Kompetensi Teknis</th>
                                 <th>Catatan</th>
                                 <th>Tanggal</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -140,6 +142,19 @@ try {
                                     <td><?php echo htmlspecialchars($asm['score_4']); ?></td>
                                     <td><?php echo nl2br(htmlspecialchars($asm['notes'])); ?></td>
                                     <td><?php echo date('d M Y H:i', strtotime($asm['assessment_date'])); ?></td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-warning edit-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editAssessmentModal"
+                                            data-id="<?php echo $asm['id']; ?>"
+                                            data-score1="<?php echo $asm['score_1']; ?>"
+                                            data-score2="<?php echo $asm['score_2']; ?>"
+                                            data-score3="<?php echo $asm['score_3']; ?>"
+                                            data-score4="<?php echo $asm['score_4']; ?>"
+                                            data-notes="<?php echo htmlspecialchars($asm['notes']); ?>">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -154,12 +169,87 @@ try {
     </div>
 </div>
 
+<!-- Edit Assessment Modal -->
+<div class="modal fade" id="editAssessmentModal" tabindex="-1" aria-labelledby="editAssessmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editAssessmentModalLabel">Edit Penilaian Siswa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="core/assessment_actions.php" method="POST" id="editAssessmentForm">
+                    <input type="hidden" name="action" value="update_assessment">
+                    <input type="hidden" name="assessment_id" id="edit_assessment_id">
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="edit_score_1" class="form-label">1. Memahami alur bisnis (Skor: <span id="edit_score_1_value"></span>)</label>
+                            <input type="range" class="form-range" id="edit_score_1" name="score_1" min="1" max="100" oninput="updateSliderValue('edit_score_1', 'edit_score_1_value')">
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="edit_score_2" class="form-label">2. Menerapkan soft skill (Skor: <span id="edit_score_2_value"></span>)</label>
+                            <input type="range" class="form-range" id="edit_score_2" name="score_2" min="1" max="100" oninput="updateSliderValue('edit_score_2', 'edit_score_2_value')">
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="edit_score_3" class="form-label">3. Menerapkan norma, SOP, K3LH (Skor: <span id="edit_score_3_value"></span>)</label>
+                            <input type="range" class="form-range" id="edit_score_3" name="score_3" min="1" max="100" oninput="updateSliderValue('edit_score_3', 'edit_score_3_value')">
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="edit_score_4" class="form-label">4. Menerapkan kompetensi teknis (Skor: <span id="edit_score_4_value"></span>)</label>
+                            <input type="range" class="form-range" id="edit_score_4" name="score_4" min="1" max="100" oninput="updateSliderValue('edit_score_4', 'edit_score_4_value')">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_notes" class="form-label">Catatan Tambahan</label>
+                        <textarea class="form-control" id="edit_notes" name="notes" rows="4"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" form="editAssessmentForm" class="btn btn-primary">Simpan Perubahan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function updateSliderValue(sliderId, displayId) {
     const slider = document.getElementById(sliderId);
     const display = document.getElementById(displayId);
     display.textContent = slider.value;
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const editButtons = document.querySelectorAll('.edit-btn');
+    editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const assessmentId = this.dataset.id;
+            const score1 = this.dataset.score1;
+            const score2 = this.dataset.score2;
+            const score3 = this.dataset.score3;
+            const score4 = this.dataset.score4;
+            const notes = this.dataset.notes;
+
+            document.getElementById('edit_assessment_id').value = assessmentId;
+
+            document.getElementById('edit_score_1').value = score1;
+            document.getElementById('edit_score_1_value').textContent = score1;
+
+            document.getElementById('edit_score_2').value = score2;
+            document.getElementById('edit_score_2_value').textContent = score2;
+
+            document.getElementById('edit_score_3').value = score3;
+            document.getElementById('edit_score_3_value').textContent = score3;
+
+            document.getElementById('edit_score_4').value = score4;
+            document.getElementById('edit_score_4_value').textContent = score4;
+
+            document.getElementById('edit_notes').value = notes;
+        });
+    });
+});
 </script>
 
 <?php

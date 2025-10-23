@@ -86,6 +86,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     redirect_to_assessment_page();
 
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_assessment') {
+
+    $assessment_id = $_POST['assessment_id'] ?? null;
+    $score_1 = $_POST['score_1'] ?? null;
+    $score_2 = $_POST['score_2'] ?? null;
+    $score_3 = $_POST['score_3'] ?? null;
+    $score_4 = $_POST['score_4'] ?? null;
+    $notes = trim($_POST['notes'] ?? '');
+
+    // Validasi input
+    if (empty($assessment_id) || !is_numeric($score_1) || !is_numeric($score_2) || !is_numeric($score_3) || !is_numeric($score_4)) {
+        set_flash_message('danger', 'Data pembaruan tidak lengkap.');
+        redirect_to_assessment_page();
+    }
+
+    try {
+        $update_stmt = $pdo->prepare("
+            UPDATE internship_assessments
+            SET score_1 = :score_1, score_2 = :score_2, score_3 = :score_3, score_4 = :score_4, notes = :notes
+            WHERE id = :assessment_id AND instructor_id = :instructor_id
+        ");
+
+        $update_stmt->execute([
+            ':score_1' => $score_1,
+            ':score_2' => $score_2,
+            ':score_3' => $score_3,
+            ':score_4' => $score_4,
+            ':notes' => $notes,
+            ':assessment_id' => $assessment_id,
+            ':instructor_id' => $instructor_id
+        ]);
+
+        if ($update_stmt->rowCount() > 0) {
+            set_flash_message('success', 'Penilaian berhasil diperbarui.');
+        } else {
+            set_flash_message('warning', 'Tidak ada perubahan atau Anda tidak memiliki izin untuk mengedit penilaian ini.');
+        }
+
+    } catch (PDOException $e) {
+        set_flash_message('danger', 'Terjadi kesalahan pada database: ' . $e->getMessage());
+    }
+
+    redirect_to_assessment_page();
+
 } else {
     // Jika akses tidak sah
     set_flash_message('danger', 'Aksi tidak valid.');
