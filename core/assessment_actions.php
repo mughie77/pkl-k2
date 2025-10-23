@@ -21,14 +21,14 @@ function redirect_to_assessment_page() {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create_assessment') {
 
     $student_id = $_POST['student_id'] ?? null;
-    $discipline_score = $_POST['discipline_score'] ?? null;
-    $skill_score = $_POST['skill_score'] ?? null;
-    $teamwork_score = $_POST['teamwork_score'] ?? null;
-    $diligence_score = $_POST['diligence_score'] ?? null;
-    $feedback = trim($_POST['feedback'] ?? '');
+    $score_1 = $_POST['score_1'] ?? null;
+    $score_2 = $_POST['score_2'] ?? null;
+    $score_3 = $_POST['score_3'] ?? null;
+    $score_4 = $_POST['score_4'] ?? null;
+    $notes = trim($_POST['notes'] ?? '');
 
     // Validasi input
-    if (empty($student_id) || !is_numeric($discipline_score) || !is_numeric($skill_score) || !is_numeric($teamwork_score) || !is_numeric($diligence_score)) {
+    if (empty($student_id) || !is_numeric($score_1) || !is_numeric($score_2) || !is_numeric($score_3) || !is_numeric($score_4)) {
         set_flash_message('danger', 'Data tidak lengkap. Pastikan siswa dipilih dan semua skor terisi.');
         redirect_to_assessment_page();
     }
@@ -63,19 +63,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         // 3. Jika semua verifikasi lolos, masukkan data penilaian
         $insert_stmt = $pdo->prepare("
             INSERT INTO internship_assessments
-            (student_id, instructor_id, discipline_score, skill_score, teamwork_score, diligence_score, feedback)
+            (student_id, instructor_id, score_1, score_2, score_3, score_4, notes)
             VALUES
-            (:student_id, :instructor_id, :discipline_score, :skill_score, :teamwork_score, :diligence_score, :feedback)
+            (:student_id, :instructor_id, :score_1, :score_2, :score_3, :score_4, :notes)
         ");
 
         $insert_stmt->execute([
             ':student_id' => $student_id,
             ':instructor_id' => $instructor_id,
-            ':discipline_score' => $discipline_score,
-            ':skill_score' => $skill_score,
-            ':teamwork_score' => $teamwork_score,
-            ':diligence_score' => $diligence_score,
-            ':feedback' => $feedback
+            ':score_1' => $score_1,
+            ':score_2' => $score_2,
+            ':score_3' => $score_3,
+            ':score_4' => $score_4,
+            ':notes' => $notes
         ]);
 
         set_flash_message('success', 'Penilaian untuk siswa berhasil disimpan.');

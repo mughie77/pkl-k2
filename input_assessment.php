@@ -9,10 +9,11 @@ if ($_SESSION['user_role'] !== 'instructor') {
 }
 
 $instructor_id = $_SESSION['user_id'];
+$assessments = [];
 
 try {
     // Ambil daftar siswa bimbingan yang BELUM dinilai
-    $stmt = $pdo->prepare("
+    $stmt_unassessed = $pdo->prepare("
         SELECT s.id, s.name
         FROM students s
         JOIN internship_mappings m ON s.id = m.student_id
@@ -20,16 +21,30 @@ try {
         WHERE m.instructor_id = :instructor_id_map AND a.id IS NULL
         ORDER BY s.name ASC
     ");
-    $stmt->execute([':instructor_id' => $instructor_id, ':instructor_id_map' => $instructor_id]);
-    $unassessed_students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt_unassessed->execute([':instructor_id' => $instructor_id, ':instructor_id_map' => $instructor_id]);
+    $unassessed_students = $stmt_unassessed->fetchAll(PDO::FETCH_ASSOC);
+
+    // Ambil data penilaian yang SUDAH diinput oleh instruktur yang login
+    $stmt_assessed = $pdo->prepare("
+        SELECT
+            s.name AS student_name,
+            a.score_1, a.score_2, a.score_3, a.score_4,
+            a.notes, a.assessment_date
+        FROM internship_assessments a
+        JOIN students s ON a.student_id = s.id
+        WHERE a.instructor_id = :instructor_id
+        ORDER BY a.assessment_date DESC
+    ");
+    $stmt_assessed->execute([':instructor_id' => $instructor_id]);
+    $assessments = $stmt_assessed->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    die("Error: Could not fetch students data. " . $e->getMessage());
+    die("Error: Could not fetch data. " . $e->getMessage());
 }
 ?>
 
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Input Penilaian Observasi Siswa</h1>
+    <h1 class="h3 mb-4 text-gray-800">Penilaian Siswa</h1>
 
     <?php if (isset($_SESSION['flash_message'])): ?>
         <div class="alert alert-<?php echo $_SESSION['flash_message']['type']; ?> alert-dismissible fade show" role="alert">
@@ -39,17 +54,17 @@ try {
         <?php unset($_SESSION['flash_message']); ?>
     <?php endif; ?>
 
+    <!-- Form Input Penilaian -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Form Penilaian</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Form Input Penilaian</h6>
         </div>
         <div class="card-body">
             <?php if (count($unassessed_students) > 0): ?>
                 <form action="core/assessment_actions.php" method="POST">
                     <input type="hidden" name="action" value="create_assessment">
-
                     <div class="mb-4">
-                        <label for="student_id" class="form-label">Pilih Siswa yang Akan Dinilai</label>
+                        <label for="student_id" class="form-label">Pilih Siswa untuk Dinilai</label>
                         <select class="form-select" id="student_id" name="student_id" required>
                             <option value="" disabled selected>-- Daftar Siswa Belum Dinilai --</option>
                             <?php foreach ($unassessed_students as $student): ?>
@@ -57,52 +72,82 @@ try {
                             <?php endforeach; ?>
                         </select>
                     </div>
-
                     <hr class="my-4">
-
                     <div class="row">
-                        <!-- Penilaian Disiplin -->
                         <div class="col-md-6 mb-4">
-                            <label for="discipline_score" class="form-label">1. Kedisiplinan (Skor: <span id="discipline_value">75</span>)</label>
-                            <input type="range" class="form-range" id="discipline_score" name="discipline_score" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'discipline_value')">
+                            <label for="score_1" class="form-label">1. Memahami alur bisnis (Skor: <span id="score_1_value">75</span>)</label>
+                            <input type="range" class="form-range" id="score_1" name="score_1" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'score_1_value')">
                         </div>
-
-                        <!-- Penilaian Keahlian -->
                         <div class="col-md-6 mb-4">
-                            <label for="skill_score" class="form-label">2. Keahlian/Skill (Skor: <span id="skill_value">75</span>)</label>
-                            <input type="range" class="form-range" id="skill_score" name="skill_score" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'skill_value')">
+                            <label for="score_2" class="form-label">2. Menerapkan soft skill (Skor: <span id="score_2_value">75</span>)</label>
+                            <input type="range" class="form-range" id="score_2" name="score_2" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'score_2_value')">
                         </div>
-
-                        <!-- Penilaian Kerja Tim -->
                         <div class="col-md-6 mb-4">
-                            <label for="teamwork_score" class="form-label">3. Kerja Tim (Skor: <span id="teamwork_value">75</span>)</label>
-                            <input type="range" class="form-range" id="teamwork_score" name="teamwork_score" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'teamwork_value')">
+                            <label for="score_3" class="form-label">3. Menerapkan norma, SOP, K3LH (Skor: <span id="score_3_value">75</span>)</label>
+                            <input type="range" class="form-range" id="score_3" name="score_3" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'score_3_value')">
                         </div>
-
-                        <!-- Penilaian Kerajinan -->
                         <div class="col-md-6 mb-4">
-                            <label for="diligence_score" class="form-label">4. Kerajinan/Ketekunan (Skor: <span id="diligence_value">75</span>)</label>
-                            <input type="range" class="form-range" id="diligence_score" name="diligence_score" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'diligence_value')">
+                            <label for="score_4" class="form-label">4. Menerapkan kompetensi teknis (Skor: <span id="score_4_value">75</span>)</label>
+                            <input type="range" class="form-range" id="score_4" name="score_4" min="1" max="100" value="75" oninput="updateSliderValue(this.id, 'score_4_value')">
                         </div>
                     </div>
-
                     <div class="mb-3">
-                        <label for="feedback" class="form-label">Catatan dan Feedback Tambahan</label>
-                        <textarea class="form-control" id="feedback" name="feedback" rows="4" placeholder="Berikan deskripsi atau masukan mengenai kinerja siswa..."></textarea>
+                        <label for="notes" class="form-label">Catatan Tambahan</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="4" placeholder="Berikan deskripsi atau masukan..."></textarea>
                     </div>
-
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-save me-2"></i> Simpan Penilaian
-                        </button>
+                        <button type="submit" class="btn btn-primary btn-lg">Simpan Penilaian</button>
                     </div>
-
                 </form>
             <?php else: ?>
                 <div class="alert alert-success text-center">
-                    <i class="fas fa-check-circle fa-3x mb-3"></i>
                     <h4 class="alert-heading">Kerja Bagus!</h4>
                     <p>Semua siswa bimbingan Anda telah selesai dinilai.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Tabel Log Penilaian -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Log Penilaian yang Telah Diinput</h6>
+        </div>
+        <div class="card-body">
+            <?php if (count($assessments) > 0): ?>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>No.</th>
+                                <th>Nama Siswa</th>
+                                <th>Alur Bisnis</th>
+                                <th>Soft Skill</th>
+                                <th>Norma/SOP</th>
+                                <th>Kompetensi Teknis</th>
+                                <th>Catatan</th>
+                                <th>Tanggal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($assessments as $index => $asm): ?>
+                                <tr>
+                                    <td><?php echo $index + 1; ?></td>
+                                    <td><?php echo htmlspecialchars($asm['student_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($asm['score_1']); ?></td>
+                                    <td><?php echo htmlspecialchars($asm['score_2']); ?></td>
+                                    <td><?php echo htmlspecialchars($asm['score_3']); ?></td>
+                                    <td><?php echo htmlspecialchars($asm['score_4']); ?></td>
+                                    <td><?php echo nl2br(htmlspecialchars($asm['notes'])); ?></td>
+                                    <td><?php echo date('d M Y H:i', strtotime($asm['assessment_date'])); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <div class="alert alert-info text-center">
+                    <p>Belum ada data penilaian yang diinput.</p>
                 </div>
             <?php endif; ?>
         </div>
