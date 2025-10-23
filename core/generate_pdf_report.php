@@ -56,7 +56,6 @@ try {
 $attendance_counts = [
     'Sakit' => 0,
     'Izin' => 0,
-    'Hari Libur' => 0,
     'Tanpa Keterangan' => 0,
 ];
 
@@ -93,17 +92,12 @@ try {
     $journal_dates = $stmt_journals->fetchAll(PDO::FETCH_COLUMN, 0);
     $present_dates = array_flip($journal_dates); // Use as a hash set for quick lookups
 
-    // 3. Get all holiday dates
-    $stmt_holidays = $pdo->query("SELECT holiday_date FROM holidays");
-    $holiday_dates = $stmt_holidays->fetchAll(PDO::FETCH_COLUMN, 0);
-    $holidays_set = array_flip($holiday_dates);
-
-    // 4. Iterate through the entire internship period to calculate totals
+    // 3. Iterate through the entire internship period to calculate totals
     $internship_period = new DatePeriod($start_date, new DateInterval('P1D'), $end_date->modify('+1 day'));
     foreach ($internship_period as $date) {
         $date_str = $date->format('Y-m-d');
-        // Skip Sundays and official holidays
-        if ($date->format('w') == 0 || isset($holidays_set[$date_str])) {
+        // Skip Sundays
+        if ($date->format('w') == 0) {
             continue;
         }
 
@@ -295,15 +289,13 @@ $attendance_html = <<<EOD
 <b style="font-size: 10pt;">Rekap Ketidakhadiran Siswa:</b>
 <table cellpadding="5" cellspacing="0" border="1" style="font-size: 10pt;">
     <tr style="background-color:#E0E0E0; text-align:center; font-weight:bold;">
-        <th width="25%">Sakit</th>
-        <th width="25%">Izin</th>
-        <th width="25%">Hari Libur</th>
-        <th width="25%">Tanpa Keterangan/Alpa</th>
+        <th width="33%">Sakit</th>
+        <th width="34%">Izin</th>
+        <th width="33%">Tanpa Keterangan/Alpa</th>
     </tr>
     <tr>
         <td style="text-align:center;">{$attendance_counts['Sakit']} Hari</td>
         <td style="text-align:center;">{$attendance_counts['Izin']} Hari</td>
-        <td style="text-align:center;">{$attendance_counts['Hari Libur']} Hari</td>
         <td style="text-align:center;">{$attendance_counts['Tanpa Keterangan']} Hari</td>
     </tr>
 </table>

@@ -46,7 +46,6 @@ function create_nav_item($link, $icon, $text, $current_page) {
                 <div id="collapseSettings" class="collapse" aria-labelledby="headingSettings" data-bs-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item nav-link ms-3" href="school_settings.php">Profil Sekolah</a>
-                        <a class="collapse-item nav-link ms-3" href="manage_holidays.php">Hari Libur</a>
                         <a class="collapse-item nav-link ms-3" href="manage_program_keahlian.php">Program Keahlian</a>
                         <a class="collapse-item nav-link ms-3" href="manage_konsentrasi_keahlian.php">Konsentrasi Keahlian</a>
                         <a class="collapse-item nav-link ms-3" href="manage_kelas.php">Manajemen Kelas</a>

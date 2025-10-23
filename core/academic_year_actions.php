@@ -66,8 +66,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
             // Aktifkan yang dipilih
             $stmt = $pdo->prepare("UPDATE academic_years SET status = 'active' WHERE id = :id");
             $stmt->execute([':id' => $id]);
+
+            // Ambil nama tahun ajaran yang baru diaktifkan
+            $stmt_get_name = $pdo->prepare("SELECT year_name FROM academic_years WHERE id = :id");
+            $stmt_get_name->execute([':id' => $id]);
+            $new_active_year = $stmt_get_name->fetch(PDO::FETCH_ASSOC);
+
+            if ($new_active_year) {
+                // Perbarui sesi secara langsung
+                $_SESSION['selected_academic_year_id'] = $id;
+                $_SESSION['active_academic_year_name'] = $new_active_year['year_name'];
+            }
+
             $pdo->commit();
-            set_flash_message('success', 'Tahun pelajaran berhasil diaktifkan.');
+            set_flash_message('success', 'Tahun pelajaran berhasil diaktifkan dan sesi telah diperbarui.');
         } catch (PDOException $e) {
             $pdo->rollBack();
             set_flash_message('danger', 'Gagal mengaktifkan tahun pelajaran.');

@@ -27,7 +27,7 @@ try {
 }
 
 // Ambil data siswa dari tahun ajaran aktif
-$active_year_id = $active_year['id'] ?? 0;
+$active_year_id = $_SESSION['selected_academic_year_id'] ?? 0;
 try {
     $stmt = $pdo->prepare("
         SELECT s.id, s.name, s.nisn, s.nis, s.email, s.birth_place, s.birth_date, s.address, s.phone, s.parent_phone, s.academic_year_id, s.kelas_id,
@@ -47,7 +47,7 @@ try {
 ?>
 
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Manajemen Data Siswa <span class="badge bg-info"><?php echo htmlspecialchars($active_year['year_name'] ?? 'Tahun Ajaran Belum Dipilih'); ?></span></h1>
+    <h1 class="h3 mb-4 text-gray-800">Manajemen Data Siswa <span class="badge bg-info"><?php echo htmlspecialchars($_SESSION['active_academic_year_name'] ?? 'Tahun Ajaran Belum Dipilih'); ?></span></h1>
 
     <div class="mb-4">
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#studentModal">
