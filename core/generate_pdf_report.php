@@ -27,7 +27,7 @@ try {
             c.name as company_name,
             ip.start_date, ip.end_date,
             i.name as instructor_name,
-            t.name as teacher_name,
+            t.name as teacher_name, t.nip as teacher_nip,
             a.score_1, a.score_2, a.score_3, a.score_4, a.notes
         FROM internship_assessments a
         JOIN students s ON a.student_id = s.id
@@ -317,7 +317,7 @@ $signature_html = <<<EOD
     </tr>
     <tr><td colspan="2"><br><br><br><br></td></tr>
     <tr>
-        <td style="text-align:center;"><b><u>{$data['teacher_name']}</u></b></td>
+        <td style="text-align:center;"><b><u>{$data['teacher_name']}</u></b><br>NIP: {$data['teacher_nip']}</td>
         <td style="text-align:center;"><b><u>{$data['instructor_name']}</u></b></td>
     </tr>
 </table>
