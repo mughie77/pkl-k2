@@ -290,7 +290,73 @@ if ($report_type === 'journal_recap') {
     } catch (PDOException $e) {
         die("Error saat mengambil data untuk ekspor: " . $e->getMessage());
     }
+} elseif ($report_type === 'dudika_list') {
+    // --- Logika Ekspor Daftar DUDIKA ---
+
+    // Keamanan tambahan: Pastikan hanya waka humas yang bisa mengakses
+    if ($_SESSION['user_role'] !== 'waka_humas') {
+        die("Akses ditolak.");
+    }
+
+    try {
+        $stmt_companies = $pdo->query("SELECT id, name, address, contact_person, latitude, longitude FROM companies ORDER BY name ASC");
+        $companies = $stmt_companies->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmt_instructors = $pdo->prepare("SELECT name FROM instructors WHERE company_id = :company_id ORDER BY name ASC");
+
+        $data_to_export = [];
+        foreach ($companies as $company) {
+            $stmt_instructors->execute([':company_id' => $company['id']]);
+            $instructors = $stmt_instructors->fetchAll(PDO::FETCH_COLUMN);
+            $instructors_string = !empty($instructors) ? implode(", ", $instructors) : '-';
+
+            $location_status = (!empty($company['latitude']) && !empty($company['longitude'])) ? 'Sudah Di-set' : 'Belum Di-set';
+
+            $data_to_export[] = [
+                $company['name'],
+                $company['address'],
+                $company['contact_person'] ?? '-',
+                $instructors_string,
+                $location_status,
+                $company['latitude'] ?? '-',
+                $company['longitude'] ?? '-'
+            ];
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Daftar DUDIKA');
+
+        $headers = ['Nama DUDIKA', 'Alamat', 'Narahubung', 'Instruktur DUDIKA', 'Status Lokasi', 'Latitude', 'Longitude'];
+        $sheet->fromArray($headers, NULL, 'A1');
+
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '0D6EFD']]
+        ];
+        $sheet->getStyle('A1:G1')->applyFromArray($headerStyle);
+
+        $sheet->fromArray($data_to_export, NULL, 'A2');
+
+        foreach (range('A', 'G') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $filename = 'daftar_dudika_' . date('Ymd') . '.xlsx';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new Xlsx($spreadsheet);
+        ob_end_clean();
+        $writer->save('php://output');
+        exit;
+
+    } catch (PDOException $e) {
+        die("Error saat mengambil data untuk ekspor: " . $e->getMessage());
+    }
 }
+
 
 // Fallback jika report_type tidak dikenal
 die("Jenis laporan tidak valid.");
