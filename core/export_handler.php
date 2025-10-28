@@ -355,6 +355,118 @@ if ($report_type === 'journal_recap') {
     } catch (PDOException $e) {
         die("Error saat mengambil data untuk ekspor: " . $e->getMessage());
     }
+} elseif ($report_type === 'attendance') {
+    // --- Logika Ekspor Rekap Absensi ---
+    $selected_month = $_GET['month'] ?? date('Y-m');
+
+    try {
+        $stmt = $pdo->prepare("
+            SELECT s.name as student_name, pk.program_name, COUNT(j.id) as total_hadir
+            FROM students s
+            JOIN kelas k ON s.kelas_id = k.id
+            JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+            JOIN program_keahlian pk ON kk.program_id = pk.id
+            LEFT JOIN internship_journals j ON s.id = j.student_id AND DATE_FORMAT(j.journal_date, '%Y-%m') = :month
+            WHERE s.academic_year_id = :year_id
+            GROUP BY s.id, s.name, pk.program_name
+            ORDER BY s.name ASC
+        ");
+        $stmt->execute([':month' => $selected_month, ':year_id' => $_SESSION['selected_academic_year_id']]);
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Rekap Absensi');
+
+        $headers = ['Nama Siswa', 'Program Keahlian', 'Total Kehadiran (Hari)'];
+        $sheet->fromArray($headers, NULL, 'A1');
+        $sheet->getStyle('A1:C1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4285F4']]
+        ]);
+
+        $rowNum = 2;
+        foreach ($data as $row) {
+            $sheet->fromArray([$row['student_name'], $row['program_name'], $row['total_hadir']], NULL, 'A' . $rowNum);
+            $rowNum++;
+        }
+
+        foreach (range('A', 'C') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $filename = 'rekap_absensi_' . str_replace('-', '_', $selected_month) . '.xlsx';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new Xlsx($spreadsheet);
+        ob_end_clean();
+        $writer->save('php://output');
+        exit;
+    } catch (PDOException $e) {
+        die("Error saat mengekspor data absensi: " . $e->getMessage());
+    }
+} elseif ($report_type === 'assessment') {
+    // --- Logika Ekspor Rekap Nilai ---
+    try {
+        $stmt = $pdo->prepare("
+            SELECT
+                s.name as student_name, pk.program_name,
+                a.score_1, a.score_2, a.score_3, a.score_4,
+                (a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4 as average_score
+            FROM students s
+            JOIN kelas k ON s.kelas_id = k.id
+            JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+            JOIN program_keahlian pk ON kk.program_id = pk.id
+            LEFT JOIN internship_assessments a ON s.id = a.student_id
+            WHERE s.academic_year_id = :year_id
+            ORDER BY s.name ASC
+        ");
+        $stmt->execute([':year_id' => $_SESSION['selected_academic_year_id']]);
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Rekap Nilai');
+
+        $headers = ['Nama Siswa', 'Program Keahlian', 'Alur Bisnis', 'Kompetensi Teknis', 'Norma & SOP', 'Soft Skills', 'Rata-rata'];
+        $sheet->fromArray($headers, NULL, 'A1');
+        $sheet->getStyle('A1:G1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '198754']]
+        ]);
+
+        $rowNum = 2;
+        foreach($data as $row) {
+            $sheet->fromArray([
+                $row['student_name'],
+                $row['program_name'],
+                $row['score_1'] ?? 'N/A',
+                $row['score_2'] ?? 'N/A',
+                $row['score_3'] ?? 'N/A',
+                $row['score_4'] ?? 'N/A',
+                isset($row['average_score']) ? number_format($row['average_score'], 2) : 'N/A'
+            ], NULL, 'A' . $rowNum);
+            $rowNum++;
+        }
+
+        foreach (range('A', 'G') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $filename = 'rekap_nilai_akhir_' . date('Ymd') . '.xlsx';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new Xlsx($spreadsheet);
+        ob_end_clean();
+        $writer->save('php://output');
+        exit;
+    } catch (PDOException $e) {
+        die("Error saat mengekspor data nilai: " . $e->getMessage());
+    }
 }
 
 

@@ -96,7 +96,7 @@ try {
                     <button type="submit" class="btn btn-primary w-100">Tampilkan</button>
                 </div>
                 <div class="col-md-2">
-                    <a href="core/export_actions.php?rekap_type=<?php echo $rekap_type; ?>&month=<?php echo $selected_month; ?>" class="btn btn-success w-100" target="_blank">
+                    <a href="core/export_handler.php?report_type=<?php echo $rekap_type; ?>&month=<?php echo $selected_month; ?>" class="btn btn-success w-100" target="_blank">
                         <i class="fas fa-file-excel me-2"></i>Export
                     </a>
                 </div>

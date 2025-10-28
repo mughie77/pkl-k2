@@ -4,19 +4,11 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Periksa apakah pengguna sudah login. Jika belum, jangan tampilkan sidebar.
-// Halaman login.php dan logout.php dikecualikan dari aturan ini.
-$is_auth_page = in_array(basename($_SERVER['PHP_SELF']), ['login.php', 'logout.php']);
-if (!isset($_SESSION['user_role']) && !$is_auth_page) {
-    // Jika tidak ada peran dan bukan halaman auth, mungkin ada masalah sesi.
-    // Untuk keamanan, bisa redirect ke login, tapi untuk sekarang kita biarkan kosong.
+// Hanya tampilkan sidebar untuk admin
+if (($_SESSION['user_role'] ?? 'guest') !== 'admin') {
+    // Untuk peran lain, buka wrapper konten full-width dan hentikan skrip
+    echo '<div class="content-wrapper p-3 p-md-4" style="width: 100%;">';
     return;
-}
-
-// Untuk semua peran yang login, buka wrapper kontennya.
-// Sidebar akan tetap dirender setelah ini.
-if (isset($_SESSION['user_role'])) {
-    echo '<div class="content-wrapper p-3 p-md-4">';
 }
 
 $user_role = $_SESSION['user_role'];
@@ -86,13 +78,6 @@ function create_nav_item($link, $icon, $text, $current_page) {
             <?php create_nav_item('daily_journal.php', 'fa-book', 'Jurnal Harian', $current_page); ?>
             <?php create_nav_item('view_assessment.php', 'fa-chart-bar', 'Lihat Penilaian', $current_page); ?>
             <?php create_nav_item('upload_report.php', 'fa-file-upload', 'Unggah Laporan', $current_page); ?>
-        <?php endif; ?>
-
-        <?php if ($user_role == 'waka_humas'): ?>
-            <?php create_nav_item('waka_dashboard.php', 'fa-tachometer-alt', 'Dashboard', $current_page); ?>
-            <?php create_nav_item('mapping_report.php', 'fa-sitemap', 'Laporan Mapping', $current_page); ?>
-            <?php create_nav_item('problem_report.php', 'fa-exclamation-triangle', 'Laporan Masalah', $current_page); ?>
-            <?php create_nav_item('assessment_recap.php', 'fa-chart-line', 'Rekap Nilai', $current_page); ?>
         <?php endif; ?>
 
     </ul>
