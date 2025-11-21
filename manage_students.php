@@ -23,11 +23,14 @@ try {
 $active_year_id = $active_year['id'] ?? 0;
 try {
     $stmt = $pdo->prepare("
-        SELECT s.*, d.department_name
+        SELECT s.id, s.student_name, s.nisn, s.nis, s.email, s.birth_place, s.birth_date, s.address, s.phone, s.parent_phone, s.academic_year_id, s.kelas_id,
+        k.kelas_name, kk.konsentrasi_name, pk.program_name
         FROM students s
-        JOIN departments d ON s.department_id = d.id
+        LEFT JOIN kelas k ON s.kelas_id = k.id
+        LEFT JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+        LEFT JOIN program_keahlian pk ON kk.program_id = pk.id
         WHERE s.academic_year_id = :year_id
-        ORDER BY s.name ASC
+        ORDER BY s.student_name ASC
     ");
     $stmt->execute([':year_id' => $active_year_id]);
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -62,16 +65,18 @@ try {
                         <tr>
                             <th>Nama Lengkap</th>
                             <th>NISN</th>
-                            <th>Jurusan</th>
+                            <th>Program Keahlian</th>
+                            <th>Kelas</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($students as $student): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($student['name']); ?></td>
+                                <td><?php echo htmlspecialchars($student['student_name']); ?></td>
                                 <td><?php echo htmlspecialchars($student['nisn']); ?></td>
-                                <td><?php echo htmlspecialchars($student['department_name']); ?></td>
+                                <td><?php echo htmlspecialchars($student['program_name']); ?></td>
+                                <td><?php echo htmlspecialchars($student['kelas_name']); ?></td>
                                 <td>
                                     <button class="btn btn-warning btn-sm edit-btn"
                                             data-bs-toggle="modal"
@@ -111,7 +116,7 @@ try {
                     <input type="hidden" name="action" id="form_action" value="create">
 
                     <div class="row">
-                        <div class="col-md-6 mb-3"><label for="name" class="form-label">Nama Lengkap</label><input type="text" class="form-control" id="name" name="name" required></div>
+                        <div class="col-md-6 mb-3"><label for="student_name" class="form-label">Nama Lengkap</label><input type="text" class="form-control" id="student_name" name="student_name" required></div>
                         <div class="col-md-6 mb-3"><label for="email" class="form-label">Email (Opsional)</label><input type="email" class="form-control" id="email" name="email"></div>
                     </div>
                     <div class="row">
