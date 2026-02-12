@@ -3,49 +3,68 @@ require_once __DIR__ . '/templates/header.php';
 require_once __DIR__ . '/templates/sidebar.php';
 
 // Proteksi halaman
-if ($_SESSION['user_role'] !== 'admin') {
+if (!in_array($_SESSION['user_role'], ['admin', 'instructor'])) {
     header("Location: login.php");
     exit;
 }
 
-$active_year_id = $active_year['id'] ?? 0;
+$active_year_id = $_SESSION['selected_academic_year_id'] ?? 0;
+$active_year_name = $_SESSION['active_academic_year_name'] ?? 'Tahun Ajaran Belum Dipilih';
 
 $selected_month = $_GET['month'] ?? date('Y-m');
 $rekap_type = $_GET['rekap_type'] ?? 'attendance';
 
-$attendance_data = [];
-$assessment_data = [];
+$user_role = $_SESSION['user_role'];
+$instructor_id = ($user_role === 'instructor') ? $_SESSION['user_id'] : null;
+
+$rekap_data = [];
 
 try {
-    if ($rekap_type === 'attendance') {
-        // Ambil rekap absensi untuk siswa di tahun ajaran aktif
-        $stmt_att = $pdo->prepare("
-            SELECT s.name as student_name, d.department_name, COUNT(j.id) as total_hadir
-            FROM students s
-            JOIN departments d ON s.department_id = d.id
-            LEFT JOIN internship_journals j ON s.id = j.student_id AND DATE_FORMAT(j.journal_date, '%Y-%m') = :month
-            WHERE s.academic_year_id = :year_id
-            GROUP BY s.id
-            ORDER BY s.name ASC
-        ");
-        $stmt_att->execute([':month' => $selected_month, ':year_id' => $active_year_id]);
-        $attendance_data = $stmt_att->fetchAll(PDO::FETCH_ASSOC);
-    } elseif ($rekap_type === 'assessment') {
-        // Ambil rekap nilai untuk siswa di tahun ajaran aktif
-        $stmt_ass = $pdo->prepare("
-            SELECT
-                s.name as student_name, d.department_name,
-                a.discipline_score, a.skill_score, a.teamwork_score, a.diligence_score,
-                (a.discipline_score + a.skill_score + a.teamwork_score + a.diligence_score) / 4 as average_score
-            FROM students s
-            JOIN departments d ON s.department_id = d.id
-            LEFT JOIN internship_assessments a ON s.id = a.student_id
-            WHERE s.academic_year_id = :year_id
-            ORDER BY s.name ASC
-        ");
-        $stmt_ass->execute([':year_id' => $active_year_id]);
-        $assessment_data = $stmt_ass->fetchAll(PDO::FETCH_ASSOC);
+    $base_query = "
+        FROM students s
+        JOIN kelas k ON s.kelas_id = k.id
+        JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+        JOIN program_keahlian pk ON kk.program_id = pk.id
+        LEFT JOIN internship_mappings m ON s.id = m.student_id
+    ";
+
+    $where_clause = "WHERE s.academic_year_id = :year_id";
+    $params = [':year_id' => $active_year_id];
+
+    if ($instructor_id) {
+        $where_clause .= " AND m.instructor_id = :instructor_id";
+        $params[':instructor_id'] = $instructor_id;
     }
+
+    if ($rekap_type === 'attendance') {
+        $select_clause = "
+            SELECT s.name as student_name, pk.program_name, COUNT(j.id) as total_hadir
+        ";
+        $joins = "LEFT JOIN internship_journals j ON s.id = j.student_id AND DATE_FORMAT(j.journal_date, '%Y-%m') = :month";
+        $group_by = "GROUP BY s.id, s.name, pk.program_name";
+        $order_by = "ORDER BY s.name ASC";
+        $params[':month'] = $selected_month;
+
+        $final_query = $select_clause . $base_query . $joins . " " . $where_clause . " " . $group_by . " " . $order_by;
+
+    } else { // assessment
+        $select_clause = "
+            SELECT
+                s.name as student_name, pk.program_name,
+                a.score_1, a.score_2, a.score_3, a.score_4,
+                (a.score_1 + a.score_2 + a.score_3 + a.score_4) / 4 as average_score
+        ";
+        $joins = "LEFT JOIN internship_assessments a ON s.id = a.student_id";
+        $group_by = ""; // No group by for assessment
+        $order_by = "ORDER BY s.name ASC";
+
+        $final_query = $select_clause . $base_query . $joins . " " . $where_clause . " " . $order_by;
+    }
+
+    $stmt = $pdo->prepare($final_query);
+    $stmt->execute($params);
+    $rekap_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (PDOException $e) {
     die("Error fetching recap data: " . $e->getMessage());
 }
@@ -53,7 +72,7 @@ try {
 ?>
 
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Rekapitulasi Global <span class="badge bg-info"><?php echo htmlspecialchars($active_year['year_name'] ?? 'Tahun Ajaran Belum Dipilih'); ?></span></h1>
+    <h1 class="h3 mb-4 text-gray-800">Rekapitulasi Global <span class="badge bg-info"><?php echo htmlspecialchars($active_year_name); ?></span></h1>
 
     <!-- Filter Form -->
     <div class="card shadow mb-4">
@@ -100,15 +119,15 @@ try {
                     <thead>
                         <tr>
                             <th>Nama Siswa</th>
-                            <th>Jurusan</th>
+                            <th>Program Keahlian</th>
                             <th>Total Kehadiran (Hari)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($attendance_data as $data): ?>
+                        <?php foreach ($rekap_data as $data): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($data['student_name']); ?></td>
-                            <td><?php echo htmlspecialchars($data['department_name']); ?></td>
+                            <td><?php echo htmlspecialchars($data['program_name']); ?></td>
                             <td><?php echo $data['total_hadir']; ?></td>
                         </tr>
                         <?php endforeach; ?>
@@ -122,23 +141,23 @@ try {
                     <thead>
                         <tr>
                             <th>Nama Siswa</th>
-                            <th>Jurusan</th>
-                            <th>Disiplin</th>
-                            <th>Skill</th>
-                            <th>Kerja Tim</th>
-                            <th>Kerajinan</th>
+                            <th>Program Keahlian</th>
+                            <th>Alur Bisnis</th>
+                            <th>Kompetensi Teknis</th>
+                            <th>Norma & SOP</th>
+                            <th>Soft Skills</th>
                             <th>Rata-rata</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($assessment_data as $data): ?>
+                        <?php foreach ($rekap_data as $data): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($data['student_name']); ?></td>
-                            <td><?php echo htmlspecialchars($data['department_name']); ?></td>
-                            <td><?php echo $data['discipline_score'] ?? 'N/A'; ?></td>
-                            <td><?php echo $data['skill_score'] ?? 'N/A'; ?></td>
-                            <td><?php echo $data['teamwork_score'] ?? 'N/A'; ?></td>
-                            <td><?php echo $data['diligence_score'] ?? 'N/A'; ?></td>
+                            <td><?php echo htmlspecialchars($data['program_name']); ?></td>
+                            <td><?php echo $data['score_1'] ?? 'N/A'; ?></td>
+                            <td><?php echo $data['score_2'] ?? 'N/A'; ?></td>
+                            <td><?php echo $data['score_3'] ?? 'N/A'; ?></td>
+                            <td><?php echo $data['score_4'] ?? 'N/A'; ?></td>
                             <td><strong><?php echo isset($data['average_score']) ? number_format($data['average_score'], 2) : 'N/A'; ?></strong></td>
                         </tr>
                         <?php endforeach; ?>

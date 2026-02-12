@@ -8,7 +8,7 @@ if ($_SESSION['user_role'] !== 'admin') {
     exit;
 }
 
-$active_year_id = $active_year['id'] ?? 0;
+$active_year_id = $_SESSION['selected_academic_year_id'] ?? 0;
 
 try {
     // 1. Ambil data mapping yang sudah ada untuk tahun ajaran aktif
@@ -58,7 +58,7 @@ try {
 ?>
 
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Mapping Penempatan PKL <span class="badge bg-info"><?php echo htmlspecialchars($active_year['year_name'] ?? 'Tahun Ajaran Belum Dipilih'); ?></span></h1>
+    <h1 class="h3 mb-4 text-gray-800">Mapping Penempatan PKL <span class="badge bg-info"><?php echo htmlspecialchars($_SESSION['active_academic_year_name'] ?? 'Tahun Ajaran Belum Dipilih'); ?></span></h1>
 
     <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#mappingModal">
         <i class="fas fa-plus-circle me-2"></i> Buat Mapping Baru

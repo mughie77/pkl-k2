@@ -92,7 +92,14 @@ try {
         <!-- Kolom Daftar Catatan -->
         <div class="col-lg-7">
             <div class="card shadow mb-4">
-                <div class="card-header"><h6 class="m-0 font-weight-bold text-primary">Riwayat Catatan</h6></div>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Riwayat Catatan</h6>
+                    <?php if ($selected_student_id && count($notes) > 0): ?>
+                        <a href="core/export_handler.php?report_type=student_problems&student_id=<?php echo $selected_student_id; ?>" class="btn btn-sm btn-success">
+                            <i class="fas fa-file-excel me-2"></i>Export Excel
+                        </a>
+                    <?php endif; ?>
+                </div>
                 <div class="card-body">
                     <?php if (count($notes) > 0): ?>
                         <?php foreach ($notes as $note): ?>

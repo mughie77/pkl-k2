@@ -20,6 +20,7 @@ if (in_array($user_role, ['student', 'teacher', 'instructor'])) :
 
         <?php if ($user_role === 'teacher'): ?>
             <a href="monitor_journals.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'monitor_journals.php' ? 'active' : ''; ?>"><i class="fas fa-book-reader"></i><span>Jurnal</span></a>
+            <a href="teacher_set_locations.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'teacher_set_locations.php' ? 'active' : ''; ?>"><i class="fas fa-map-marked-alt"></i><span>Lokasi</span></a>
             <a href="student_problems.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'student_problems.php' ? 'active' : ''; ?>"><i class="fas fa-exclamation-triangle"></i><span>Masalah</span></a>
             <a href="teacher_view_assessments.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'teacher_view_assessments.php' ? 'active' : ''; ?>"><i class="fas fa-graduation-cap"></i><span>Nilai</span></a>
         <?php endif; ?>
@@ -65,14 +66,14 @@ if (in_array($user_role, ['student', 'teacher', 'instructor'])) :
 <?php endif; ?>
 
 
-<!-- jQuery (diperlukan oleh Select2) -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-
 <!-- Bootstrap 5 JS Bundle (Popper.js included) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
 <!-- Select2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <!-- Custom JS -->
 <script src="<?php echo BASE_URL; ?>/assets/js/main.js"></script>

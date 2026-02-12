@@ -15,7 +15,7 @@ try {
     // Ambil data penilaian untuk siswa yang sedang login
     $stmt = $pdo->prepare("
         SELECT
-            a.discipline_score, a.skill_score, a.teamwork_score, a.diligence_score, a.feedback, a.assessment_date,
+            a.score_1, a.score_2, a.score_3, a.score_4, a.notes as feedback, a.assessment_date,
             i.name as instructor_name
         FROM internship_assessments a
         JOIN instructors i ON a.instructor_id = i.id
@@ -73,10 +73,10 @@ try {
                     <h6 class="m-0 font-weight-bold"><i class="fas fa-list-ol me-2"></i>Rincian Nilai</h6>
                 </div>
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between align-items-center">Kedisiplinan <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['discipline_score']; ?></span></li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">Keahlian (Skill) <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['skill_score']; ?></span></li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">Kerja Tim <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['teamwork_score']; ?></span></li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">Kerajinan <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['diligence_score']; ?></span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Memahami alur bisnis & wawasan wirausaha <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_1']; ?></span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Menerapkan kompetensi teknis <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_2']; ?></span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Menerapkan norma, SOP & K3LH <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_3']; ?></span></li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">Menerapkan soft skills <span class="badge bg-primary rounded-pill"><?php echo $assessment_data['score_4']; ?></span></li>
                 </ul>
             </div>
             <?php endif; ?>
@@ -94,18 +94,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const data = {
         labels: [
-            'Kedisiplinan',
-            'Keahlian (Skill)',
-            'Kerja Tim',
-            'Kerajinan'
+            'Alur Bisnis',
+            'Kompetensi Teknis',
+            'Norma & SOP',
+            'Soft Skills'
         ],
         datasets: [{
             label: 'Skor Penilaian',
             data: [
-                <?php echo $assessment_data['discipline_score']; ?>,
-                <?php echo $assessment_data['skill_score']; ?>,
-                <?php echo $assessment_data['teamwork_score']; ?>,
-                <?php echo $assessment_data['diligence_score']; ?>
+                <?php echo $assessment_data['score_1']; ?>,
+                <?php echo $assessment_data['score_2']; ?>,
+                <?php echo $assessment_data['score_3']; ?>,
+                <?php echo $assessment_data['score_4']; ?>
             ],
             fill: true,
             backgroundColor: 'rgba(54, 162, 235, 0.2)',

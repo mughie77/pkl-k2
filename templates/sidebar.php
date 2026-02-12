@@ -46,7 +46,9 @@ function create_nav_item($link, $icon, $text, $current_page) {
                 <div id="collapseSettings" class="collapse" aria-labelledby="headingSettings" data-bs-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item nav-link ms-3" href="school_settings.php">Profil Sekolah</a>
-                        <a class="collapse-item nav-link ms-3" href="manage_departments.php">Manajemen Jurusan</a>
+                        <a class="collapse-item nav-link ms-3" href="manage_program_keahlian.php">Program Keahlian</a>
+                        <a class="collapse-item nav-link ms-3" href="manage_konsentrasi_keahlian.php">Konsentrasi Keahlian</a>
+                        <a class="collapse-item nav-link ms-3" href="manage_kelas.php">Manajemen Kelas</a>
                         <a class="collapse-item nav-link ms-3" href="manage_academic_years.php">Tahun Pelajaran</a>
                     </div>
                 </div>
@@ -59,6 +61,7 @@ function create_nav_item($link, $icon, $text, $current_page) {
             <?php create_nav_item('report_consultation.php', 'fa-file-alt', 'Konsultasi Laporan', $current_page); ?>
             <?php create_nav_item('student_problems.php', 'fa-exclamation-triangle', 'Catatan Masalah Siswa', $current_page); ?>
             <?php create_nav_item('teacher_view_assessments.php', 'fa-graduation-cap', 'Lihat Nilai Siswa', $current_page); ?>
+            <?php create_nav_item('teacher_set_locations.php', 'fa-map-marked-alt', 'Set Lokasi DUDIKA', $current_page); ?>
         <?php endif; ?>
 
         <?php if ($user_role == 'instructor'): ?>
@@ -67,6 +70,7 @@ function create_nav_item($link, $icon, $text, $current_page) {
             <?php create_nav_item('manage_leave_requests.php', 'fa-calendar-check', 'Persetujuan Izin/Cuti', $current_page); ?>
             <?php create_nav_item('input_assessment.php', 'fa-edit', 'Input Penilaian', $current_page); ?>
             <?php create_nav_item('student_problems.php', 'fa-exclamation-triangle', 'Catatan Masalah Siswa', $current_page); ?>
+            <?php create_nav_item('global_recap.php', 'fa-chart-bar', 'Rekap Laporan', $current_page); ?>
         <?php endif; ?>
 
         <?php if ($user_role == 'student'): ?>

@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Daftar peran dan konfigurasi tabelnya
         $roles_config = [
             'admin' => ['table' => 'admins', 'user_col' => 'username'],
+            'waka_humas' => ['table' => 'waka_humas', 'user_col' => 'username'],
             'teacher' => ['table' => 'teachers', 'user_col' => 'nip'],
             'instructor' => ['table' => 'instructors', 'user_col' => 'serial_number'],
             'student' => ['table' => 'students', 'user_col' => 'nisn']
@@ -51,7 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     $user_found = true;
-                    header("Location: {$role}_dashboard.php");
+                    $dashboard_file = ($role === 'waka_humas') ? 'waka_humas_dashboard.php' : "{$role}_dashboard.php";
+                    header("Location: $dashboard_file");
                     exit;
                 }
             }
