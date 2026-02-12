@@ -1,7 +1,7 @@
 <?php
 $user_role = $_SESSION['user_role'] ?? 'guest';
 
-if (in_array($user_role, ['student', 'teacher', 'instructor'])) :
+if (in_array($user_role, ['student', 'teacher', 'instructor', 'waka_humas'])) :
     // Menu untuk peran non-admin
 ?>
     </div> <!-- .content-wrapper (penutup dari sidebar.php atau halaman peran non-admin) -->
@@ -26,7 +26,7 @@ if (in_array($user_role, ['student', 'teacher', 'instructor'])) :
 
         <?php if ($user_role === 'instructor'): ?>
             <a href="verify_journals.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'verify_journals.php' ? 'active' : ''; ?>"><i class="fas fa-tasks"></i><span>Verifikasi</span></a>
-            <a href="manage_leave_requests.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'manage_leave_requests.php' ? 'active' : ''; ?>"><i class="fas fa-calendar-check"></i><span>Izin</span></a>
+            <a href="riwayat_absensi_instruktur.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'riwayat_absensi_instruktur.php' ? 'active' : ''; ?>"><i class="fas fa-book-open"></i><span>R. Absen</span></a>
             <a href="input_assessment.php" class="bottom-nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'input_assessment.php' ? 'active' : ''; ?>"><i class="fas fa-edit"></i><span>Menilai</span></a>
         <?php endif; ?>
 
@@ -74,8 +74,12 @@ if (in_array($user_role, ['student', 'teacher', 'instructor'])) :
 <!-- Select2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 <!-- Custom JS -->
 <script src="<?php echo BASE_URL; ?>/assets/js/main.js"></script>
+<script src="<?php echo BASE_URL; ?>/assets/js/map_modal.js"></script>
 
 </body>
 </html>

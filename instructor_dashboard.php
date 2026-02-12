@@ -92,6 +92,12 @@ try {
                 <span class="icon-label">Catatan Masalah</span>
             </a>
         </div>
+        <div class="col">
+            <a href="monitor_journals.php" class="icon-menu-item">
+                <div class="icon-circle bg-info text-white"><i class="fas fa-book-open"></i></div>
+                <span class="icon-label">R. Absen</span>
+            </a>
+        </div>
     </div>
 
      <!-- Daftar Siswa Bimbingan -->

@@ -15,6 +15,7 @@ $user_info = [];
 // Tentukan tabel dan kolom username berdasarkan peran
 $auth_config = [
     'admin' => ['table' => 'admins', 'user_col' => 'username'],
+    'waka_humas' => ['table' => 'waka_humas', 'user_col' => 'username'],
     'teacher' => ['table' => 'teachers', 'user_col' => 'nip'],
     'instructor' => ['table' => 'instructors', 'user_col' => 'serial_number'],
     'student' => ['table' => 'students', 'user_col' => 'nisn']
@@ -114,7 +115,7 @@ try {
         </div>
     </div>
 
-    <?php if (in_array($user_role, ['student', 'teacher', 'instructor'])): ?>
+    <?php if (in_array($user_role, ['student', 'teacher', 'instructor', 'waka_humas'])): ?>
     <div class="mt-4 d-grid">
         <a href="logout.php" class="btn btn-danger btn-lg"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
     </div>

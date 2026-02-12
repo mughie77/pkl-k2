@@ -17,9 +17,9 @@ function set_flash_message($type, $message) {
 function redirect_based_on_role($role) {
     if ($role === 'instructor') {
         header("Location: ../verify_journals.php");
-    } elseif ($role === 'student') {
-        header("Location: ../daily_journal.php");
     } else {
+        // For student role, the response will be handled by AJAX, so no redirect needed here.
+        // For other roles or fallbacks, redirect to login.
         header("Location: ../login.php");
     }
     exit;
@@ -71,52 +71,58 @@ if ($user_role === 'instructor') {
 
 // --- LOGIKA UNTUK SISWA ---
 if ($user_role === 'student') {
+    header('Content-Type: application/json');
+    $response = ['status' => 'error', 'message' => 'Terjadi kesalahan yang tidak diketahui.'];
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $action = $_POST['action'] ?? '';
-
-        // Aksi: Check-in, Check-out, atau Submit Jurnal
         $today = date('Y-m-d');
 
         try {
-            // Cek apakah sudah ada jurnal untuk hari ini
             $journal_stmt = $pdo->prepare("SELECT * FROM internship_journals WHERE student_id = :student_id AND journal_date = :journal_date");
             $journal_stmt->execute([':student_id' => $user_id, ':journal_date' => $today]);
             $journal = $journal_stmt->fetch(PDO::FETCH_ASSOC);
 
             $current_time = date('H:i:s');
+            $latitude = !empty($_POST['latitude']) ? $_POST['latitude'] : null;
+            $longitude = !empty($_POST['longitude']) ? $_POST['longitude'] : null;
 
             if ($action === 'check_in') {
                 if (!$journal) {
-                    $stmt = $pdo->prepare("INSERT INTO internship_journals (student_id, journal_date, check_in_time, activities) VALUES (:student_id, :journal_date, :check_in_time, '')");
-                    $stmt->execute([':student_id' => $user_id, ':journal_date' => $today, ':check_in_time' => $current_time]);
-                    set_flash_message('success', 'Check-in berhasil dicatat.');
+                    $stmt = $pdo->prepare("INSERT INTO internship_journals (student_id, journal_date, check_in_time, check_in_latitude, check_in_longitude, activities) VALUES (:student_id, :journal_date, :check_in_time, :lat, :lon, '')");
+                    $stmt->execute([':student_id' => $user_id, ':journal_date' => $today, ':check_in_time' => $current_time, ':lat' => $latitude, ':lon' => $longitude]);
+                    $response = ['status' => 'success', 'message' => 'Check-in berhasil dicatat. Halaman akan dimuat ulang.'];
                 } else {
-                    set_flash_message('warning', 'Anda sudah melakukan check-in hari ini.');
+                    $response = ['status' => 'error', 'message' => 'Anda sudah melakukan check-in hari ini.'];
                 }
             } elseif ($action === 'check_out') {
                 if ($journal && !$journal['check_out_time']) {
-                    $stmt = $pdo->prepare("UPDATE internship_journals SET check_out_time = :check_out_time WHERE id = :id");
-                    $stmt->execute([':check_out_time' => $current_time, ':id' => $journal['id']]);
-                    set_flash_message('success', 'Check-out berhasil dicatat.');
+                    $stmt = $pdo->prepare("UPDATE internship_journals SET check_out_time = :check_out_time, check_out_latitude = :lat, check_out_longitude = :lon WHERE id = :id");
+                    $stmt->execute([':check_out_time' => $current_time, ':lat' => $latitude, ':lon' => $longitude, ':id' => $journal['id']]);
+                    $response = ['status' => 'success', 'message' => 'Check-out berhasil dicatat. Halaman akan dimuat ulang.'];
                 } else {
-                    set_flash_message('warning', 'Anda belum check-in atau sudah check-out hari ini.');
+                    $response = ['status' => 'error', 'message' => 'Anda belum check-in atau sudah check-out hari ini.'];
                 }
             } elseif ($action === 'submit_journal') {
                 $activities = trim($_POST['activities'] ?? '');
                 if ($journal && !empty($activities)) {
                     $stmt = $pdo->prepare("UPDATE internship_journals SET activities = :activities WHERE id = :id");
                     $stmt->execute([':activities' => $activities, ':id' => $journal['id']]);
-                    set_flash_message('success', 'Jurnal harian berhasil dikirim.');
+                    // Note: This part is not handled by AJAX in the current implementation, but we'll add a response anyway
+                    $response = ['status' => 'success', 'message' => 'Jurnal harian berhasil dikirim.'];
                 } else {
-                    set_flash_message('danger', 'Gagal mengirim jurnal. Pastikan Anda sudah check-in dan mengisi kegiatan.');
+                    $response = ['status' => 'error', 'message' => 'Gagal mengirim jurnal. Pastikan Anda sudah check-in dan mengisi kegiatan.'];
                 }
+            } else {
+                $response = ['status' => 'error', 'message' => 'Aksi tidak valid.'];
             }
-
         } catch (PDOException $e) {
-            set_flash_message('danger', 'Terjadi kesalahan: ' . $e->getMessage());
+            $response = ['status' => 'error', 'message' => 'Terjadi kesalahan database: ' . $e->getMessage()];
         }
     }
-    redirect_based_on_role($user_role);
+
+    echo json_encode($response);
+    exit;
 }
 
 // Fallback jika tidak ada kondisi yang cocok

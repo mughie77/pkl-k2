@@ -15,6 +15,7 @@ try {
     $stmt = $pdo->prepare("
         SELECT
             j.id, j.journal_date, j.check_in_time, j.check_out_time, j.activities,
+            j.check_in_latitude, j.check_in_longitude, j.check_out_latitude, j.check_out_longitude,
             s.name as student_name
         FROM internship_journals j
         JOIN internship_mappings m ON j.student_id = m.student_id
@@ -74,8 +75,29 @@ try {
                                                 data-checkout="<?php echo $journal['check_out_time'] ? date('H:i', strtotime($journal['check_out_time'])) : 'N/A'; ?>"
                                                 data-activities="<?php echo htmlspecialchars($journal['activities']); ?>"
                                                 data-bs-toggle="modal" data-bs-target="#journalModal">
-                                            <i class="fas fa-eye me-1"></i> Detail & Aksi
+                                            <i class="fas fa-eye me-1"></i> Detail
                                         </button>
+                                         <?php if (!empty($journal['check_in_latitude']) && !empty($journal['check_in_longitude'])): ?>
+                                            <button class="btn btn-success btn-sm view-location-btn"
+                                                    data-journal-id="<?php echo $journal['id']; ?>"
+                                                    data-location-type="check_in"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#locationModal"
+                                                    title="Lihat Lokasi Check-in">
+                                                <i class="fas fa-map-marker-alt"></i> In
+                                            </button>
+                                        <?php endif; ?>
+
+                                        <?php if (!empty($journal['check_out_latitude']) && !empty($journal['check_out_longitude'])): ?>
+                                            <button class="btn btn-danger btn-sm view-location-btn"
+                                                    data-journal-id="<?php echo $journal['id']; ?>"
+                                                    data-location-type="check_out"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#locationModal"
+                                                    title="Lihat Lokasi Check-out">
+                                                <i class="fas fa-map-marker-alt"></i> Out
+                                            </button>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -121,6 +143,21 @@ try {
             </div>
         </div>
     </div>
+</div>
+
+<!-- Modal untuk Peta Lokasi -->
+<div class="modal fade" id="locationModal" tabindex="-1" aria-labelledby="locationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="locationModalLabel">Lokasi Absen Siswa</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="map" style="height: 450px;"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
