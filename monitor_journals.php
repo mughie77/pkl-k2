@@ -29,6 +29,7 @@ try {
     $query = "
         SELECT
             j.journal_date, j.check_in_time, j.check_out_time, j.status, j.activities,
+            j.check_in_latitude, j.check_in_longitude, j.check_out_latitude, j.check_out_longitude,
             s.name as student_name, s.work_start_time, s.work_end_time
         FROM internship_journals j
         JOIN students s ON j.student_id = s.id
@@ -109,8 +110,11 @@ function get_status_badge($status) {
 
     <!-- Data Table -->
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Data Jurnal dan Kehadiran</h6>
+            <a href="core/export_handler.php?report_type=journal_recap&student_id=<?php echo urlencode($filter_student_id); ?>&start_date=<?php echo urlencode($filter_start_date); ?>&end_date=<?php echo urlencode($filter_end_date); ?>" class="btn btn-sm btn-success">
+                <i class="fas fa-file-excel me-2"></i>Export to Excel
+            </a>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -146,6 +150,17 @@ function get_status_badge($status) {
                                                 data-bs-toggle="modal" data-bs-target="#viewJournalModal">
                                             <i class="fas fa-eye"></i> Lihat Jurnal
                                         </button>
+                                        <?php if ($journal['check_in_latitude'] && $journal['check_in_longitude']): ?>
+                                            <button class="btn btn-secondary btn-sm view-location-btn"
+                                                    data-lat-in="<?php echo $journal['check_in_latitude']; ?>"
+                                                    data-lng-in="<?php echo $journal['check_in_longitude']; ?>"
+                                                    data-lat-out="<?php echo $journal['check_out_latitude']; ?>"
+                                                    data-lng-out="<?php echo $journal['check_out_longitude']; ?>"
+                                                    data-student-name="<?php echo htmlspecialchars($journal['student_name']); ?>"
+                                                    data-bs-toggle="modal" data-bs-target="#viewLocationModal">
+                                                <i class="fas fa-map-marker-alt"></i> Lihat Lokasi
+                                            </button>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -181,24 +196,94 @@ function get_status_badge($status) {
     </div>
 </div>
 
+<!-- Modal untuk Peta Lokasi -->
+<div class="modal fade" id="viewLocationModal" tabindex="-1" aria-labelledby="viewLocationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewLocationModalLabel">Lokasi Absensi Siswa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Lokasi <strong id="location_student_name"></strong> saat melakukan check-in.</p>
+                <div id="map" style="height: 400px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // Initialize Select2
     $('#student_id').select2({
         theme: 'bootstrap-5'
     });
 
     const viewJournalModal = document.getElementById('viewJournalModal');
-    viewJournalModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        const activities = button.dataset.activities;
-        const studentName = button.dataset.studentName;
-        const journalDate = button.dataset.journalDate;
+    if (viewJournalModal) {
+        viewJournalModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const activities = button.dataset.activities;
+            const studentName = button.dataset.studentName;
+            const journalDate = button.dataset.journalDate;
 
-        viewJournalModal.querySelector('#modal_student_name').textContent = studentName;
-        viewJournalModal.querySelector('#modal_journal_date').textContent = journalDate;
-        viewJournalModal.querySelector('#journal_activities_content').textContent = activities;
-    });
+            viewJournalModal.querySelector('#modal_student_name').textContent = studentName;
+            viewJournalModal.querySelector('#modal_journal_date').textContent = journalDate;
+            viewJournalModal.querySelector('#journal_activities_content').textContent = activities;
+        });
+    }
+
+    let map;
+    let markers = [];
+    const viewLocationModal = document.getElementById('viewLocationModal');
+    if (viewLocationModal) {
+        viewLocationModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            if (!button) return;
+
+            const latIn = parseFloat(button.dataset.latIn);
+            const lngIn = parseFloat(button.dataset.lngIn);
+            const latOut = button.dataset.latOut ? parseFloat(button.dataset.latOut) : null;
+            const lngOut = button.dataset.lngOut ? parseFloat(button.dataset.lngOut) : null;
+            const studentName = button.dataset.studentName;
+
+            viewLocationModal.querySelector('#location_student_name').textContent = studentName;
+
+            setTimeout(() => {
+                if (!map) {
+                    map = L.map('map').setView([latIn, lngIn], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                }
+
+                markers.forEach(marker => map.removeLayer(marker));
+                markers = [];
+
+                const checkinMarker = L.marker([latIn, lngIn]).addTo(map)
+                    .bindPopup(`Lokasi Check-in: ${studentName}`);
+                markers.push(checkinMarker);
+
+                if (latOut && lngOut) {
+                    const checkoutMarker = L.marker([latOut, lngOut], {
+                        icon: L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png'
+                        })
+                    }).addTo(map).bindPopup(`Lokasi Check-out: ${studentName}`);
+                    markers.push(checkoutMarker);
+
+                    const group = new L.featureGroup(markers);
+                    map.fitBounds(group.getBounds().pad(0.5));
+                } else {
+                    map.setView([latIn, lngIn], 15);
+                    checkinMarker.openPopup();
+                }
+
+                map.invalidateSize();
+            }, 500);
+        });
+    }
 });
 </script>
 

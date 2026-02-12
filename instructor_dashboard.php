@@ -24,17 +24,19 @@ try {
     $stmt_pending_journals->execute([':id' => $instructor_id]);
     $pending_journals_count = $stmt_pending_journals->fetchColumn();
 
-    $stmt_pending_leave = $pdo->prepare("SELECT COUNT(id) FROM leave_requests WHERE instructor_id = :id AND status = 'Pending'");
+    $stmt_pending_leave = $pdo->prepare("SELECT COUNT(id) FROM leave_requests WHERE instructor_id = :id AND leave_status = 'Pending'");
     $stmt_pending_leave->execute([':id' => $instructor_id]);
     $pending_leave_count = $stmt_pending_leave->fetchColumn();
 
     // Ambil daftar siswa bimbingan
     $stmt_students = $pdo->prepare("
-        SELECT s.id, s.name, d.department_name
+        SELECT s.id, s.student_name, pk.program_name
         FROM students s
-        JOIN departments d ON s.department_id = d.id
+        LEFT JOIN kelas k ON s.kelas_id = k.id
+        LEFT JOIN konsentrasi_keahlian kk ON k.konsentrasi_id = kk.id
+        LEFT JOIN program_keahlian pk ON kk.program_id = pk.id
         JOIN internship_mappings m ON s.id = m.student_id
-        WHERE m.instructor_id = :id ORDER BY s.name ASC
+        WHERE m.instructor_id = :id ORDER BY s.student_name ASC
     ");
     $stmt_students->execute([':id' => $instructor_id]);
     $assigned_students = $stmt_students->fetchAll(PDO::FETCH_ASSOC);
@@ -105,7 +107,7 @@ try {
                     <thead>
                         <tr>
                             <th>Nama Siswa</th>
-                            <th>Jurusan</th>
+                            <th>Program Keahlian</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -113,8 +115,8 @@ try {
                         <?php if (count($assigned_students) > 0): ?>
                             <?php foreach ($assigned_students as $student): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($student['name']); ?></td>
-                                    <td><?php echo htmlspecialchars($student['department_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($student['student_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($student['program_name']); ?></td>
                                     <td>
                                         <a href="student_details.php?id=<?php echo $student['id']; ?>" class="btn btn-info btn-sm">
                                             <i class="fas fa-eye"></i> Detail

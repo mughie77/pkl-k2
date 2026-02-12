@@ -82,6 +82,29 @@ INSERT INTO `admins` (`name`, `username`, `password`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `waka_humas`
+--
+
+CREATE TABLE `waka_humas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `waka_humas`
+--
+
+INSERT INTO `waka_humas` (`id`, `name`, `username`, `password`) VALUES
+(1, 'Waka Humas', 'waka', '$2y$10$9.M4B3Y.X2a5c.dE6f.gH8i.jK0l.mN1o.pQ2r.sT3u.vW4x.yZ5'); -- password: admin
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `teachers`
 --
 
